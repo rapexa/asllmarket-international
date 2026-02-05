@@ -145,7 +145,7 @@ func NewRouter(
 		protectedRFQs.GET("", rfqHandler.GetMyRFQs)
 		protectedRFQs.POST("", rfqHandler.Create)
 		// Specific routes must come before generic :id route
-		protectedRFQs.GET("/:rfqId/responses", rfqHandler.ListResponses)
+		protectedRFQs.GET("/:id/responses", rfqHandler.ListResponses)
 		protectedRFQs.POST("/responses", rfqHandler.CreateResponse)
 		// Generic :id route must be last
 		protectedRFQs.GET("/:id", rfqHandler.GetByID)
@@ -225,24 +225,24 @@ func NewRouter(
 		adminDashboard.GET("/dashboard/top-products", adminHandler.GetTopProducts)
 		adminDashboard.GET("/dashboard/user-stats", adminHandler.GetUserStats)
 		adminDashboard.GET("/dashboard/activities", adminHandler.GetRecentActivities)
-		
+
 		// User management endpoints
 		adminDashboard.GET("/buyers", adminHandler.ListBuyers)
 		adminDashboard.PATCH("/users/:userId/status", adminHandler.UpdateUserStatus)
-		
+
 		// Product management endpoints
 		adminDashboard.GET("/products", adminHandler.ListProducts)
 		adminDashboard.PATCH("/products/:productId/status", adminHandler.UpdateProductStatus)
 		adminDashboard.DELETE("/products/:productId", adminHandler.DeleteProduct)
-		
+
 		// Order management endpoints
 		adminDashboard.GET("/orders", adminHandler.ListOrders)
 		adminDashboard.PATCH("/orders/:orderId/status", adminHandler.UpdateOrderStatus)
-		
+
 		// Supplier management endpoints
 		adminDashboard.GET("/suppliers", adminHandler.ListSuppliers)
 		adminDashboard.PATCH("/suppliers/:supplierId/status", adminHandler.UpdateSupplierStatus)
-		
+
 		// Verification management endpoints
 		adminDashboard.GET("/verifications", adminHandler.ListVerifications)
 		adminDashboard.POST("/verifications/:verificationId/review", adminHandler.ReviewVerification)
@@ -250,4 +250,3 @@ func NewRouter(
 
 	return router
 }
-

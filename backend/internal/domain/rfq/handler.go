@@ -109,7 +109,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 // ListResponses returns all responses for an RFQ.
 func (h *Handler) ListResponses(c *gin.Context) {
-	rfqID := c.Param("rfqId")
+	rfqID := c.Param("id")
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()

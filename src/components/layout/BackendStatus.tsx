@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const BackendStatus: React.FC = () => {
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
 
-  const checkBackendStatus = async () => {
-    setIsChecking(true);
+  const checkBackendStatus = useCallback(async () => {
+    if (!isMountedRef.current) return;
+    
     try {
       const apiUrl = import.meta.env.PROD 
         ? 'https://asllmarket.org/backend/healthz'
@@ -19,34 +21,58 @@ const BackendStatus: React.FC = () => {
       const response = await fetch(apiUrl, {
         method: 'GET',
         signal: controller.signal,
+        cache: 'no-cache',
       });
       
       clearTimeout(timeoutId);
       
+      if (!isMountedRef.current) return;
+      
       if (response.ok) {
         const data = await response.json();
-        setIsOnline(data.status === 'ok');
+        setIsOnline(prev => {
+          // Only update if state actually changed to prevent unnecessary re-renders
+          if (prev !== (data.status === 'ok')) {
+            return data.status === 'ok';
+          }
+          return prev;
+        });
       } else {
-        setIsOnline(false);
+        setIsOnline(prev => prev !== false ? false : prev);
       }
     } catch (error) {
-      setIsOnline(false);
-    } finally {
-      setIsChecking(false);
+      if (!isMountedRef.current) return;
+      setIsOnline(prev => prev !== false ? false : prev);
     }
-  };
-
-  useEffect(() => {
-    // Check immediately
-    checkBackendStatus();
-    
-    // Check every 30 seconds
-    const interval = setInterval(checkBackendStatus, 30000);
-    
-    return () => clearInterval(interval);
   }, []);
 
-  if (isOnline === null && !isChecking) {
+  useEffect(() => {
+    isMountedRef.current = true;
+    
+    // Check immediately (with delay to avoid blocking initial render)
+    const initialTimeout = setTimeout(() => {
+      if (isMountedRef.current) {
+        checkBackendStatus();
+      }
+    }, 1000);
+    
+    // Check every 30 seconds
+    intervalRef.current = setInterval(() => {
+      if (isMountedRef.current) {
+        checkBackendStatus();
+      }
+    }, 30000);
+    
+    return () => {
+      isMountedRef.current = false;
+      clearTimeout(initialTimeout);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [checkBackendStatus]);
+
+  if (isOnline === null) {
     return null; // Don't show anything until first check
   }
 
@@ -75,4 +101,4 @@ const BackendStatus: React.FC = () => {
   );
 };
 
-export default BackendStatus;
+export default React.memo(BackendStatus);

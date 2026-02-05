@@ -8,9 +8,9 @@ http:
 db:
   host: localhost
   port: 3306
-  user: root
-  pass: password
-  name: global_trade_hub
+  user: asllmarket_user
+  pass: YOUR_SECURE_PASSWORD
+  name: asllmarket_international
 
 jwt:
   secret: your-secret-key-change-this-in-production
@@ -20,6 +20,8 @@ cors:
   allowed_origins:
     - http://localhost:5173
     - http://localhost:3000
+    - https://asllmarket.org
+    - https://www.asllmarket.org
   allowed_methods:
     - GET
     - POST

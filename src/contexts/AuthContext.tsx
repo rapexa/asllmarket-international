@@ -24,19 +24,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Load user on mount
   useEffect(() => {
+    let isMounted = true;
+    
     const loadUser = async () => {
       try {
         const currentUser = await authService.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-        setUser(null);
+        if (isMounted) {
+          setUser(currentUser);
+        }
+      } catch (error: any) {
+        // Don't redirect on 401 - just set user to null
+        // Redirect should only happen on actual API calls, not on initial load
+        if (isMounted) {
+          console.error('Failed to load user:', error);
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadUser();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (email: string, password: string) => {

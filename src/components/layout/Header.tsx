@@ -11,6 +11,7 @@ import NotificationPanel from '@/components/notifications/NotificationPanel';
 import { Language, languages } from '@/lib/i18n';
 import AdvancedSearchBox from '@/components/search/AdvancedSearchBox';
 import CategoriesSidePanel from '@/components/categories/CategoriesSidePanel';
+import BackendStatus from '@/components/layout/BackendStatus';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +43,7 @@ const Header: React.FC = () => {
               <span className="opacity-90 whitespace-nowrap hidden xl:inline">🚀 AI-Powered Search</span>
             </div>
             <div className="flex items-center gap-2 md:gap-3 ms-auto">
+              <BackendStatus />
               <ThemeToggle variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-light/50 h-8 w-8 md:h-9 md:w-9" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

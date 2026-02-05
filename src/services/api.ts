@@ -98,14 +98,24 @@ async function apiRequest<T>(
             return retryResponse.json();
           }
         } catch (refreshError) {
-          // Refresh failed, clear tokens and redirect to login
+          // Refresh failed, clear tokens
           clearTokens();
-          window.location.href = '/login';
+          // Only redirect if not already on login/register page and not initial auth check
+          if (!window.location.pathname.includes('/login') && 
+              !window.location.pathname.includes('/register') &&
+              endpoint !== '/me') {
+            window.location.href = '/login';
+          }
           throw new ApiError(401, 'Session expired, please login again');
         }
       } else {
         clearTokens();
-        window.location.href = '/login';
+        // Only redirect if not already on login/register page and not initial auth check
+        if (!window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register') &&
+            endpoint !== '/me') {
+          window.location.href = '/login';
+        }
         throw new ApiError(401, 'Unauthorized');
       }
     }

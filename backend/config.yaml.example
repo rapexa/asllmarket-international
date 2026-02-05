@@ -1,0 +1,33 @@
+app:
+  env: development
+
+http:
+  host: 0.0.0.0
+  port: 8080
+
+db:
+  host: localhost
+  port: 3306
+  user: root
+  pass: password
+  name: global_trade_hub
+
+jwt:
+  secret: your-secret-key-change-this-in-production
+  issuer: global-trade-hub
+
+cors:
+  allowed_origins:
+    - http://localhost:5173
+    - http://localhost:3000
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
+  allowed_headers:
+    - Content-Type
+    - Authorization
+  allow_credentials: true

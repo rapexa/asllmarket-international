@@ -132,13 +132,6 @@ func NewRouter(
 		protectedOrders.GET("/supplier/:supplierId", orderHandler.GetSupplierOrders)
 	}
 
-	// Admin orders endpoint
-	adminOrders := protected.Group("/admin/orders")
-	{
-		adminOrders.GET("", orderHandler.List)
-		adminOrders.DELETE("/:id", orderHandler.Delete)
-	}
-
 	// RFQs (protected)
 	protectedRFQs := protected.Group("/rfqs")
 	{
@@ -238,6 +231,7 @@ func NewRouter(
 		// Order management endpoints
 		adminDashboard.GET("/orders", adminHandler.ListOrders)
 		adminDashboard.PATCH("/orders/:orderId/status", adminHandler.UpdateOrderStatus)
+		adminDashboard.DELETE("/orders/:id", orderHandler.Delete)
 
 		// Supplier management endpoints
 		adminDashboard.GET("/suppliers", adminHandler.ListSuppliers)

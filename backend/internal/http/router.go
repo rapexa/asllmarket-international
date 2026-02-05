@@ -166,14 +166,6 @@ func NewRouter(
 		protectedVerifications.POST("", verificationHandler.Submit)
 	}
 
-	// Admin verifications endpoint
-	adminVerifications := protected.Group("/admin/verifications")
-	{
-		adminVerifications.GET("", verificationHandler.List)
-		adminVerifications.GET("/:id", verificationHandler.GetByID)
-		adminVerifications.PATCH("/:id/review", verificationHandler.Review)
-	}
-
 	// Categories (public read-only, static data)
 	api.GET("/categories", categoryHandler.List)
 	api.GET("/categories/:id", categoryHandler.GetByID)
@@ -239,7 +231,9 @@ func NewRouter(
 
 		// Verification management endpoints
 		adminDashboard.GET("/verifications", adminHandler.ListVerifications)
+		adminDashboard.GET("/verifications/:id", verificationHandler.GetByID)
 		adminDashboard.POST("/verifications/:verificationId/review", adminHandler.ReviewVerification)
+		adminDashboard.PATCH("/verifications/:id/review", verificationHandler.Review)
 	}
 
 	return router

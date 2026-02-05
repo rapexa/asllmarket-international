@@ -1,5 +1,9 @@
 // API client configuration and utilities
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+// Production: https://asllmarket.org/backend (nginx proxies to http://localhost:8083/api/v1)
+// Development: http://localhost:8083/api/v1 (direct connection)
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://asllmarket.org/backend/api/v1' 
+  : 'https://asllmarket.org/backend/api/v1';
 
 // Token management
 const TOKEN_KEY = 'auth_token';

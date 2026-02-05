@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -22,13 +23,13 @@ type Config struct {
 	MySQLDB       string
 	MySQLParams   string // optional, e.g. "parseTime=true&loc=Local"
 
-	JWTSecret           string
-	JWTIssuer           string
-	JWTAccessTokenTTL   time.Duration
-	JWTRefreshTokenTTL  time.Duration
-	CORSAllowedOrigins  []string
-	CORSAllowedMethods  []string
-	CORSAllowedHeaders  []string
+	JWTSecret            string
+	JWTIssuer            string
+	JWTAccessTokenTTL    time.Duration
+	JWTRefreshTokenTTL   time.Duration
+	CORSAllowedOrigins   []string
+	CORSAllowedMethods   []string
+	CORSAllowedHeaders   []string
 	CORSAllowCredentials bool
 }
 
@@ -59,13 +60,34 @@ func Load() (*Config, error) {
 	v.SetDefault("CORS_ALLOWED_HEADERS", []string{"Authorization", "Content-Type", "X-Requested-With"})
 	v.SetDefault("CORS_ALLOW_CREDENTIALS", true)
 
-	// Optional config file (backend/config.{yaml,json,toml,...})
+	// Set config file (backend/config.{yaml,json,toml,...})
 	v.SetConfigName("config")
+	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
 	v.AddConfigPath("./backend")
-	_ = v.ReadInConfig() // ignore error; config file is optional
 
-	// Environment variables
+	// Read config file first (before environment variables)
+	if err := v.ReadInConfig(); err != nil {
+		// Log warning but continue with defaults/env
+		fmt.Printf("Warning: Could not read config file: %v\n", err)
+	} else {
+		fmt.Printf("Using config file: %s\n", v.ConfigFileUsed())
+	}
+
+	// Set up environment variable bindings with nested key support
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.BindEnv("app.env", "APP_ENV")
+	v.BindEnv("http.host", "HTTP_HOST")
+	v.BindEnv("http.port", "HTTP_PORT")
+	v.BindEnv("db.host", "MYSQL_HOST")
+	v.BindEnv("db.port", "MYSQL_PORT")
+	v.BindEnv("db.user", "MYSQL_USER")
+	v.BindEnv("db.pass", "MYSQL_PASSWORD")
+	v.BindEnv("db.name", "MYSQL_DB")
+	v.BindEnv("jwt.secret", "JWT_SECRET")
+	v.BindEnv("jwt.issuer", "JWT_ISSUER")
+
+	// Environment variables (will override config file)
 	v.AutomaticEnv()
 
 	accessTTL, err := time.ParseDuration(v.GetString("JWT_ACCESS_TOKEN_TTL"))
@@ -78,27 +100,28 @@ func Load() (*Config, error) {
 	}
 
 	cfg := &Config{
-		AppEnv: v.GetString("APP_ENV"),
+		// Support both nested YAML (app.env) and flat env vars (APP_ENV)
+		AppEnv: getString(v, "app.env", "APP_ENV"),
 
-		HTTPHost: v.GetString("HTTP_HOST"),
-		HTTPPort: v.GetInt("HTTP_PORT"),
+		HTTPHost: getString(v, "http.host", "HTTP_HOST"),
+		HTTPPort: getInt(v, "http.port", "HTTP_PORT"),
 
-		MySQLHost:     v.GetString("MYSQL_HOST"),
-		MySQLPort:     v.GetInt("MYSQL_PORT"),
-		MySQLUser:     v.GetString("MYSQL_USER"),
-		MySQLPassword: v.GetString("MYSQL_PASSWORD"),
-		MySQLDB:       v.GetString("MYSQL_DB"),
-		MySQLParams:   v.GetString("MYSQL_PARAMS"),
+		MySQLHost:     getString(v, "db.host", "MYSQL_HOST"),
+		MySQLPort:     getInt(v, "db.port", "MYSQL_PORT"),
+		MySQLUser:     getString(v, "db.user", "MYSQL_USER"),
+		MySQLPassword: getString(v, "db.pass", "MYSQL_PASSWORD"),
+		MySQLDB:       getString(v, "db.name", "MYSQL_DB"),
+		MySQLParams:   getString(v, "db.params", "MYSQL_PARAMS"),
 
-		JWTSecret:          v.GetString("JWT_SECRET"),
-		JWTIssuer:          v.GetString("JWT_ISSUER"),
+		JWTSecret:          getString(v, "jwt.secret", "JWT_SECRET"),
+		JWTIssuer:          getString(v, "jwt.issuer", "JWT_ISSUER"),
 		JWTAccessTokenTTL:  accessTTL,
 		JWTRefreshTokenTTL: refreshTTL,
 
-		CORSAllowedOrigins:   v.GetStringSlice("CORS_ALLOWED_ORIGINS"),
-		CORSAllowedMethods:   v.GetStringSlice("CORS_ALLOWED_METHODS"),
-		CORSAllowedHeaders:   v.GetStringSlice("CORS_ALLOWED_HEADERS"),
-		CORSAllowCredentials: v.GetBool("CORS_ALLOW_CREDENTIALS"),
+		CORSAllowedOrigins:   getStringSlice(v, "cors.allowed_origins", "CORS_ALLOWED_ORIGINS"),
+		CORSAllowedMethods:   getStringSlice(v, "cors.allowed_methods", "CORS_ALLOWED_METHODS"),
+		CORSAllowedHeaders:   getStringSlice(v, "cors.allowed_headers", "CORS_ALLOWED_HEADERS"),
+		CORSAllowCredentials: getBool(v, "cors.allow_credentials", "CORS_ALLOW_CREDENTIALS"),
 	}
 
 	if cfg.JWTSecret == "" {
@@ -113,3 +136,39 @@ func (c *Config) HTTPAddress() string {
 	return fmt.Sprintf("%s:%d", c.HTTPHost, c.HTTPPort)
 }
 
+// Helper functions to support both nested YAML keys and flat env vars
+func getString(v *viper.Viper, nestedKey, envKey string) string {
+	// Try nested key first (from YAML)
+	if v.IsSet(nestedKey) {
+		return v.GetString(nestedKey)
+	}
+	// Fall back to flat env var
+	return v.GetString(envKey)
+}
+
+func getInt(v *viper.Viper, nestedKey, envKey string) int {
+	// Try nested key first (from YAML)
+	if v.IsSet(nestedKey) {
+		return v.GetInt(nestedKey)
+	}
+	// Fall back to flat env var
+	return v.GetInt(envKey)
+}
+
+func getBool(v *viper.Viper, nestedKey, envKey string) bool {
+	// Try nested key first (from YAML)
+	if v.IsSet(nestedKey) {
+		return v.GetBool(nestedKey)
+	}
+	// Fall back to flat env var
+	return v.GetBool(envKey)
+}
+
+func getStringSlice(v *viper.Viper, nestedKey, envKey string) []string {
+	// Try nested key first (from YAML)
+	if v.IsSet(nestedKey) {
+		return v.GetStringSlice(nestedKey)
+	}
+	// Fall back to flat env var
+	return v.GetStringSlice(envKey)
+}

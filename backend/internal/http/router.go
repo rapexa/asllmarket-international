@@ -143,10 +143,12 @@ func NewRouter(
 	protectedRFQs := protected.Group("/rfqs")
 	{
 		protectedRFQs.GET("", rfqHandler.GetMyRFQs)
-		protectedRFQs.GET("/:id", rfqHandler.GetByID)
 		protectedRFQs.POST("", rfqHandler.Create)
+		// Specific routes must come before generic :id route
 		protectedRFQs.GET("/:rfqId/responses", rfqHandler.ListResponses)
 		protectedRFQs.POST("/responses", rfqHandler.CreateResponse)
+		// Generic :id route must be last
+		protectedRFQs.GET("/:id", rfqHandler.GetByID)
 	}
 
 	// Admin RFQs endpoint

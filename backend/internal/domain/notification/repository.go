@@ -31,13 +31,12 @@ func NewMySQLNotificationRepository(db *sql.DB) Repository {
 }
 
 func (r *mySQLNotificationRepository) ListByUserID(ctx context.Context, userID string, limit, offset int) ([]*Notification, error) {
-	const query = `
-SELECT id, user_id, type, priority, title, description, icon, action_url, action_label, 
-       read, metadata, created_at, read_at
-FROM notifications
-WHERE user_id = ?
-ORDER BY created_at DESC
-LIMIT ? OFFSET ?`
+	const query = "SELECT id, user_id, type, priority, title, description, icon, action_url, action_label, " +
+		"`read`, metadata, created_at, read_at " +
+		"FROM notifications " +
+		"WHERE user_id = ? " +
+		"ORDER BY created_at DESC " +
+		"LIMIT ? OFFSET ?"
 
 	rows, err := r.db.QueryContext(ctx, query, userID, limit, offset)
 	if err != nil {
@@ -61,11 +60,10 @@ LIMIT ? OFFSET ?`
 }
 
 func (r *mySQLNotificationRepository) GetByID(ctx context.Context, id string) (*Notification, error) {
-	const query = `
-SELECT id, user_id, type, priority, title, description, icon, action_url, action_label, 
-       read, metadata, created_at, read_at
-FROM notifications
-WHERE id = ? LIMIT 1`
+	const query = "SELECT id, user_id, type, priority, title, description, icon, action_url, action_label, " +
+		"`read`, metadata, created_at, read_at " +
+		"FROM notifications " +
+		"WHERE id = ? LIMIT 1"
 
 	var n Notification
 	if err := r.db.QueryRowContext(ctx, query, id).Scan(
@@ -87,11 +85,10 @@ func (r *mySQLNotificationRepository) Create(ctx context.Context, n *Notificatio
 	}
 	n.CreatedAt = time.Now().UTC()
 
-	const query = `
-INSERT INTO notifications (
-	id, user_id, type, priority, title, description, icon, action_url, action_label, 
-	read, metadata, created_at, read_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	const query = "INSERT INTO notifications (" +
+		"id, user_id, type, priority, title, description, icon, action_url, action_label, " +
+		"`read`, metadata, created_at, read_at" +
+		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	_, err := r.db.ExecContext(ctx, query,
 		n.ID, n.UserID, n.Type, n.Priority, n.Title, n.Description,
@@ -103,7 +100,7 @@ INSERT INTO notifications (
 
 func (r *mySQLNotificationRepository) MarkAsRead(ctx context.Context, id string) error {
 	now := time.Now().UTC()
-	const query = `UPDATE notifications SET read = TRUE, read_at = ? WHERE id = ?`
+	const query = "UPDATE notifications SET `read` = TRUE, read_at = ? WHERE id = ?"
 	res, err := r.db.ExecContext(ctx, query, now, id)
 	if err != nil {
 		return err
@@ -120,7 +117,7 @@ func (r *mySQLNotificationRepository) MarkAsRead(ctx context.Context, id string)
 
 func (r *mySQLNotificationRepository) MarkAllAsRead(ctx context.Context, userID string) error {
 	now := time.Now().UTC()
-	const query = `UPDATE notifications SET read = TRUE, read_at = ? WHERE user_id = ? AND read = FALSE`
+	const query = "UPDATE notifications SET `read` = TRUE, read_at = ? WHERE user_id = ? AND `read` = FALSE"
 	_, err := r.db.ExecContext(ctx, query, now, userID)
 	return err
 }

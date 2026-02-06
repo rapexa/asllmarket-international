@@ -16,6 +16,9 @@ type ContactMessage struct {
 	Metadata    string    `db:"metadata" json:"metadata"`
 }
 
+// TableName overrides GORM's default table name for ContactMessage.
+func (ContactMessage) TableName() string { return "cms_contact_messages" }
+
 // CreateContactMessageInput is the payload for creating a contact message.
 type CreateContactMessageInput struct {
 	Name        string `json:"name" binding:"required"`
@@ -49,6 +52,9 @@ type BlogPost struct {
 	UpdatedAt   time.Time `db:"updated_at" json:"updatedAt"`
 }
 
+// TableName overrides GORM's default table name for BlogPost.
+func (BlogPost) TableName() string { return "cms_blog_posts" }
+
 // FAQ represents a frequently asked question (multilingual).
 type FAQ struct {
 	ID         string    `db:"id" json:"id"`
@@ -63,6 +69,9 @@ type FAQ struct {
 	CreatedAt  time.Time `db:"created_at" json:"createdAt"`
 	UpdatedAt  time.Time `db:"updated_at" json:"updatedAt"`
 }
+
+// TableName overrides GORM's default table name for FAQ.
+func (FAQ) TableName() string { return "cms_faqs" }
 
 // Job represents a career opportunity.
 type Job struct {
@@ -81,6 +90,9 @@ type Job struct {
 	UpdatedAt   time.Time `db:"updated_at" json:"updatedAt"`
 }
 
+// TableName overrides GORM's default table name for Job.
+func (Job) TableName() string { return "cms_jobs" }
+
 // PressRelease represents a press/news item.
 type PressRelease struct {
 	ID          string    `db:"id" json:"id"`
@@ -94,6 +106,9 @@ type PressRelease struct {
 	CreatedAt   time.Time `db:"created_at" json:"createdAt"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updatedAt"`
 }
+
+// TableName overrides GORM's default table name for PressRelease.
+func (PressRelease) TableName() string { return "cms_press_releases" }
 
 
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/example/global-trade-hub/backend/internal/config"
 	"github.com/example/global-trade-hub/backend/internal/domain/auth"
+	"github.com/example/global-trade-hub/backend/internal/domain/cms"
 	"github.com/example/global-trade-hub/backend/internal/domain/message"
 	"github.com/example/global-trade-hub/backend/internal/domain/notification"
 	"github.com/example/global-trade-hub/backend/internal/domain/order"
@@ -55,6 +56,11 @@ func AutoMigrate(cfg *config.Config) error {
 		&notification.Notification{},
 		&subscription.Subscription{},
 		&verification.Verification{},
+		&cms.ContactMessage{},
+		&cms.BlogPost{},
+		&cms.FAQ{},
+		&cms.Job{},
+		&cms.PressRelease{},
 	); err != nil {
 		return err
 	}

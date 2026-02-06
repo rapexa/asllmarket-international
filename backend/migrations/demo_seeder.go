@@ -241,28 +241,27 @@ ON DUPLICATE KEY UPDATE name_en = VALUES(name_en)`); err != nil {
 	}
 
 	// Products
-	// NOTE: only use the columns that the repository selects:
-	// id, name, description, image_url, price, moq, currency, supplier_id, created_at, updated_at
-	// تا روی اسکیماهای مختلف (قدیم/جدید) بدون خطا کار کند.
+	// NOTE: using columns that match the actual schema (images not image_url)
+	// id, name, description, images, price, moq, currency, supplier_id, created_at, updated_at
 	if _, err := execIgnoreMissing(tx, "products", `
 INSERT INTO products (
-  id, name, description, image_url, price, moq, currency, supplier_id, created_at, updated_at
+  id, name, description, images, price, moq, currency, supplier_id, created_at, updated_at
 )
 VALUES
   ('55555555-5555-5555-5555-555555555551',
    '5G Smartphone Pro 256GB',
    'Flagship 5G smartphone with AMOLED display and triple camera.',
-   '/images/demo/phone-1.jpg',
+   '["/images/demo/phone-1.jpg"]',
    799.00, 10, 'USD', '22222222-2222-2222-2222-222222222221', NOW(), NOW()),
   ('55555555-5555-5555-5555-555555555552',
    'Business Laptop 15\" 512GB',
    'Lightweight business laptop with long battery life.',
-   '/images/demo/laptop-1.jpg',
+   '["/images/demo/laptop-1.jpg"]',
    1199.00, 5, 'USD', '22222222-2222-2222-2222-222222222221', NOW(), NOW()),
   ('55555555-5555-5555-5555-555555555553',
    'Smart Air Fryer 5L',
    'Energy-efficient smart air fryer with app control.',
-   '/images/demo/airfryer-1.jpg',
+   '["/images/demo/airfryer-1.jpg"]',
    199.00, 20, 'USD', '22222222-2222-2222-2222-222222222222', NOW(), NOW())
 ON DUPLICATE KEY UPDATE name = VALUES(name), price = VALUES(price)`); err != nil {
 		return err

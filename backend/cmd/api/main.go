@@ -35,6 +35,11 @@ func main() {
 	// Initialize base logger
 	logger := log.New(os.Stdout, "[api] ", log.LstdFlags|log.Lshortfile)
 
+	// Run automatic database migrations (ensures core tables like users exist)
+	if err := database.AutoMigrate(cfg); err != nil {
+		logger.Fatalf("failed to run database migrations: %v", err)
+	}
+
 	// Initialize database connection
 	db, err := database.OpenMySQL(cfg)
 	if err != nil {

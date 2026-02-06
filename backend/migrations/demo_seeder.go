@@ -16,6 +16,8 @@ import (
 	"log"
 	"os"
 
+	mysql "github.com/go-sql-driver/mysql"
+
 	"github.com/example/global-trade-hub/backend/internal/config"
 	"github.com/example/global-trade-hub/backend/internal/database"
 )
@@ -53,9 +55,41 @@ func main() {
 	}
 }
 
+// execIgnoreMissing executes a statement and ignores "table does not exist" errors.
+// This makes the seeder tolerant of optional tables like categories/subcategories
+// that may not be present in all deployments.
+func execIgnoreMissing(tx *sql.Tx, table, query string) (skipped bool, err error) {
+	if _, err := tx.Exec(query); err != nil {
+		if me, ok := err.(*mysql.MySQLError); ok && me.Number == 1146 {
+			log.Printf("[demo-seed] table %s missing, skipping: %v", table, err)
+			return true, nil
+		}
+		return false, err
+	}
+	log.Printf("[demo-seed] table %s seeded successfully", table)
+	return false, nil
+}
+
 // seedUp inserts a small but complete set of demo data.
 // All IDs are deterministic and match 009_demo_seed.up.sql.
 func seedUp(db *sql.DB) error {
+	log.Println("[demo-seed] starting seedUp")
+
+	// Quick idempotency check: if our demo user already exists, assume seeding was done.
+	var exists int
+	if err := db.QueryRow(`SELECT COUNT(1) FROM users WHERE id = '11111111-1111-1111-1111-111111111111'`).Scan(&exists); err == nil {
+		if exists > 0 {
+			log.Println("[demo-seed] demo users already exist, assuming seed already applied; nothing to do")
+			return nil
+		}
+	} else {
+		if me, ok := err.(*mysql.MySQLError); ok && me.Number == 1146 {
+			log.Printf("[demo-seed] users table not found during idempotency check, proceeding with inserts: %v", err)
+		} else {
+			log.Printf("[demo-seed] idempotency check failed (will still try to seed): %v", err)
+		}
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -65,7 +99,7 @@ func seedUp(db *sql.DB) error {
 	}()
 
 	// Users (buyer, supplier, market visitor, admin)
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "users", `
 INSERT INTO users (id, email, password, full_name, role)
 VALUES
   ('11111111-1111-1111-1111-111111111111', 'buyer1@example.com',   '$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5CR5a9z1Qp/IrYFQEz5k.uq4/8F2W', 'Demo Buyer One',    'buyer'),
@@ -77,7 +111,7 @@ ON DUPLICATE KEY UPDATE email = VALUES(email)`); err != nil {
 	}
 
 	// Suppliers
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "suppliers", `
 INSERT INTO suppliers (
   id, user_id, company_name, contact_name, email, phone,
   country, city, address, logo, description,
@@ -135,7 +169,7 @@ ON DUPLICATE KEY UPDATE company_name = VALUES(company_name)`); err != nil {
 	}
 
 	// Categories
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "categories", `
 INSERT INTO categories (
   id, name_en, name_fa, name_ar,
   description_en, description_fa, description_ar,
@@ -178,7 +212,7 @@ ON DUPLICATE KEY UPDATE name_en = VALUES(name_en)`); err != nil {
 	}
 
 	// Subcategories
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "subcategories", `
 INSERT INTO subcategories (
   id, category_id, name_en, name_fa, name_ar, icon, product_count, trending
 )
@@ -212,7 +246,7 @@ ON DUPLICATE KEY UPDATE name_en = VALUES(name_en)`); err != nil {
 	}
 
 	// Products
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "products", `
 INSERT INTO products (
   id, supplier_id, category_id, subcategory_id,
   name, description, specifications, images,
@@ -255,7 +289,7 @@ ON DUPLICATE KEY UPDATE name = VALUES(name)`); err != nil {
 	}
 
 	// Orders
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "orders", `
 INSERT INTO orders (
   id, order_number, buyer_id, supplier_id, product_id,
   quantity, unit_price, total_amount, currency,
@@ -278,7 +312,7 @@ ON DUPLICATE KEY UPDATE order_number = VALUES(order_number)`); err != nil {
 	}
 
 	// RFQs
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "rfqs", `
 INSERT INTO rfqs (
   id, buyer_id, product_id, product_name, product_image,
   supplier_id, quantity, unit, specifications, requirements,
@@ -302,7 +336,7 @@ ON DUPLICATE KEY UPDATE product_name = VALUES(product_name)`); err != nil {
 	}
 
 	// RFQ Responses
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "rfq_responses", `
 INSERT INTO rfq_responses (
   id, rfq_id, supplier_id,
   unit_price, total_price, currency,
@@ -324,7 +358,7 @@ ON DUPLICATE KEY UPDATE total_price = VALUES(total_price)`); err != nil {
 	}
 
 	// Notifications
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "notifications", `
 INSERT INTO notifications (
   id, user_id, type, priority,
   title, description, icon, action_url, action_label
@@ -351,7 +385,7 @@ ON DUPLICATE KEY UPDATE title = VALUES(title)`); err != nil {
 	}
 
 	// Verifications
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "verifications", `
 INSERT INTO verifications (
   id, supplier_id, status,
   full_name, nationality, id_type, id_number,
@@ -372,7 +406,7 @@ ON DUPLICATE KEY UPDATE status = VALUES(status)`); err != nil {
 	}
 
 	// Subscriptions
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "subscriptions", `
 INSERT INTO subscriptions (
   id, supplier_id, plan, status,
   amount, currency, payment_method
@@ -387,7 +421,7 @@ ON DUPLICATE KEY UPDATE plan = VALUES(plan)`); err != nil {
 	}
 
 	// Messages
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "messages", `
 INSERT INTO messages (
   id, conversation_id, sender_id, receiver_id,
   subject, body, attachments
@@ -405,7 +439,7 @@ ON DUPLICATE KEY UPDATE subject = VALUES(subject)`); err != nil {
 	}
 
 	// Reviews
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "reviews", `
 INSERT INTO reviews (
   id, product_id, supplier_id, reviewer_id,
   rating, title, comment, verified_purchase, helpful_count
@@ -425,7 +459,7 @@ ON DUPLICATE KEY UPDATE rating = VALUES(rating)`); err != nil {
 	}
 
 	// Favorites
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "favorites", `
 INSERT INTO favorites (
   id, user_id, product_id
 )
@@ -438,7 +472,7 @@ ON DUPLICATE KEY UPDATE product_id = VALUES(product_id)`); err != nil {
 	}
 
 	// Search history
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "search_history", `
 INSERT INTO search_history (
   id, user_id, query, search_type, filters, result_count
 )
@@ -456,11 +490,13 @@ ON DUPLICATE KEY UPDATE query = VALUES(query)`); err != nil {
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+	log.Println("[demo-seed] seedUp completed successfully")
 	return nil
 }
 
 // seedDown deletes all the deterministic demo rows inserted by seedUp.
 func seedDown(db *sql.DB) error {
+	log.Println("[demo-seed] starting seedDown")
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -470,22 +506,22 @@ func seedDown(db *sql.DB) error {
 	}()
 
 	// Child tables first
-	if _, err := tx.Exec(`DELETE FROM favorites WHERE id IN ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "favorites", `DELETE FROM favorites WHERE id IN ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM reviews WHERE id IN ('dddddddd-dddd-dddd-dddd-ddddddddddd1')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "reviews", `DELETE FROM reviews WHERE id IN ('dddddddd-dddd-dddd-dddd-ddddddddddd1')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM messages WHERE id IN ('cccccccc-cccc-cccc-cccc-ccccccccccc1')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "messages", `DELETE FROM messages WHERE id IN ('cccccccc-cccc-cccc-cccc-ccccccccccc1')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM subscriptions WHERE id IN ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "subscriptions", `DELETE FROM subscriptions WHERE id IN ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM verifications WHERE id IN ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "verifications", `DELETE FROM verifications WHERE id IN ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "notifications", `
 DELETE FROM notifications
 WHERE id IN (
   '99999999-9999-9999-9999-999999999991',
@@ -493,21 +529,21 @@ WHERE id IN (
 )`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM rfq_responses WHERE id IN ('88888888-8888-8888-8888-888888888881')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "rfq_responses", `DELETE FROM rfq_responses WHERE id IN ('88888888-8888-8888-8888-888888888881')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM rfqs WHERE id IN ('77777777-7777-7777-7777-777777777771')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "rfqs", `DELETE FROM rfqs WHERE id IN ('77777777-7777-7777-7777-777777777771')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM orders WHERE id IN ('66666666-6666-6666-6666-666666666661')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "orders", `DELETE FROM orders WHERE id IN ('66666666-6666-6666-6666-666666666661')`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM search_history WHERE id IN ('ffffffff-ffff-ffff-ffff-fffffffffff1')`); err != nil {
+	if _, err := execIgnoreMissing(tx, "search_history", `DELETE FROM search_history WHERE id IN ('ffffffff-ffff-ffff-ffff-fffffffffff1')`); err != nil {
 		return err
 	}
 
 	// Products and taxonomy
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "products", `
 DELETE FROM products
 WHERE id IN (
   '55555555-5555-5555-5555-555555555551',
@@ -516,7 +552,7 @@ WHERE id IN (
 )`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "subcategories", `
 DELETE FROM subcategories
 WHERE id IN (
   '44444444-4444-4444-4444-444444444441',
@@ -525,7 +561,7 @@ WHERE id IN (
 )`); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "categories", `
 DELETE FROM categories
 WHERE id IN (
   '33333333-3333-3333-3333-333333333331',
@@ -535,7 +571,7 @@ WHERE id IN (
 	}
 
 	// Suppliers
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "suppliers", `
 DELETE FROM suppliers
 WHERE id IN (
   '22222222-2222-2222-2222-222222222221',
@@ -545,7 +581,7 @@ WHERE id IN (
 	}
 
 	// Users
-	if _, err := tx.Exec(`
+	if _, err := execIgnoreMissing(tx, "users", `
 DELETE FROM users
 WHERE id IN (
   '11111111-1111-1111-1111-111111111111',
@@ -559,5 +595,6 @@ WHERE id IN (
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+	log.Println("[demo-seed] seedDown completed successfully")
 	return nil
 }

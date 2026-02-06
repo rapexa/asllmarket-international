@@ -55,14 +55,23 @@ func main() {
 	}
 }
 
-// execIgnoreMissing executes a statement and ignores "table does not exist" errors.
-// This makes the seeder tolerant of optional tables like categories/subcategories
-// that may not be present in all deployments.
+// execIgnoreMissing executes a statement and ignores:
+// - "table does not exist" errors (1146)
+// - "unknown column" errors (1054) for schema mismatches.
+// اینطوری روی دیتابیس‌هایی که اسکیماشون قدیمی‌تره هم بدون کرش کار می‌کند.
 func execIgnoreMissing(tx *sql.Tx, table, query string) (skipped bool, err error) {
 	if _, err := tx.Exec(query); err != nil {
-		if me, ok := err.(*mysql.MySQLError); ok && me.Number == 1146 {
-			log.Printf("[demo-seed] table %s missing, skipping: %v", table, err)
-			return true, nil
+		if me, ok := err.(*mysql.MySQLError); ok {
+			switch me.Number {
+			case 1146:
+				// Table does not exist
+				log.Printf("[demo-seed] table %s missing, skipping: %v", table, err)
+				return true, nil
+			case 1054:
+				// Unknown column -> schema mismatch (e.g. product without category_id)
+				log.Printf("[demo-seed] table %s schema mismatch (unknown column), skipping: %v", table, err)
+				return true, nil
+			}
 		}
 		return false, err
 	}

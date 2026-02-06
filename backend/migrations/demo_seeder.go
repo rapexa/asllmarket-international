@@ -83,21 +83,7 @@ func execIgnoreMissing(tx *sql.Tx, table, query string) (skipped bool, err error
 // All IDs are deterministic and match 009_demo_seed.up.sql.
 func seedUp(db *sql.DB) error {
 	log.Println("[demo-seed] starting seedUp")
-
-	// Quick idempotency check: if our demo user already exists, assume seeding was done.
-	var exists int
-	if err := db.QueryRow(`SELECT COUNT(1) FROM users WHERE id = '11111111-1111-1111-1111-111111111111'`).Scan(&exists); err == nil {
-		if exists > 0 {
-			log.Println("[demo-seed] demo users already exist, assuming seed already applied; nothing to do")
-			return nil
-		}
-	} else {
-		if me, ok := err.(*mysql.MySQLError); ok && me.Number == 1146 {
-			log.Printf("[demo-seed] users table not found during idempotency check, proceeding with inserts: %v", err)
-		} else {
-			log.Printf("[demo-seed] idempotency check failed (will still try to seed): %v", err)
-		}
-	}
+	log.Println("[demo-seed] note: using ON DUPLICATE KEY UPDATE for idempotency; will insert/update as needed")
 
 	tx, err := db.Begin()
 	if err != nil {

@@ -255,45 +255,30 @@ ON DUPLICATE KEY UPDATE name_en = VALUES(name_en)`); err != nil {
 	}
 
 	// Products
+	// NOTE: only use the columns that the repository selects:
+	// id, name, description, image_url, price, moq, currency, supplier_id, created_at, updated_at
+	// تا روی اسکیماهای مختلف (قدیم/جدید) بدون خطا کار کند.
 	if _, err := execIgnoreMissing(tx, "products", `
 INSERT INTO products (
-  id, supplier_id, category_id, subcategory_id,
-  name, description, specifications, images,
-  price, currency, moq, stock_quantity, unit,
-  lead_time, rating, review_count, featured, status
+  id, name, description, image_url, price, moq, currency, supplier_id, created_at, updated_at
 )
 VALUES
   ('55555555-5555-5555-5555-555555555551',
-   '22222222-2222-2222-2222-222222222221',
-   '33333333-3333-3333-3333-333333333331',
-   '44444444-4444-4444-4444-444444444441',
    '5G Smartphone Pro 256GB',
    'Flagship 5G smartphone with AMOLED display and triple camera.',
-   '{"color":"black","storage":"256GB","screen":"6.5-inch AMOLED"}',
-   '["/images/demo/phone-1.jpg"]',
-   799.00, 'USD', 10, 500, 'piece',
-   14, 4.7, 10, TRUE, 'active'),
+   '/images/demo/phone-1.jpg',
+   799.00, 10, 'USD', '22222222-2222-2222-2222-222222222221', NOW(), NOW()),
   ('55555555-5555-5555-5555-555555555552',
-   '22222222-2222-2222-2222-222222222221',
-   '33333333-3333-3333-3333-333333333331',
-   '44444444-4444-4444-4444-444444444442',
    'Business Laptop 15\" 512GB',
    'Lightweight business laptop with long battery life.',
-   '{"cpu":"Intel i7","ram":"16GB","storage":"512GB SSD"}',
-   '["/images/demo/laptop-1.jpg"]',
-   1199.00, 'USD', 5, 200, 'piece',
-   21, 4.5, 5, TRUE, 'active'),
+   '/images/demo/laptop-1.jpg',
+   1199.00, 5, 'USD', '22222222-2222-2222-2222-222222222221', NOW(), NOW()),
   ('55555555-5555-5555-5555-555555555553',
-   '22222222-2222-2222-2222-222222222222',
-   '33333333-3333-3333-3333-333333333332',
-   '44444444-4444-4444-4444-444444444443',
    'Smart Air Fryer 5L',
    'Energy-efficient smart air fryer with app control.',
-   '{"capacity":"5L","power":"1500W","color":"white"}',
-   '["/images/demo/airfryer-1.jpg"]',
-   199.00, 'USD', 20, 300, 'piece',
-   10, 4.4, 3, TRUE, 'active')
-ON DUPLICATE KEY UPDATE name = VALUES(name)`); err != nil {
+   '/images/demo/airfryer-1.jpg',
+   199.00, 20, 'USD', '22222222-2222-2222-2222-222222222222', NOW(), NOW())
+ON DUPLICATE KEY UPDATE name = VALUES(name), price = VALUES(price)`); err != nil {
 		return err
 	}
 

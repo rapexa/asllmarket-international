@@ -10,7 +10,9 @@
 START TRANSACTION;
 
 -- Users (buyer, supplier, market visitor, admin)
-INSERT INTO users (id, email, password_hash, full_name, phone, role)
+-- NOTE: on current schema the column is named `password` (not `password_hash`),
+--       matching the Go model `auth.User` (`db:"password"`).
+INSERT INTO users (id, email, password, full_name, phone, role)
 VALUES
   ('11111111-1111-1111-1111-111111111111', 'buyer1@example.com',   '$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5CR5a9z1Qp/IrYFQEz5k.uq4/8F2W', 'Demo Buyer One',    '+1-202-555-0101', 'buyer'),
   ('11111111-1111-1111-1111-111111111112', 'supplier1@example.com','$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5CR5a9z1Qp/IrYFQEz5k.uq4/8F2W', 'Demo Supplier One', '+1-202-555-0102', 'supplier'),

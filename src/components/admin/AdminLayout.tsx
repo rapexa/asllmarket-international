@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard,
   Package,
@@ -42,6 +43,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { notificationService, Notification as BackendNotification } from '@/services';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -65,62 +67,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Mock notifications data
-  const [notifications, setNotifications] = useState([
-    {
-      id: '1',
-      type: 'order',
-      title: 'New Order Received',
-      message: 'Order #12345 has been placed by ABC Trading Co.',
-      status: 'unread',
-      timestamp: '2 minutes ago',
-      actionUrl: '/admin/orders/12345',
-      priority: 'high',
-    },
-    {
-      id: '2',
-      type: 'verification',
-      title: 'Verification Pending',
-      message: 'Supplier "Tech Solutions Inc." submitted documents',
-      status: 'unread',
-      timestamp: '15 minutes ago',
-      actionUrl: '/admin/verifications/2',
-      priority: 'high',
-    },
-    {
-      id: '3',
-      type: 'payment',
-      title: 'Payment Received',
-      message: 'Payment of $8,900 received for Order #12340',
-      status: 'unread',
-      timestamp: '1 hour ago',
-      actionUrl: '/admin/orders/12340',
-      priority: 'medium',
-    },
-    {
-      id: '4',
-      type: 'product',
-      title: 'Low Stock Alert',
-      message: 'Product "Smartphone Pro Max" is running low (45 units)',
-      status: 'unread',
-      timestamp: '2 hours ago',
-      actionUrl: '/admin/products/1',
-      priority: 'high',
-    },
-    {
-      id: '5',
-      type: 'user',
-      title: 'New Supplier Registered',
-      message: 'Global Import Ltd. has completed registration',
-      status: 'unread',
-      timestamp: '3 hours ago',
-      actionUrl: '/admin/suppliers',
-      priority: 'medium',
-    },
-  ]);
+  const { data: notificationsResponse } = useQuery({
+    queryKey: ['admin', 'header', 'notifications'],
+    queryFn: () =>
+      notificationService.getMyNotifications({
+        limit: 20,
+        offset: 0,
+      }),
+  });
 
-  const unreadCount = notifications.filter(n => n.status === 'unread').length;
+  const notifications = (notificationsResponse?.items ?? []) as BackendNotification[];
+
+  const isUnread = (n: BackendNotification) => !(n.read ?? n.isRead);
+  const unreadCount = notifications.filter(isUnread).length;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -160,21 +121,31 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, status: 'read' } : n)
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      await notificationService.markAsRead(id);
+      await queryClient.invalidateQueries({
+        queryKey: ['admin', 'header', 'notifications'],
+      });
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(n => ({ ...n, status: 'read' }))
-    );
+  const markAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      await queryClient.invalidateQueries({
+        queryKey: ['admin', 'header', 'notifications'],
+      });
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
   };
 
-  const handleNotificationClick = (notification: any) => {
-    if (notification.status === 'unread') {
-      markAsRead(notification.id);
+  const handleNotificationClick = async (notification: BackendNotification) => {
+    if (isUnread(notification)) {
+      await markAsRead(notification.id);
     }
     if (notification.actionUrl) {
       navigate(notification.actionUrl);
@@ -574,12 +545,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     <div className="divide-y">
                       {notifications.map((notification) => {
                         const Icon = getNotificationIcon(notification.type);
+                        const unread = isUnread(notification);
                         return (
                           <div
                             key={notification.id}
                             className={cn(
                               "flex items-start gap-3 p-4 cursor-pointer transition-colors hover:bg-accent/50",
-                              notification.status === 'unread' && "bg-blue-50/50 dark:bg-blue-950/20"
+                              unread && "bg-blue-50/50 dark:bg-blue-950/20"
                             )}
                             onClick={() => handleNotificationClick(notification)}
                           >
@@ -595,11 +567,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                   <div className="flex items-center gap-2 mb-1">
                                     <h4 className={cn(
                                       "text-sm font-medium",
-                                      notification.status === 'unread' && "font-semibold"
+                                      unread && "font-semibold"
                                     )}>
                                       {notification.title}
                                     </h4>
-                                    {notification.status === 'unread' && (
+                                    {unread && (
                                       <div className="h-2 w-2 rounded-full bg-blue-600 shrink-0" />
                                     )}
                                   </div>
@@ -610,9 +582,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                               </div>
                               <div className="flex items-center justify-between mt-2">
                                 <span className="text-xs text-muted-foreground">
-                                  {notification.timestamp}
+                                  {new Date(notification.createdAt).toLocaleString()}
                                 </span>
-                                {notification.status === 'unread' && (
+                                {unread && (
                                   <Button
                                     variant="ghost"
                                     size="sm"

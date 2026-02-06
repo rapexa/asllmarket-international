@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -47,6 +47,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { cn } from '@/lib/utils';
+import { supplierService, Supplier } from '@/services';
 
 interface SupplierDetailData {
   id: string;
@@ -98,51 +99,8 @@ const SupplierDetail: React.FC = () => {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<SupplierDetailData['status'] | ''>('');
   const [statusChangeReason, setStatusChangeReason] = useState('');
-
-  // Mock data
-  const mockSupplier: SupplierDetailData = {
-    id: id || '1',
-    companyName: 'Tech Supplier Co.',
-    legalName: 'Tech Supplier Co. Ltd.',
-    contactName: 'John Smith',
-    email: 'john@techsupplier.com',
-    phone: '+1-234-567-8900',
-    website: 'https://techsupplier.com',
-    country: 'China',
-    city: 'Shanghai',
-    address: '123 Tech Park, Shanghai, China',
-    zipCode: '200000',
-    verified: true,
-    verificationDate: '2023-02-15',
-    status: 'active',
-    subscription: 'gold',
-    subscriptionStartDate: '2023-01-15',
-    subscriptionEndDate: '2024-12-31',
-    totalProducts: 150,
-    activeProducts: 142,
-    totalOrders: 456,
-    completedOrders: 432,
-    totalRevenue: 2345678,
-    rating: 4.8,
-    reviewCount: 234,
-    joinDate: '2023-01-15',
-    lastActive: '2024-02-20T10:30:00Z',
-    description: 'Leading supplier of electronic components and consumer electronics with over 10 years of experience in the global market.',
-    businessType: 'Manufacturer & Exporter',
-    registrationNumber: 'TSCL-2023-001',
-    taxId: 'TAX-CN-987654321',
-    bankAccount: {
-      bankName: 'Industrial and Commercial Bank of China',
-      accountNumber: '****1234',
-      accountHolder: 'Tech Supplier Co. Ltd.',
-    },
-    documents: {
-      businessLicense: 'https://via.placeholder.com/300x200?text=Business+License',
-      taxCertificate: 'https://via.placeholder.com/300x200?text=Tax+Certificate',
-    },
-  };
-
-  const [supplier, setSupplier] = useState<SupplierDetailData>(mockSupplier);
+  const [supplier, setSupplier] = useState<SupplierDetailData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const getStatusBadge = (status: SupplierDetailData['status']) => {
     const config = {
@@ -167,31 +125,84 @@ const SupplierDetail: React.FC = () => {
   };
 
   const handleStatusUpdate = () => {
-    if (newStatus) {
-      setSupplier(prev => ({
-        ...prev,
-        status: newStatus,
-      }));
+    if (newStatus && supplier) {
+      setSupplier(prev => prev ? { ...prev, status: newStatus } : prev);
       setStatusDialogOpen(false);
       setNewStatus('');
       setStatusChangeReason('');
-      // In a real app, send this update to the backend
+      // TODO: wire to adminService.updateSupplierStatus if needed
     }
   };
 
   const recentOrders = [
-    { id: '1', orderNumber: 'ORD-2024-001', date: '2024-02-20', amount: 12500, status: 'completed' },
-    { id: '2', orderNumber: 'ORD-2024-002', date: '2024-02-19', amount: 8900, status: 'processing' },
-    { id: '3', orderNumber: 'ORD-2024-003', date: '2024-02-18', amount: 15600, status: 'completed' },
-    { id: '4', orderNumber: 'ORD-2024-004', date: '2024-02-17', amount: 6700, status: 'shipped' },
-    { id: '5', orderNumber: 'ORD-2024-005', date: '2024-02-16', amount: 12300, status: 'completed' },
+    { id: '1', orderNumber: 'ORD-1', date: new Date().toISOString(), amount: 0, status: 'n/a' },
   ];
 
   const topProducts = [
-    { id: '1', name: 'Smartphone Pro Max', sales: 1234, revenue: 1108800 },
-    { id: '2', name: 'Wireless Headphones', sales: 987, revenue: 127323 },
-    { id: '3', name: 'Laptop Ultra', sales: 765, revenue: 1147350 },
+    { id: '1', name: 'Product', sales: 0, revenue: 0 },
   ];
+
+  useEffect(() => {
+    const loadSupplier = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const apiSupplier: Supplier = await supplierService.getById(id);
+        const mapped: SupplierDetailData = {
+          id: apiSupplier.id,
+          companyName: apiSupplier.companyName,
+          legalName: apiSupplier.companyName,
+          contactName: apiSupplier.contactName,
+          email: apiSupplier.email,
+          phone: apiSupplier.phone,
+          website: '',
+          country: apiSupplier.country,
+          city: apiSupplier.city,
+          address: apiSupplier.address,
+          zipCode: '',
+          logo: apiSupplier.logo,
+          verified: apiSupplier.verified,
+          verificationDate: '',
+          status: apiSupplier.status,
+          subscription: apiSupplier.subscription,
+          subscriptionStartDate: apiSupplier.createdAt,
+          subscriptionEndDate: undefined,
+          totalProducts: apiSupplier.totalProducts,
+          activeProducts: apiSupplier.totalProducts,
+          totalOrders: apiSupplier.totalOrders,
+          completedOrders: apiSupplier.totalOrders,
+          totalRevenue: apiSupplier.totalRevenue,
+          rating: apiSupplier.rating,
+          reviewCount: 0,
+          joinDate: apiSupplier.createdAt,
+          lastActive: apiSupplier.updatedAt,
+          description: apiSupplier.description,
+          businessType: '',
+          registrationNumber: undefined,
+          taxId: undefined,
+          bankAccount: undefined,
+          documents: undefined,
+        };
+        setSupplier(mapped);
+      } catch (error) {
+        console.error('Failed to load supplier detail:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSupplier();
+  }, [id]);
+
+  if (loading || !supplier) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <span className="text-muted-foreground">Loading supplier...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

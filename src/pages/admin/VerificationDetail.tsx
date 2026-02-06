@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -31,6 +31,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { verificationService, Verification } from '@/services';
 import { VerificationStatus, verificationStatusConfig } from '@/types/verification';
 import { cn } from '@/lib/utils';
 import { getCountryName } from '@/data/countryCodes';
@@ -82,49 +83,77 @@ const VerificationDetail: React.FC = () => {
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
+  const [verification, setVerification] = useState<VerificationDetailData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
 
-  // Mock data - In real app, fetch from API
-  const mockVerification: VerificationDetailData = {
-    id: id || '1',
-    supplierId: 'SUP-001',
-    companyName: 'Tech Supplier Co.',
-    contactName: 'John Smith',
-    email: 'john@techsupplier.com',
-    phone: '+86 138 0013 8000',
-    country: 'CN',
-    city: 'Shanghai',
-    status: 'pending',
-    submittedAt: '2024-02-20T10:30:00Z',
-    personalIdentity: {
-      fullName: 'John Smith',
-      nationality: 'CN',
-      idType: 'passport',
-      idNumber: 'G12345678',
-      identityFront: {
-        url: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800',
-        name: 'passport_front.jpg',
+  const mapVerificationToDetail = (v: Verification): VerificationDetailData => {
+    return {
+      id: v.id,
+      supplierId: v.supplierId,
+      // Backend model does not carry company/contact details; keep placeholders for now.
+      companyName: v.legalName || 'N/A',
+      contactName: v.fullName || 'N/A',
+      email: '',
+      phone: '',
+      country: v.countryOfRegistration,
+      city: '',
+      status: v.status,
+      submittedAt: v.submittedAt || v.createdAt,
+      reviewedAt: v.reviewedAt,
+      reviewedBy: v.reviewedBy,
+      rejectionReason: v.rejectionReason,
+      personalIdentity: {
+        fullName: v.fullName,
+        nationality: v.nationality,
+        idType: v.idType,
+        idNumber: v.idNumber,
+        identityFront: v.identityFrontUrl
+          ? { url: v.identityFrontUrl, name: 'identity_front' }
+          : undefined,
+        identityBack: v.identityBackUrl
+          ? { url: v.identityBackUrl, name: 'identity_back' }
+          : undefined,
       },
-    },
-    businessInfo: {
-      legalName: 'Tech Supplier Co. Ltd.',
-      registrationNumber: 'REG-123456789',
-      countryOfRegistration: 'CN',
-      companyAddress: '123 Business Street, Shanghai, China 200000',
-      businessType: 'manufacturer',
-      businessLicense: {
-        url: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800',
-        name: 'business_license.pdf',
+      businessInfo: {
+        legalName: v.legalName,
+        registrationNumber: v.registrationNumber,
+        countryOfRegistration: v.countryOfRegistration,
+        companyAddress: v.companyAddress,
+        businessType: v.businessType,
+        businessLicense: v.businessLicenseUrl
+          ? { url: v.businessLicenseUrl, name: 'business_license' }
+          : undefined,
+        certificate: v.certificateUrl
+          ? { url: v.certificateUrl, name: 'certificate' }
+          : undefined,
       },
-    },
-    contactVerification: {
-      emailVerified: true,
-      phoneVerified: true,
-      emailVerifiedAt: '2024-02-20T11:00:00Z',
-      phoneVerifiedAt: '2024-02-20T11:05:00Z',
-    },
+      contactVerification: {
+        emailVerified: v.emailVerified,
+        phoneVerified: v.phoneVerified,
+        emailVerifiedAt: v.emailVerifiedAt,
+        phoneVerifiedAt: v.phoneVerifiedAt,
+      },
+    };
   };
 
-  const [verification, setVerification] = useState<VerificationDetailData>(mockVerification);
+  useEffect(() => {
+    const loadVerification = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = await verificationService.admin.getById(id);
+        setVerification(mapVerificationToDetail(data));
+        setAdminNotes(data.adminNotes || '');
+      } catch (error) {
+        console.error('Failed to load verification detail:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVerification();
+  }, [id]);
 
   const statusConfig = verificationStatusConfig[verification.status];
 
@@ -138,19 +167,26 @@ const VerificationDetail: React.FC = () => {
     setReviewDialogOpen(true);
   };
 
-  const confirmReview = () => {
-    if (reviewAction) {
-      setVerification({
-        ...verification,
-        status: reviewAction === 'approve' ? 'verified' : 'rejected',
-        reviewedAt: new Date().toISOString(),
-        reviewedBy: 'Admin User',
+  const confirmReview = async () => {
+    if (!verification || !reviewAction || !id) return;
+
+    try {
+      setSaving(true);
+      const status = reviewAction === 'approve' ? 'verified' : 'rejected';
+      await verificationService.admin.review(id, {
+        status,
         rejectionReason: reviewAction === 'reject' ? rejectionReason : undefined,
+        adminNotes: adminNotes || undefined,
       });
+      const updated = await verificationService.admin.getById(id);
+      setVerification(mapVerificationToDetail(updated));
       setReviewDialogOpen(false);
       setReviewAction(null);
       setRejectionReason('');
-      setAdminNotes('');
+    } catch (error) {
+      console.error('Failed to review verification:', error);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -188,6 +224,16 @@ const VerificationDetail: React.FC = () => {
       </Card>
     );
   };
+
+  if (loading || !verification) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <span className="text-muted-foreground">Loading verification...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -240,7 +286,10 @@ const VerificationDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <Badge variant="outline" className={cn('text-base px-4 py-2', statusConfig.className)}>
+              <Badge
+                variant="outline"
+                className={cn('text-base px-4 py-2', statusConfig.color, statusConfig.bgColor, statusConfig.borderColor)}
+              >
                 {statusConfig.label}
               </Badge>
             </div>
@@ -480,7 +529,7 @@ const VerificationDetail: React.FC = () => {
                 {verification.status === 'pending' && (
                   <>
                     <Button
-                      onClick={() => handleReview('approve')}
+                                onClick={() => handleReview('approve')}
                       className="w-full bg-green-600 hover:bg-green-700"
                     >
                       <CheckCircle2 className="h-4 w-4 me-2" />
@@ -516,9 +565,7 @@ const VerificationDetail: React.FC = () => {
                   onChange={(e) => setAdminNotes(e.target.value)}
                   rows={6}
                 />
-                <Button variant="outline" className="w-full mt-3" size="sm">
-                  Save Notes
-                </Button>
+                {/* Notes are saved as part of review action for now */}
               </CardContent>
             </Card>
           </div>
@@ -555,10 +602,14 @@ const VerificationDetail: React.FC = () => {
               <Button
                 onClick={confirmReview}
                 variant={reviewAction === 'approve' ? 'default' : 'destructive'}
-                disabled={reviewAction === 'reject' && !rejectionReason.trim()}
+                disabled={saving || (reviewAction === 'reject' && !rejectionReason.trim())}
                 className={reviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''}
               >
-                {reviewAction === 'approve' ? 'Approve' : 'Reject'}
+                {saving
+                  ? 'Saving...'
+                  : reviewAction === 'approve'
+                    ? 'Approve'
+                    : 'Reject'}
               </Button>
             </DialogFooter>
           </DialogContent>

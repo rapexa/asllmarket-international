@@ -25,6 +25,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { rfqService } from '@/services';
 
 const requestQuoteSchema = z.object({
   quantity: z.string().min(1, 'Quantity is required').regex(/^\d+$/, 'Quantity must be a number'),
@@ -93,27 +94,20 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Create RFQ object
-      const rfqData = {
+      const created = await rfqService.create({
         productId,
         productName,
         productImage,
         supplierId,
-        quantity: parseInt(data.quantity),
+        quantity: parseInt(data.quantity, 10),
         unit: data.unit,
         specifications: data.specifications || undefined,
         requirements: data.requirements || undefined,
         deliveryLocation: data.deliveryLocation || undefined,
-        preferredDeliveryDate: data.preferredDeliveryDate ? new Date(data.preferredDeliveryDate) : undefined,
+        preferredDeliveryDate: data.preferredDeliveryDate || undefined,
         budget: data.budget ? parseFloat(data.budget) : undefined,
         currency: data.currency,
-      };
-
-      // In real app, save to backend
-      console.log('RFQ Created:', rfqData);
+      });
 
       // Show success toast
       toast({
@@ -130,7 +124,7 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
       reset();
       
       setTimeout(() => {
-        navigate(`/rfq/success?productId=${productId}&rfqId=rfq-${Date.now()}`);
+        navigate(`/rfq/success?productId=${productId}&rfqId=${created.id}`);
       }, 300);
     } catch (error) {
       toast({

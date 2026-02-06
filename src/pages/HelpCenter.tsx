@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   HelpCircle, 
@@ -29,6 +29,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { cmsService, FAQItem } from '@/services';
 import {
   Accordion,
   AccordionContent,
@@ -39,7 +40,11 @@ import {
 interface FAQ {
   id: number;
   question: string;
+  questionFa: string;
+  questionAr: string;
   answer: string;
+  answerFa: string;
+  answerAr: string;
   category: string;
   popular?: boolean;
 }
@@ -47,7 +52,11 @@ interface FAQ {
 interface HelpCategory {
   id: string;
   title: string;
+  titleFa: string;
+  titleAr: string;
   description: string;
+  descriptionFa: string;
+  descriptionAr: string;
   icon: React.ElementType;
   color: string;
   articles: number;
@@ -128,125 +137,42 @@ const helpCategories: HelpCategory[] = [
   },
 ];
 
-const mockFAQs: FAQ[] = [
-  {
-    id: 1,
-    question: 'How do I create an account?',
-    questionFa: 'چگونه حساب کاربری ایجاد کنم؟',
-    questionAr: 'كيف أنشئ حساباً؟',
-    answer: 'To create an account, click on the "Register" button in the top right corner. Fill in your basic information, verify your email, and complete your profile. You can choose to register as a Buyer, Supplier, or both.',
-    answerFa: 'برای ایجاد حساب کاربری، روی دکمه "ثبت‌نام" در گوشه بالا راست کلیک کنید. اطلاعات اولیه خود را وارد کنید، ایمیل خود را تأیید کنید و پروفایل خود را تکمیل کنید. می‌توانید به عنوان خریدار، تأمین‌کننده یا هر دو ثبت‌نام کنید.',
-    answerAr: 'لإنشاء حساب، انقر فوق زر "التسجيل" في الزاوية اليمنى العلوية. املأ معلوماتك الأساسية، وتحقق من بريدك الإلكتروني، وأكمل ملفك الشخصي. يمكنك التسجيل كمشتري أو مورد أو كليهما.',
-    category: 'getting-started',
-    popular: true,
-  },
-  {
-    id: 2,
-    question: 'How do I verify my supplier account?',
-    questionFa: 'چگونه حساب تأمین‌کننده خود را تأیید کنم؟',
-    questionAr: 'كيف أتحقق من حساب المورد؟',
-    answer: 'To verify your supplier account, go to your dashboard and click on "Verification". You\'ll need to submit identity documents, business license, and verify your contact information. The verification process usually takes 2-3 business days.',
-    answerFa: 'برای تأیید حساب تأمین‌کننده، به داشبورد خود بروید و روی "تأیید هویت" کلیک کنید. باید مدارک هویتی، مجوز کسب‌وکار و اطلاعات تماس خود را ارسال کنید. فرآیند تأیید معمولاً 2-3 روز کاری طول می‌کشد.',
-    answerAr: 'للتحقق من حساب المورد، انتقل إلى لوحة التحكم وانقر فوق "التحقق". ستحتاج إلى تقديم مستندات الهوية وترخيص الأعمال والتحقق من معلومات الاتصال الخاصة بك. تستغرق عملية التحقق عادة 2-3 أيام عمل.',
-    category: 'selling',
-    popular: true,
-  },
-  {
-    id: 3,
-    question: 'What payment methods are accepted?',
-    questionFa: 'چه روش‌های پرداختی پذیرفته می‌شود؟',
-    questionAr: 'ما هي طرق الدفع المقبولة؟',
-    answer: 'We accept various payment methods including credit cards, bank transfers, and our secure Escrow system. We also support international payment methods for cross-border transactions.',
-    answerFa: 'ما روش‌های پرداخت مختلفی از جمله کارت‌های اعتباری، انتقال بانکی و سیستم Escrow امن خود را می‌پذیریم. همچنین از روش‌های پرداخت بین‌المللی برای معاملات فرامرزی پشتیبانی می‌کنیم.',
-    answerAr: 'نقبل طرق دفع مختلفة بما في ذلك بطاقات الائتمان والتحويلات المصرفية ونظام الضمان الآمن الخاص بنا. ندعم أيضًا طرق الدفع الدولية للمعاملات عبر الحدود.',
-    category: 'payment',
-    popular: true,
-  },
-  {
-    id: 4,
-    question: 'How do I request a quote?',
-    questionFa: 'چگونه استعلام قیمت درخواست کنم؟',
-    questionAr: 'كيف أطلب عرض سعر؟',
-    answer: 'You can request a quote by clicking the "Request Quote" button on any product page. Fill in the required information including quantity, specifications, and delivery requirements. Suppliers will respond with their quotes within 24-48 hours.',
-    answerFa: 'می‌توانید با کلیک روی دکمه "درخواست استعلام قیمت" در صفحه هر محصول، استعلام قیمت درخواست کنید. اطلاعات مورد نیاز از جمله تعداد، مشخصات و نیازمندی‌های تحویل را وارد کنید. تأمین‌کنندگان ظرف 24-48 ساعت پاسخ خواهند داد.',
-    answerAr: 'يمكنك طلب عرض سعر بالنقر فوق زر "طلب عرض سعر" في صفحة أي منتج. املأ المعلومات المطلوبة بما في ذلك الكمية والمواصفات ومتطلبات التسليم. سيرد الموردون بعروضهم في غضون 24-48 ساعة.',
-    category: 'buying',
-    popular: true,
-  },
-  {
-    id: 5,
-    question: 'What is MOQ?',
-    questionFa: 'MOQ چیست؟',
-    questionAr: 'ما هو MOQ؟',
-    answer: 'MOQ stands for Minimum Order Quantity. It\'s the smallest number of units a supplier is willing to sell in a single order. MOQ helps suppliers maintain profitability and efficiency in production.',
-    answerFa: 'MOQ مخفف Minimum Order Quantity (حداقل تعداد سفارش) است. این کمترین تعداد واحد است که یک تأمین‌کننده مایل به فروش در یک سفارش است. MOQ به تأمین‌کنندگان کمک می‌کند تا سودآوری و کارایی در تولید را حفظ کنند.',
-    answerAr: 'MOQ تعني الحد الأدنى لكمية الطلب. إنه أصغر عدد من الوحدات التي يرغب المورد في بيعها في طلب واحد. يساعد MOQ الموردين في الحفاظ على الربحية والكفاءة في الإنتاج.',
-    category: 'buying',
-  },
-  {
-    id: 6,
-    question: 'How do I add products to my store?',
-    questionFa: 'چگونه محصولات را به فروشگاه خود اضافه کنم؟',
-    questionAr: 'كيف أضيف المنتجات إلى متجري؟',
-    answer: 'Go to your supplier dashboard and click "Add Product". Fill in product details including name, description, images, pricing, MOQ, and specifications. Once submitted, your products will be reviewed and published.',
-    answerFa: 'به داشبورد تأمین‌کننده خود بروید و روی "افزودن محصول" کلیک کنید. جزئیات محصول از جمله نام، توضیحات، تصاویر، قیمت، MOQ و مشخصات را وارد کنید. پس از ارسال، محصولات شما بررسی و منتشر می‌شوند.',
-    answerAr: 'انتقل إلى لوحة تحكم المورد وانقر فوق "إضافة منتج". املأ تفاصيل المنتج بما في ذلك الاسم والوصف والصور والأسعار وMOQ والمواصفات. بمجرد الإرسال، سيتم مراجعة منتجاتك ونشرها.',
-    category: 'selling',
-  },
-  {
-    id: 7,
-    question: 'Is my payment information secure?',
-    questionFa: 'آیا اطلاعات پرداخت من امن است؟',
-    questionAr: 'هل معلومات الدفع الخاصة بي آمنة؟',
-    answer: 'Yes, we use industry-standard encryption and secure payment processing. We also offer Escrow services that hold funds until order completion, providing additional security for both buyers and suppliers.',
-    answerFa: 'بله، ما از رمزگذاری استاندارد صنعتی و پردازش پرداخت امن استفاده می‌کنیم. همچنین خدمات Escrow ارائه می‌دهیم که وجوه را تا تکمیل سفارش نگه می‌دارد و امنیت بیشتری برای خریداران و تأمین‌کنندگان فراهم می‌کند.',
-    answerAr: 'نعم، نستخدم التشفير القياسي في الصناعة ومعالجة الدفع الآمنة. نقدم أيضًا خدمات الضمان التي تحتفظ بالأموال حتى اكتمال الطلب، مما يوفر أمانًا إضافيًا للمشترين والموردين.',
-    category: 'security',
-    popular: true,
-  },
-  {
-    id: 8,
-    question: 'How do I track my order?',
-    questionFa: 'چگونه سفارش خود را پیگیری کنم؟',
-    questionAr: 'كيف أتتبع طلبي؟',
-    answer: 'You can track your order by going to "My Orders" in your dashboard. Click on the order you want to track to see detailed status updates, shipping information, and estimated delivery date.',
-    answerFa: 'می‌توانید با رفتن به "سفارش‌های من" در داشبورد خود، سفارش خود را پیگیری کنید. روی سفارشی که می‌خواهید پیگیری کنید کلیک کنید تا به‌روزرسانی‌های وضعیت، اطلاعات ارسال و تاریخ تحویل تخمینی را ببینید.',
-    answerAr: 'يمكنك تتبع طلبك بالانتقال إلى "طلباتي" في لوحة التحكم. انقر فوق الطلب الذي تريد تتبعه لرؤية تحديثات الحالة التفصيلية ومعلومات الشحن وتاريخ التسليم المقدر.',
-    category: 'buying',
-  },
-  {
-    id: 9,
-    question: 'Can I cancel an order?',
-    questionFa: 'آیا می‌توانم سفارش را لغو کنم؟',
-    questionAr: 'هل يمكنني إلغاء طلب؟',
-    answer: 'Yes, you can cancel an order if it hasn\'t been shipped yet. Go to "My Orders", select the order, and click "Cancel Order". If the order has already been shipped, you may need to contact the supplier directly.',
-    answerFa: 'بله، می‌توانید سفارش را لغو کنید اگر هنوز ارسال نشده باشد. به "سفارش‌های من" بروید، سفارش را انتخاب کنید و روی "لغو سفارش" کلیک کنید. اگر سفارش قبلاً ارسال شده باشد، ممکن است نیاز باشد مستقیماً با تأمین‌کننده تماس بگیرید.',
-    answerAr: 'نعم، يمكنك إلغاء طلب إذا لم يتم شحنه بعد. انتقل إلى "طلباتي"، وحدد الطلب، وانقر فوق "إلغاء الطلب". إذا تم شحن الطلب بالفعل، قد تحتاج إلى الاتصال بالمورد مباشرة.',
-    category: 'buying',
-  },
-  {
-    id: 10,
-    question: 'How do I contact support?',
-    questionFa: 'چگونه با پشتیبانی تماس بگیرم؟',
-    questionAr: 'كيف أتصل بالدعم؟',
-    answer: 'You can contact our support team through the "Contact Us" page, email us at support@aslmarket.com, or use the live chat feature available in your dashboard. We\'re available 24/7 to assist you.',
-    answerFa: 'می‌توانید از طریق صفحه "تماس با ما"، ایمیل به support@aslmarket.com یا استفاده از ویژگی چت زنده موجود در داشبورد خود با تیم پشتیبانی ما تماس بگیرید. ما 24/7 در دسترس هستیم تا به شما کمک کنیم.',
-    answerAr: 'يمكنك الاتصال بفريق الدعم من خلال صفحة "اتصل بنا" أو إرسال بريد إلكتروني إلى support@aslmarket.com أو استخدام ميزة الدردشة المباشرة المتاحة في لوحة التحكم. نحن متاحون على مدار الساعة لمساعدتك.',
-    category: 'getting-started',
-    popular: true,
-  },
-];
-
 const HelpCenter: React.FC = () => {
   const { language, dir } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [filteredFAQs, setFilteredFAQs] = useState<FAQ[]>(mockFAQs);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [filteredFAQs, setFilteredFAQs] = useState<FAQ[]>([]);
+
+  useEffect(() => {
+    const loadFAQs = async () => {
+      try {
+        const res = await cmsService.listFAQs();
+        const items: FAQ[] = (res.items || []).map((f: FAQItem, index) => ({
+          id: index + 1,
+          question: f.questionEn,
+          questionFa: f.questionFa,
+          questionAr: f.questionAr,
+          answer: f.answerEn,
+          answerFa: f.answerFa,
+          answerAr: f.answerAr,
+          category: f.category,
+          popular: f.popular,
+        }));
+        setFaqs(items);
+        setFilteredFAQs(items);
+      } catch (e) {
+        console.error('Failed to load help center FAQs:', e);
+      }
+    };
+
+    loadFAQs();
+  }, []);
 
   // Filter FAQs
   React.useEffect(() => {
-    let filtered = [...mockFAQs];
+    let filtered = [...faqs];
 
     // Search filter
     if (searchQuery) {
@@ -266,7 +192,7 @@ const HelpCenter: React.FC = () => {
     }
 
     setFilteredFAQs(filtered);
-  }, [searchQuery, selectedCategory, language]);
+  }, [searchQuery, selectedCategory, language, faqs]);
 
   const getCategoryTitle = (category: HelpCategory) => {
     if (language === 'fa') return category.titleFa;
@@ -299,7 +225,7 @@ const HelpCenter: React.FC = () => {
 
   const hasActiveFilters = searchQuery || selectedCategory !== 'all';
 
-  const popularFAQs = mockFAQs.filter(faq => faq.popular);
+  const popularFAQs = faqs.filter(faq => faq.popular);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">

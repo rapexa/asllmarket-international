@@ -95,129 +95,6 @@ const Notifications: React.FC = () => {
     }
   };
 
-  // Mock notifications data for fallback (not used when backend is available)
-  const mockNotifications: any[] = [
-    {
-      id: '1',
-      type: 'order',
-      title: 'New Order Received',
-      message: 'Order #12345 has been placed by ABC Trading Co. for $12,340',
-      status: 'unread',
-      timestamp: '2 minutes ago',
-      actionUrl: '/admin/orders/12345',
-      priority: 'high',
-    },
-    {
-      id: '2',
-      type: 'verification',
-      title: 'Verification Pending Review',
-      message: 'Supplier "Tech Solutions Inc." has submitted verification documents',
-      status: 'unread',
-      timestamp: '15 minutes ago',
-      actionUrl: '/admin/verifications/2',
-      priority: 'high',
-    },
-    {
-      id: '3',
-      type: 'payment',
-      title: 'Payment Received',
-      message: 'Payment of $8,900 received for Order #12340',
-      status: 'unread',
-      timestamp: '1 hour ago',
-      actionUrl: '/admin/orders/12340',
-      priority: 'medium',
-    },
-    {
-      id: '4',
-      type: 'product',
-      title: 'Low Stock Alert',
-      message: 'Product "Smartphone Pro Max" is running low (45 units remaining)',
-      status: 'unread',
-      timestamp: '2 hours ago',
-      actionUrl: '/admin/products/1',
-      priority: 'high',
-    },
-    {
-      id: '5',
-      type: 'user',
-      title: 'New Supplier Registered',
-      message: 'Global Import Ltd. has completed registration',
-      status: 'unread',
-      timestamp: '3 hours ago',
-      actionUrl: '/admin/suppliers',
-      priority: 'medium',
-    },
-    {
-      id: '6',
-      type: 'order',
-      title: 'Order Shipped',
-      message: 'Order #12338 has been shipped to the customer',
-      status: 'read',
-      timestamp: '5 hours ago',
-      actionUrl: '/admin/orders/12338',
-      priority: 'low',
-    },
-    {
-      id: '7',
-      type: 'system',
-      title: 'System Maintenance Scheduled',
-      message: 'Scheduled maintenance will occur on March 15, 2024 from 2:00 AM to 4:00 AM',
-      status: 'read',
-      timestamp: '1 day ago',
-      priority: 'medium',
-    },
-    {
-      id: '8',
-      type: 'payment',
-      title: 'Payment Failed',
-      message: 'Payment attempt failed for Order #12335. Please review.',
-      status: 'read',
-      timestamp: '1 day ago',
-      actionUrl: '/admin/orders/12335',
-      priority: 'high',
-    },
-    {
-      id: '9',
-      type: 'product',
-      title: 'Product Review Pending',
-      message: 'New product "Wireless Earbuds Pro" is awaiting admin approval',
-      status: 'read',
-      timestamp: '2 days ago',
-      actionUrl: '/admin/products',
-      priority: 'medium',
-    },
-    {
-      id: '10',
-      type: 'verification',
-      title: 'Verification Approved',
-      message: 'Supplier "Electronics Wholesale" verification has been approved',
-      status: 'read',
-      timestamp: '2 days ago',
-      actionUrl: '/admin/verifications',
-      priority: 'low',
-    },
-    {
-      id: '11',
-      type: 'order',
-      title: 'Order Cancelled',
-      message: 'Order #12330 has been cancelled by the buyer',
-      status: 'read',
-      timestamp: '3 days ago',
-      actionUrl: '/admin/orders/12330',
-      priority: 'medium',
-    },
-    {
-      id: '12',
-      type: 'user',
-      title: 'New Buyer Registered',
-      message: 'Retail Partners Group has completed registration',
-      status: 'read',
-      timestamp: '3 days ago',
-      actionUrl: '/admin/buyers',
-      priority: 'low',
-    }
-  ];
-
   const filteredNotifications = notifications.filter((notification) => {
     const matchesSearch = 
       notification.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -550,9 +427,9 @@ const Notifications: React.FC = () => {
                                 </div>
                               </div>
                               <div className="flex items-center justify-between mt-2">
-                                <span className="text-xs text-muted-foreground">
-                                  {notification.timestamp}
-                                </span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(notification.createdAt).toLocaleString()}
+                              </span>
                                 <div className="flex items-center gap-2">
                                   <Button
                                     variant="ghost"
@@ -629,7 +506,7 @@ const Notifications: React.FC = () => {
                               </div>
                               <div className="flex items-center justify-between mt-2">
                                 <span className="text-xs text-muted-foreground">
-                                  {notification.timestamp}
+                                  {new Date(notification.createdAt).toLocaleString()}
                                 </span>
                                 <Button
                                   variant="ghost"

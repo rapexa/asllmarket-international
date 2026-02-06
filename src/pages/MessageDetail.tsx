@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Paperclip, Building2, User, Clock, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { messageService, ConversationPreview, Message } from '@/services';
 
 const MessageDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,10 @@ const MessageDetail: React.FC = () => {
   const navigate = useNavigate();
   const { notifications, markAsRead } = useNotifications();
   const [newMessage, setNewMessage] = useState('');
+  const [conversation, setConversation] = useState<ConversationPreview | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [sending, setSending] = useState<boolean>(false);
 
   // Mark related notifications as read
   React.useEffect(() => {
@@ -28,55 +33,32 @@ const MessageDetail: React.FC = () => {
       });
   }, [notifications, markAsRead]);
 
-  // Mock conversation data
-  const conversation = {
-    id: id || 'conv-1',
-    subject: 'RFQ for Industrial Pumps',
-    supplier: {
-      id: 'supplier-1',
-      name: 'TechGlobal Industries Ltd.',
-      company: 'TechGlobal Industries',
-      country: 'China',
-      verified: true,
-      avatar: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&q=80',
-    },
-    messages: [
-      {
-        id: 'msg-1',
-        sender: 'supplier',
-        senderName: 'TechGlobal Industries',
-        content: 'Hello! Thank you for your RFQ regarding Industrial Pumps. We are very interested in supplying your requirements.',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        read: true,
-      },
-      {
-        id: 'msg-2',
-        sender: 'supplier',
-        senderName: 'TechGlobal Industries',
-        content: 'We can provide the following specifications:\n- Flow rate: 100-500 GPM\n- Pressure: 50-200 PSI\n- Material: Cast Iron/Stainless Steel\n- MOQ: 10 units\n\nWould you like to discuss pricing and delivery terms?',
-        timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
-        read: true,
-      },
-      {
-        id: 'msg-3',
-        sender: 'buyer',
-        senderName: 'You',
-        content: 'Thank you for the quick response! Could you provide a detailed quote for 50 units with the stainless steel option?',
-        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        read: true,
-      },
-      {
-        id: 'msg-4',
-        sender: 'supplier',
-        senderName: 'TechGlobal Industries',
-        content: 'Of course! I\'ll prepare a detailed quote and send it to you within 24 hours. In the meantime, please let me know your preferred delivery location.',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        read: false,
-      },
-    ],
-  };
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const convRes = await messageService.listConversations();
+        const conv = (convRes.items || []).find(c => c.conversationId === id) || null;
+        setConversation(conv);
 
-  const formatTimestamp = (date: Date) => {
+        const msgRes = await messageService.listMessages(id, { limit: 100, offset: 0 });
+        setMessages(msgRes.items || []);
+      } catch (error) {
+        console.error('Failed to load conversation:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadConversation();
+  }, [id]);
+
+  const formatTimestamp = (iso: string) => {
+    const date = new Date(iso);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
@@ -90,10 +72,48 @@ const MessageDetail: React.FC = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    // In a real app, this would send the message via API
-    setNewMessage('');
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !conversation) return;
+    try {
+      setSending(true);
+      const created = await messageService.create({
+        receiverId: conversation.otherUserId,
+        body: newMessage.trim(),
+      });
+      setMessages(prev => [...prev, created]);
+      setNewMessage('');
+    } catch (e) {
+      console.error('Failed to send message:', e);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading || !conversation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+        <Header />
+        <div className="container py-12 flex items-center justify-center">
+          <span className="text-muted-foreground">
+            {language === 'fa'
+              ? 'در حال بارگذاری گفتگو...'
+              : language === 'ar'
+              ? 'جارٍ تحميل المحادثة...'
+              : 'Loading conversation...'}
+          </span>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const supplier = {
+    id: conversation.otherUserId,
+    name: conversation.otherUserName,
+    company: conversation.otherUserName,
+    country: '',
+    verified: false,
+    avatar: '',
   };
 
   return (
@@ -115,15 +135,15 @@ const MessageDetail: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={conversation.supplier.avatar} alt={conversation.supplier.name} />
+                <AvatarImage src={supplier.avatar} alt={supplier.name} />
                 <AvatarFallback>
                   <Building2 className="h-6 w-6" />
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-2xl font-bold">{conversation.supplier.company}</h1>
-                  {conversation.supplier.verified && (
+                  <h1 className="text-2xl font-bold">{supplier.company}</h1>
+                  {supplier.verified && (
                     <Badge variant="default" className="gap-1">
                       <CheckCircle2 className="h-3 w-3" />
                       Verified
@@ -132,27 +152,27 @@ const MessageDetail: React.FC = () => {
                 </div>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  {conversation.supplier.name} • {conversation.supplier.country}
+                  {supplier.name} {supplier.country && <>• {supplier.country}</>}
                 </p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate(`/suppliers/${conversation.supplier.id}`)}>
+              <Button variant="outline" onClick={() => navigate(`/suppliers/${supplier.id}`)}>
                 <Building2 className="h-4 w-4 me-2" />
                 View Supplier
               </Button>
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-border">
-            <h2 className="text-lg font-semibold">{conversation.subject}</h2>
+            <h2 className="text-lg font-semibold">{conversation.lastMessage}</h2>
           </div>
         </Card>
 
         {/* Messages */}
         <Card className="p-6 mb-6">
           <div className="space-y-6 min-h-[400px] max-h-[600px] overflow-y-auto">
-            {conversation.messages.map((message, index) => {
-              const isBuyer = message.sender === 'buyer';
+            {messages.map((message) => {
+              const isBuyer = message.senderId !== supplier.id;
               return (
                 <div
                   key={message.id}
@@ -164,7 +184,7 @@ const MessageDetail: React.FC = () => {
                 >
                   {!isBuyer && (
                     <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarImage src={conversation.supplier.avatar} alt={conversation.supplier.name} />
+                      <AvatarImage src={supplier.avatar} alt={supplier.name} />
                       <AvatarFallback>
                         <Building2 className="h-4 w-4" />
                       </AvatarFallback>
@@ -182,14 +202,14 @@ const MessageDetail: React.FC = () => {
                       dir === 'rtl' && (isBuyer ? "rounded-tr-none" : "rounded-tl-none"),
                       !dir || dir === 'ltr' && (isBuyer ? "rounded-tr-none" : "rounded-tl-none")
                     )}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">{message.body}</p>
                     </div>
                     <div className={cn(
                       "flex items-center gap-2 text-xs text-muted-foreground",
                       isBuyer && "flex-row-reverse"
                     )}>
                       <Clock className="h-3 w-3" />
-                      <span>{formatTimestamp(message.timestamp)}</span>
+                      <span>{formatTimestamp(message.createdAt)}</span>
                       {message.read && isBuyer && (
                         <CheckCircle2 className="h-3 w-3 text-primary" />
                       )}
@@ -232,11 +252,11 @@ const MessageDetail: React.FC = () => {
               />
               <Button
                 onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
+                disabled={!newMessage.trim() || sending}
                 className="shrink-0 self-end"
               >
                 <Send className="h-4 w-4 me-2" />
-                Send
+                {sending ? 'Sending...' : 'Send'}
               </Button>
             </div>
           </div>

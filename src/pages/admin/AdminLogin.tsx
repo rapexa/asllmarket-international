@@ -7,11 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language, dir } = useLanguage();
+   const { login, logout } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,23 +27,19 @@ const AdminLogin: React.FC = () => {
     setError(null);
 
     try {
-      // In real app, call API to login as admin
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Use real auth service via AuthContext
+      await login(email, password);
 
-      // Mock admin authentication
-      // In production, verify credentials with backend
-      if (email === 'admin@aslmarket.com' || email.includes('admin')) {
-        // Set admin tokens
-        localStorage.setItem('authToken', 'admin-auth-token');
-        localStorage.setItem('adminToken', 'admin-token');
-        localStorage.setItem('userRole', 'admin');
-        localStorage.setItem('userEmail', email);
-
-        // Redirect to admin dashboard
-        navigate(from, { replace: true });
-      } else {
-        setError('Invalid admin credentials. Please use admin email.');
+      const role = (localStorage.getItem('userRole') || '').toLowerCase();
+      if (role !== 'admin') {
+        // Not an admin – immediately log out and show error
+        logout();
+        setError('You do not have admin access. Please use an admin account.');
+        return;
       }
+
+      // Redirect to admin dashboard
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -111,7 +109,7 @@ const AdminLogin: React.FC = () => {
             </Button>
 
             <div className="text-center text-sm text-muted-foreground pt-4">
-              <p>For development: Use any email containing "admin"</p>
+              <p>Only users with the admin role can access this panel.</p>
             </div>
           </form>
         </CardContent>

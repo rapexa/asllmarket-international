@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
 
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
-        // Fallback to mock data if API fails
+        // TODO: Fallback to empty stats if API fails
         setStats({
           totalUsers: 0,
           totalProducts: 0,

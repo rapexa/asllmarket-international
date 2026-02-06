@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Newspaper, 
@@ -27,6 +27,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { cmsService, PressReleaseItem } from '@/services';
 import {
   Select,
   SelectContent,
@@ -50,80 +51,6 @@ interface PressRelease {
   }[];
 }
 
-const mockPressReleases: PressRelease[] = [
-  {
-    id: 1,
-    title: 'ASL Market Reaches $2B in Transaction Volume',
-    excerpt: 'ASL Market announces a major milestone, reaching $2 billion in total transaction volume across its global B2B marketplace platform.',
-    content: 'Full content here...',
-    category: 'milestone',
-    publishedAt: '2024-01-20',
-    featured: true,
-    attachments: [
-      { type: 'pdf', name: 'Press Release PDF', url: '#' },
-      { type: 'image', name: 'Company Logo', url: '#' },
-    ],
-  },
-  {
-    id: 2,
-    title: 'ASL Market Partners with Leading Logistics Companies',
-    excerpt: 'New strategic partnerships announced to enhance global shipping and logistics capabilities for B2B transactions.',
-    content: 'Full content here...',
-    category: 'partnership',
-    publishedAt: '2024-01-18',
-    attachments: [
-      { type: 'pdf', name: 'Partnership Details', url: '#' },
-    ],
-  },
-  {
-    id: 3,
-    title: 'ASL Market Wins Best B2B Platform Award 2024',
-    excerpt: 'Recognized as the leading B2B marketplace platform for innovation and customer satisfaction.',
-    content: 'Full content here...',
-    category: 'award',
-    publishedAt: '2024-01-15',
-    featured: true,
-    attachments: [
-      { type: 'image', name: 'Award Certificate', url: '#' },
-      { type: 'video', name: 'Award Ceremony', url: '#' },
-    ],
-  },
-  {
-    id: 4,
-    title: 'New AI-Powered Matching System Launched',
-    excerpt: 'Revolutionary AI technology helps buyers and suppliers find perfect matches faster and more accurately.',
-    content: 'Full content here...',
-    category: 'product',
-    publishedAt: '2024-01-12',
-    attachments: [
-      { type: 'pdf', name: 'Product Sheet', url: '#' },
-    ],
-  },
-  {
-    id: 5,
-    title: 'ASL Market Expands to 190+ Countries',
-    excerpt: 'Global expansion milestone achieved, now serving businesses in over 190 countries worldwide.',
-    content: 'Full content here...',
-    category: 'milestone',
-    publishedAt: '2024-01-10',
-    attachments: [
-      { type: 'pdf', name: 'Expansion Report', url: '#' },
-      { type: 'image', name: 'World Map', url: '#' },
-    ],
-  },
-  {
-    id: 6,
-    title: 'Major Security Update: Enhanced Escrow System',
-    excerpt: 'New security features and enhanced Escrow system provide even better protection for B2B transactions.',
-    content: 'Full content here...',
-    category: 'announcement',
-    publishedAt: '2024-01-08',
-    attachments: [
-      { type: 'pdf', name: 'Security Update', url: '#' },
-    ],
-  },
-];
-
 const mediaKit = {
   logo: { name: 'Company Logo', formats: ['PNG', 'SVG', 'PDF'], url: '#' },
   brandGuidelines: { name: 'Brand Guidelines', formats: ['PDF'], url: '#' },
@@ -136,11 +63,35 @@ const Press: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [filteredReleases, setFilteredReleases] = useState<PressRelease[]>(mockPressReleases);
+  const [releases, setReleases] = useState<PressRelease[]>([]);
+  const [filteredReleases, setFilteredReleases] = useState<PressRelease[]>([]);
+
+  useEffect(() => {
+    const loadPress = async () => {
+      try {
+        const res = await cmsService.listPressReleases();
+        const items: PressRelease[] = (res.items || []).map((r: PressReleaseItem, index) => ({
+          id: index + 1,
+          title: r.title,
+          excerpt: r.excerpt,
+          content: r.content,
+          category: (r.category as PressRelease['category']) || 'announcement',
+          publishedAt: r.publishedAt || '',
+          featured: !!r.featured,
+          attachments: r.attachments,
+        }));
+        setReleases(items);
+        setFilteredReleases(items);
+      } catch (e) {
+        console.error('Failed to load press releases:', e);
+      }
+    };
+    loadPress();
+  }, []);
 
   // Filter releases
   React.useEffect(() => {
-    let filtered = [...mockPressReleases];
+    let filtered = [...releases];
 
     // Search filter
     if (searchQuery) {
@@ -156,7 +107,7 @@ const Press: React.FC = () => {
     }
 
     setFilteredReleases(filtered);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, releases]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

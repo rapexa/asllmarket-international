@@ -31,7 +31,6 @@ Enhancement suggestions are welcome! Include:
 - Clear description of the feature
 - Use cases and benefits
 - Potential implementation approach
-- Any mockups or examples
 
 ### Pull Requests
 

@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { rfqService } from '@/services';
 import {
   Select,
   SelectContent,
@@ -90,28 +91,34 @@ const PostRequest: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const extraLines: string[] = [];
+      extraLines.push(`Category: ${data.category}${data.subcategory ? ` / ${data.subcategory}` : ''}`);
+      extraLines.push(`Target suppliers: ${data.targetSuppliers}`);
+      extraLines.push(`Urgency: ${data.urgency}`);
 
-      // Create RFQ object
-      const rfqData = {
+      const combinedRequirements = [
+        data.requirements || '',
+        '',
+        '--- Meta ---',
+        ...extraLines,
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+      const created = await rfqService.create({
+        productId: undefined,
         productName: data.productName,
-        category: data.category,
-        subcategory: data.subcategory || undefined,
-        quantity: parseInt(data.quantity),
+        productImage: undefined,
+        supplierId: undefined,
+        quantity: parseInt(data.quantity, 10),
         unit: data.unit,
         specifications: data.specifications,
-        requirements: data.requirements || undefined,
+        requirements: combinedRequirements || undefined,
         deliveryLocation: data.deliveryLocation,
-        preferredDeliveryDate: data.preferredDeliveryDate ? new Date(data.preferredDeliveryDate) : undefined,
+        preferredDeliveryDate: data.preferredDeliveryDate || undefined,
         budget: parseFloat(data.budget),
         currency: data.currency,
-        targetSuppliers: data.targetSuppliers,
-        urgency: data.urgency,
-      };
-
-      // In real app, save to backend
-      console.log('RFQ Posted:', rfqData);
+      });
 
       // Show success toast
       toast({
@@ -125,7 +132,7 @@ const PostRequest: React.FC = () => {
 
       // Navigate to success page
       setTimeout(() => {
-        navigate(`/rfq/success?rfqId=rfq-${Date.now()}&type=public`);
+        navigate(`/rfq/success?rfqId=${created.id}&type=public`);
       }, 300);
     } catch (error) {
       toast({

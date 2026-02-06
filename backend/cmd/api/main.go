@@ -13,6 +13,7 @@ import (
 	"github.com/example/global-trade-hub/backend/internal/database"
 	"github.com/example/global-trade-hub/backend/internal/domain/admin"
 	"github.com/example/global-trade-hub/backend/internal/domain/auth"
+	"github.com/example/global-trade-hub/backend/internal/domain/cms"
 	"github.com/example/global-trade-hub/backend/internal/domain/message"
 	"github.com/example/global-trade-hub/backend/internal/domain/notification"
 	"github.com/example/global-trade-hub/backend/internal/domain/order"
@@ -79,8 +80,26 @@ func main() {
 
 	adminService := admin.NewService(db)
 
+	cmsRepo := cms.NewMySQLCMSRepository(db)
+	cmsService := cms.NewService(cmsRepo)
+
 	// Build HTTP server (Gin, routes, middlewares)
-	router := httpi.NewRouter(cfg, logger, authService, productService, supplierService, orderService, rfqService, notificationService, verificationService, subscriptionService, messageService, searchService, adminService)
+	router := httpi.NewRouter(
+		cfg,
+		logger,
+		authService,
+		productService,
+		supplierService,
+		orderService,
+		rfqService,
+		notificationService,
+		verificationService,
+		subscriptionService,
+		messageService,
+		searchService,
+		adminService,
+		cmsService,
+	)
 
 	srv := &http.Server{
 		Addr:         cfg.HTTPAddress(),

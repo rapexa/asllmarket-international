@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -55,6 +55,7 @@ import {
 } from 'recharts';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { cn } from '@/lib/utils';
+import { adminService } from '@/services';
 
 const SalesDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -62,80 +63,133 @@ const SalesDetails: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Mock data - Daily sales for last 30 days
-  const dailySalesData = [
-    { date: '2024-01-01', sales: 45000, orders: 125, revenue: 47250, returns: 5 },
-    { date: '2024-01-02', sales: 52000, orders: 145, revenue: 54600, returns: 3 },
-    { date: '2024-01-03', sales: 48000, orders: 132, revenue: 50400, returns: 7 },
-    { date: '2024-01-04', sales: 61000, orders: 168, revenue: 64050, returns: 4 },
-    { date: '2024-01-05', sales: 55000, orders: 152, revenue: 57750, returns: 6 },
-    { date: '2024-01-06', sales: 49000, orders: 138, revenue: 51450, returns: 2 },
-    { date: '2024-01-07', sales: 53000, orders: 147, revenue: 55650, returns: 5 },
-    { date: '2024-01-08', sales: 57000, orders: 158, revenue: 59850, returns: 4 },
-    { date: '2024-01-09', sales: 62000, orders: 172, revenue: 65100, returns: 3 },
-    { date: '2024-01-10', sales: 58000, orders: 161, revenue: 60900, returns: 6 },
-    { date: '2024-01-11', sales: 64000, orders: 178, revenue: 67200, returns: 5 },
-    { date: '2024-01-12', sales: 59000, orders: 164, revenue: 61950, returns: 4 },
-    { date: '2024-01-13', sales: 66000, orders: 183, revenue: 69300, returns: 7 },
-    { date: '2024-01-14', sales: 61000, orders: 169, revenue: 64050, returns: 3 },
-    { date: '2024-01-15', sales: 68000, orders: 189, revenue: 71400, returns: 5 },
-    { date: '2024-01-16', sales: 63000, orders: 175, revenue: 66150, returns: 4 },
-    { date: '2024-01-17', sales: 70000, orders: 194, revenue: 73500, returns: 6 },
-    { date: '2024-01-18', sales: 65000, orders: 180, revenue: 68250, returns: 5 },
-    { date: '2024-01-19', sales: 72000, orders: 200, revenue: 75600, returns: 4 },
-    { date: '2024-01-20', sales: 67000, orders: 186, revenue: 70350, returns: 6 },
-    { date: '2024-01-21', sales: 74000, orders: 205, revenue: 77700, returns: 5 },
-    { date: '2024-01-22', sales: 69000, orders: 191, revenue: 72450, returns: 4 },
-    { date: '2024-01-23', sales: 76000, orders: 211, revenue: 79800, returns: 7 },
-    { date: '2024-01-24', sales: 71000, orders: 197, revenue: 74550, returns: 5 },
-    { date: '2024-01-25', sales: 78000, orders: 216, revenue: 81900, returns: 4 },
-    { date: '2024-01-26', sales: 73000, orders: 203, revenue: 76650, returns: 6 },
-    { date: '2024-01-27', sales: 80000, orders: 222, revenue: 84000, returns: 5 },
-    { date: '2024-01-28', sales: 75000, orders: 208, revenue: 78750, returns: 4 },
-    { date: '2024-01-29', sales: 82000, orders: 228, revenue: 86100, returns: 6 },
-    { date: '2024-01-30', sales: 77000, orders: 214, revenue: 80850, returns: 5 },
-  ];
+  const [dailySalesData, setDailySalesData] = useState<
+    { date: string; sales: number; orders: number; revenue: number; returns: number }[]
+  >([]);
 
-  // Monthly comparison
-  const monthlyData = [
-    { month: 'Jul', sales: 1850000, orders: 5120, revenue: 1942500, growth: 8.5 },
-    { month: 'Aug', sales: 1920000, orders: 5320, revenue: 2016000, growth: 3.8 },
-    { month: 'Sep', sales: 2100000, orders: 5820, revenue: 2205000, growth: 9.4 },
-    { month: 'Oct', sales: 2250000, orders: 6240, revenue: 2362500, growth: 7.1 },
-    { month: 'Nov', sales: 2400000, orders: 6660, revenue: 2520000, growth: 6.7 },
-    { month: 'Dec', sales: 2650000, orders: 7350, revenue: 2782500, growth: 10.4 },
-  ];
+  const [monthlyData, setMonthlyData] = useState<
+    { month: string; sales: number; orders: number; revenue: number; growth: number }[]
+  >([]);
 
-  // Revenue by category
-  const categoryRevenue = [
-    { name: 'Electronics', revenue: 850000, orders: 2340, percentage: 35, growth: 12.5 },
-    { name: 'Apparel', value: 25, revenue: 600000, orders: 1680, percentage: 25, growth: 8.3 },
-    { name: 'Home & Garden', revenue: 480000, orders: 1320, percentage: 20, growth: 15.7 },
-    { name: 'Automotive', revenue: 360000, orders: 990, percentage: 15, growth: 5.2 },
-    { name: 'Other', revenue: 120000, orders: 330, percentage: 5, growth: 3.1 },
-  ];
+  const [categoryRevenue, setCategoryRevenue] = useState<
+    { name: string; revenue: number; orders: number; percentage: number; growth: number }[]
+  >([]);
 
-  // Top products
-  const topProducts = [
-    { id: 1, name: 'Smartphone Pro Max 256GB', sales: 1234, revenue: 1108800, avgOrder: 899, growth: 12.5 },
-    { id: 2, name: 'Wireless Headphones Premium', sales: 987, revenue: 127323, avgOrder: 129, growth: 8.3 },
-    { id: 3, name: 'Laptop Ultra 15" 512GB', sales: 765, revenue: 1147350, avgOrder: 1499, growth: -5.2 },
-    { id: 4, name: 'Smart Watch Series 8', sales: 654, revenue: 195546, avgOrder: 299, growth: 15.7 },
-    { id: 5, name: 'Tablet Air 12.9" 256GB', sales: 543, revenue: 325257, avgOrder: 599, growth: 3.1 },
-    { id: 6, name: 'Gaming Mouse Pro', sales: 432, revenue: 51840, avgOrder: 120, growth: 9.8 },
-    { id: 7, name: 'Mechanical Keyboard RGB', sales: 321, revenue: 48150, avgOrder: 150, growth: 7.2 },
-    { id: 8, name: 'Monitor 27" 4K', sales: 298, revenue: 447000, avgOrder: 1500, growth: 11.4 },
-  ];
+  const [topProducts, setTopProducts] = useState<
+    { id: string; name: string; sales: number; revenue: number; avgOrder: number; growth: number }[]
+  >([]);
 
-  // Top customers
-  const topCustomers = [
-    { id: 1, name: 'ABC Trading Co.', orders: 156, revenue: 140400, avgOrder: 900, status: 'VIP' },
-    { id: 2, name: 'Global Import Ltd.', orders: 134, revenue: 120600, avgOrder: 900, status: 'VIP' },
-    { id: 3, name: 'Tech Solutions Inc.', orders: 98, revenue: 147000, avgOrder: 1500, status: 'Premium' },
-    { id: 4, name: 'Retail Partners Group', orders: 87, revenue: 78300, avgOrder: 900, status: 'Premium' },
-    { id: 5, name: 'Electronics Wholesale', orders: 76, revenue: 114000, avgOrder: 1500, status: 'Standard' },
-  ];
+  const [topCustomers, setTopCustomers] = useState<
+    { id: string; name: string; orders: number; revenue: number; avgOrder: number; status: 'VIP' | 'Premium' | 'Standard' }[]
+  >([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const days =
+          timeRange === '7d' ? 7 :
+          timeRange === '30d' ? 30 :
+          timeRange === '90d' ? 90 :
+          timeRange === '1y' ? 365 : 30;
+
+        const [salesRes, categoryRes, topProductsRes, buyersRes] = await Promise.all([
+          adminService.getSalesData(days),
+          adminService.getCategoryStats(),
+          adminService.getTopProducts(8),
+          adminService.listBuyers({ limit: 5, offset: 0 }),
+        ]);
+
+        const salesItems = salesRes.items || [];
+        const mappedDaily = salesItems.map((d) => ({
+          date: d.date,
+          sales: d.sales,
+          orders: d.orders,
+          revenue: d.sales,
+          returns: 0,
+        }));
+        setDailySalesData(mappedDaily);
+
+        const monthMap: Record<string, { sales: number; orders: number; revenue: number }> = {};
+        mappedDaily.forEach((d) => {
+          const m = new Date(d.date);
+          const key = `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, '0')}`;
+          if (!monthMap[key]) {
+            monthMap[key] = { sales: 0, orders: 0, revenue: 0 };
+          }
+          monthMap[key].sales += d.sales;
+          monthMap[key].orders += d.orders;
+          monthMap[key].revenue += d.revenue;
+        });
+        const months = Object.entries(monthMap)
+          .sort(([a], [b]) => (a > b ? 1 : -1))
+          .slice(-6);
+        const monthly = months.map(([key, val], index) => {
+          const date = new Date(`${key}-01`);
+          const prev = index > 0 ? months[index - 1][1].sales : val.sales;
+          const growth = prev ? ((val.sales - prev) / prev) * 100 : 0;
+          return {
+            month: date.toLocaleString('en-US', { month: 'short' }),
+            sales: val.sales,
+            orders: val.orders,
+            revenue: val.revenue,
+            growth: parseFloat(growth.toFixed(1)),
+          };
+        });
+        setMonthlyData(monthly);
+
+        const catItems = categoryRes.items || [];
+        const mappedCats = catItems.map((c) => ({
+          name: c.categoryName,
+          revenue: c.revenue,
+          orders: c.productCount,
+          percentage: c.percentage,
+          growth: 0,
+        }));
+        setCategoryRevenue(mappedCats);
+
+        const topItems = topProductsRes.items || [];
+        const mappedTop = topItems.map((p) => {
+          const avgOrder = p.salesCount ? p.revenue / p.salesCount : 0;
+          return {
+            id: p.productId,
+            name: p.productName,
+            sales: p.salesCount,
+            revenue: p.revenue,
+            avgOrder: Math.round(avgOrder),
+            growth: p.change,
+          };
+        });
+        setTopProducts(mappedTop);
+
+        const buyerItems = buyersRes.items || [];
+        const mappedCustomers = buyerItems.map((b) => {
+          const avgOrder = b.totalOrders ? b.totalSpent / b.totalOrders : 0;
+          const status: 'VIP' | 'Premium' | 'Standard' =
+            b.totalSpent >= 200000 ? 'VIP' :
+            b.totalSpent >= 100000 ? 'Premium' :
+            'Standard';
+          return {
+            id: b.id,
+            name: b.fullName || b.email,
+            orders: b.totalOrders,
+            revenue: b.totalSpent,
+            avgOrder: Math.round(avgOrder),
+            status,
+          };
+        });
+        setTopCustomers(mappedCustomers);
+      } catch (e) {
+        console.error('Failed to load sales details:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [timeRange]);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 

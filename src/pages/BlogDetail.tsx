@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -26,222 +26,27 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { cmsService, BlogPost as ApiBlogPost } from '@/services';
 
-// Mock data - in real app, fetch from API
-const mockPosts = [
-  {
-    id: 1,
-    title: '10 Tips for Successful B2B Trading in 2024',
-    excerpt: 'Discover the latest strategies and best practices for successful B2B trading in the modern marketplace.',
-    content: `
-      <h2>Introduction</h2>
-      <p>B2B trading has evolved significantly in recent years, with new technologies and strategies emerging to help businesses succeed in the global marketplace. In this comprehensive guide, we'll explore 10 essential tips that can help you navigate the complexities of B2B trading in 2024.</p>
-      
-      <h2>1. Build Strong Relationships</h2>
-      <p>One of the most important aspects of successful B2B trading is building and maintaining strong relationships with your partners. This means going beyond simple transactions and creating genuine connections based on trust and mutual benefit.</p>
-      
-      <h2>2. Leverage Technology</h2>
-      <p>Modern B2B platforms offer powerful tools for managing relationships, tracking orders, and analyzing performance. Make sure you're taking full advantage of these technologies to streamline your operations.</p>
-      
-      <h2>3. Understand Your Market</h2>
-      <p>Deep market knowledge is crucial for success. Stay informed about industry trends, competitor activities, and emerging opportunities in your target markets.</p>
-      
-      <h2>4. Focus on Quality</h2>
-      <p>Quality should never be compromised. Whether it's your products, services, or customer support, maintaining high standards is essential for long-term success.</p>
-      
-      <h2>5. Optimize Your Supply Chain</h2>
-      <p>An efficient supply chain can significantly reduce costs and improve delivery times. Regularly review and optimize your logistics processes.</p>
-      
-      <h2>6. Use Data Analytics</h2>
-      <p>Data-driven decisions are more likely to succeed. Use analytics to understand customer behavior, optimize pricing, and identify growth opportunities.</p>
-      
-      <h2>7. Ensure Compliance</h2>
-      <p>Stay compliant with all relevant regulations and standards. This includes trade regulations, quality standards, and legal requirements in your target markets.</p>
-      
-      <h2>8. Invest in Training</h2>
-      <p>Your team is your greatest asset. Invest in training and development to ensure they have the skills needed to succeed in the modern B2B environment.</p>
-      
-      <h2>9. Build Your Brand</h2>
-      <p>A strong brand can differentiate you from competitors and build trust with potential partners. Invest in branding and marketing efforts.</p>
-      
-      <h2>10. Stay Flexible</h2>
-      <p>The B2B landscape is constantly changing. Stay flexible and be ready to adapt your strategies as market conditions evolve.</p>
-      
-      <h2>Conclusion</h2>
-      <p>Success in B2B trading requires a combination of strong relationships, effective use of technology, and a deep understanding of your market. By following these tips, you can position your business for success in 2024 and beyond.</p>
-    `,
-    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200&q=80',
-    author: {
-      name: 'Sarah Johnson',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80',
-      role: 'Trade Expert',
-      bio: 'Sarah has over 10 years of experience in B2B trading and international business. She specializes in helping companies expand their global reach.',
-    },
-    category: 'Trading',
-    tags: ['B2B', 'Trading', 'Tips', '2024'],
-    publishedAt: '2024-01-15',
-    readTime: 5,
-    views: 1250,
-    likes: 89,
-    featured: true,
-  },
-  {
-    id: 2,
-    title: 'How to Build Trust with International Suppliers',
-    excerpt: 'Learn how to establish and maintain trust with suppliers from different countries and cultures.',
-    content: `
-      <h2>Introduction</h2>
-      <p>Building trust with international suppliers is crucial for successful B2B relationships. This guide explores proven strategies for establishing and maintaining trust across cultural boundaries.</p>
-      
-      <h2>Understanding Cultural Differences</h2>
-      <p>Different cultures have different approaches to business relationships. Understanding these differences is the first step toward building trust.</p>
-      
-      <h2>Communication Strategies</h2>
-      <p>Effective communication is key to building trust. Learn how to communicate clearly and respectfully with suppliers from different cultural backgrounds.</p>
-      
-      <h2>Building Long-term Relationships</h2>
-      <p>Trust is built over time through consistent actions and reliable behavior. Focus on building long-term relationships rather than short-term gains.</p>
-    `,
-    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&q=80',
-    author: {
-      name: 'Michael Chen',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80',
-      role: 'Supply Chain Manager',
-      bio: 'Michael is an expert in international supply chain management with extensive experience in Asia-Pacific markets.',
-    },
-    category: 'Supply Chain',
-    tags: ['Suppliers', 'Trust', 'International'],
-    publishedAt: '2024-01-12',
-    readTime: 7,
-    views: 980,
-    likes: 67,
-  },
-  {
-    id: 3,
-    title: 'The Future of E-commerce in B2B Markets',
-    excerpt: 'Exploring the trends and technologies shaping the future of B2B e-commerce platforms.',
-    content: `
-      <h2>Introduction</h2>
-      <p>The B2B e-commerce landscape is rapidly evolving, with new technologies and trends reshaping how businesses buy and sell online.</p>
-      
-      <h2>Emerging Technologies</h2>
-      <p>AI, machine learning, and automation are transforming B2B e-commerce platforms, making them more efficient and user-friendly.</p>
-      
-      <h2>Market Trends</h2>
-      <p>Understanding current market trends is essential for staying competitive in the B2B e-commerce space.</p>
-    `,
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80',
-    author: {
-      name: 'Emily Rodriguez',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80',
-      role: 'E-commerce Analyst',
-      bio: 'Emily is a leading expert in B2B e-commerce trends and digital transformation strategies.',
-    },
-    category: 'E-commerce',
-    tags: ['E-commerce', 'Future', 'Technology'],
-    publishedAt: '2024-01-10',
-    readTime: 6,
-    views: 1520,
-    likes: 112,
-    featured: true,
-  },
-  {
-    id: 4,
-    title: 'Understanding MOQ: Minimum Order Quantities Explained',
-    excerpt: 'A comprehensive guide to understanding and negotiating minimum order quantities in B2B transactions.',
-    content: `
-      <h2>What is MOQ?</h2>
-      <p>Minimum Order Quantity (MOQ) is the smallest number of units a supplier is willing to sell in a single order. Understanding MOQ is crucial for successful B2B negotiations.</p>
-      
-      <h2>Why MOQ Matters</h2>
-      <p>MOQ affects pricing, inventory management, and supplier relationships. Learn how to navigate MOQ requirements effectively.</p>
-      
-      <h2>Negotiating MOQ</h2>
-      <p>Effective negotiation strategies can help you achieve better MOQ terms that work for your business needs.</p>
-    `,
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&q=80',
-    author: {
-      name: 'David Kim',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80',
-      role: 'Business Consultant',
-      bio: 'David specializes in B2B negotiations and supply chain optimization.',
-    },
-    category: 'Business',
-    tags: ['MOQ', 'Business', 'Negotiation'],
-    publishedAt: '2024-01-08',
-    readTime: 4,
-    views: 890,
-    likes: 54,
-  },
-  {
-    id: 5,
-    title: 'Top 5 Payment Methods for International B2B Transactions',
-    excerpt: 'Compare the most secure and efficient payment methods for cross-border B2B transactions.',
-    content: `
-      <h2>Introduction</h2>
-      <p>Choosing the right payment method is crucial for successful international B2B transactions. This guide compares the top 5 payment methods available today.</p>
-      
-      <h2>1. Letter of Credit (L/C)</h2>
-      <p>Letters of Credit provide security for both buyers and sellers in international transactions.</p>
-      
-      <h2>2. Escrow Services</h2>
-      <p>Escrow services offer protection by holding funds until transaction conditions are met.</p>
-      
-      <h2>3. Bank Transfers</h2>
-      <p>Traditional bank transfers remain a popular choice for B2B transactions, though they can be slower.</p>
-      
-      <h2>4. Digital Payment Platforms</h2>
-      <p>Modern digital platforms offer faster and more convenient payment options for B2B transactions.</p>
-      
-      <h2>5. Trade Finance</h2>
-      <p>Trade finance solutions provide financing options for international B2B transactions.</p>
-    `,
-    image: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=1200&q=80',
-    author: {
-      name: 'Lisa Wang',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80',
-      role: 'Finance Expert',
-      bio: 'Lisa is an expert in international finance and payment solutions for B2B transactions.',
-    },
-    category: 'Finance',
-    tags: ['Payment', 'Finance', 'International'],
-    publishedAt: '2024-01-05',
-    readTime: 8,
-    views: 2100,
-    likes: 145,
-  },
-  {
-    id: 6,
-    title: 'Digital Transformation in B2B: A Complete Guide',
-    excerpt: 'How businesses can leverage digital transformation to improve their B2B operations and customer experience.',
-    content: `
-      <h2>Introduction</h2>
-      <p>Digital transformation is reshaping B2B operations, offering new opportunities for efficiency and growth.</p>
-      
-      <h2>Key Technologies</h2>
-      <p>Explore the key technologies driving digital transformation in B2B, including AI, cloud computing, and automation.</p>
-      
-      <h2>Implementation Strategies</h2>
-      <p>Learn how to successfully implement digital transformation initiatives in your B2B operations.</p>
-      
-      <h2>Measuring Success</h2>
-      <p>Understand how to measure the success of your digital transformation efforts and adjust your strategy accordingly.</p>
-    `,
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80',
-    author: {
-      name: 'James Wilson',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80',
-      role: 'Digital Strategist',
-      bio: 'James helps businesses navigate digital transformation and leverage technology for competitive advantage.',
-    },
-    category: 'Technology',
-    tags: ['Digital', 'Transformation', 'Technology'],
-    publishedAt: '2024-01-03',
-    readTime: 10,
-    views: 1750,
-    likes: 98,
-  },
-];
+interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  author: {
+    name: string;
+    avatar: string;
+    role: string;
+    bio?: string;
+  };
+  category: string;
+  tags: string[];
+  publishedAt: string;
+  readTime: number;
+  views: number;
+  likes: number;
+}
 
 const BlogDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -250,8 +55,65 @@ const BlogDetail: React.FC = () => {
   const { toast } = useToast();
   const [liked, setLiked] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
 
-  const post = mockPosts.find(p => p.id === Number(id));
+  useEffect(() => {
+    const load = async () => {
+      if (!id) return;
+      try {
+        const apiPost: ApiBlogPost = await cmsService.getBlogPost(id);
+        const mapped: BlogPost = {
+          id: apiPost.id,
+          title: apiPost.title,
+          excerpt: apiPost.excerpt,
+          content: apiPost.content,
+          image: apiPost.imageUrl || 'https://via.placeholder.com/1200x400?text=Blog',
+          author: {
+            name: apiPost.authorName || 'ASL Market',
+            avatar: apiPost.authorAvatar || 'https://via.placeholder.com/100x100?text=Author',
+            role: apiPost.authorRole || 'Author',
+            bio: '',
+          },
+          category: apiPost.category || 'General',
+          tags: apiPost.tags ? JSON.parse(apiPost.tags) : [],
+          publishedAt: apiPost.publishedAt || apiPost.createdAt || '',
+          readTime: apiPost.readTime || 5,
+          views: apiPost.views || 0,
+          likes: apiPost.likes || 0,
+        };
+        setPost(mapped);
+
+        const list = await cmsService.listBlogPosts();
+        const related = (list.items || [])
+          .filter(p => p.id !== apiPost.id && p.category === apiPost.category)
+          .slice(0, 3)
+          .map((p): BlogPost => ({
+            id: p.id,
+            title: p.title,
+            excerpt: p.excerpt,
+            content: p.content,
+            image: p.imageUrl || 'https://via.placeholder.com/400x200?text=Blog',
+            author: {
+              name: p.authorName || 'ASL Market',
+              avatar: p.authorAvatar || 'https://via.placeholder.com/100x100?text=Author',
+              role: p.authorRole || 'Author',
+            },
+            category: p.category || 'General',
+            tags: p.tags ? JSON.parse(p.tags) : [],
+            publishedAt: p.publishedAt || p.createdAt || '',
+            readTime: p.readTime || 5,
+            views: p.views || 0,
+            likes: p.likes || 0,
+          }));
+        setRelatedPosts(related);
+      } catch (e) {
+        console.error('Failed to load blog post:', e);
+      }
+    };
+
+    load();
+  }, [id]);
 
   if (!post) {
     return (
@@ -332,11 +194,6 @@ const BlogDetail: React.FC = () => {
     });
     setTimeout(() => setCopied(false), 2000);
   };
-
-  // Get related posts (same category, different post)
-  const relatedPosts = mockPosts
-    .filter(p => p.category === post.category && p.id !== post.id)
-    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">

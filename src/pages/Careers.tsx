@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Briefcase, 
@@ -28,6 +28,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { cmsService, JobItem } from '@/services';
 import {
   Select,
   SelectContent,
@@ -50,123 +51,6 @@ interface Job {
   benefits: string[];
 }
 
-const mockJobs: Job[] = [
-  {
-    id: 1,
-    title: 'Senior Frontend Developer',
-    department: 'Engineering',
-    location: 'Remote / San Francisco, CA',
-    type: 'full-time',
-    experience: '5+ years',
-    salary: '$120K - $180K',
-    posted: '2 days ago',
-    description: 'We are looking for an experienced Frontend Developer to join our engineering team. You will be responsible for building and maintaining our web applications using React, TypeScript, and modern frontend technologies.',
-    requirements: [
-      '5+ years of experience in frontend development',
-      'Strong proficiency in React, TypeScript, and Next.js',
-      'Experience with state management (Redux, Zustand)',
-      'Knowledge of modern CSS frameworks (Tailwind CSS)',
-      'Experience with testing frameworks (Jest, React Testing Library)',
-    ],
-    benefits: ['Health Insurance', 'Remote Work', 'Stock Options', 'Learning Budget'],
-  },
-  {
-    id: 2,
-    title: 'Product Manager',
-    department: 'Product',
-    location: 'New York, NY',
-    type: 'full-time',
-    experience: '4+ years',
-    salary: '$130K - $170K',
-    posted: '5 days ago',
-    description: 'Join our product team to drive the vision and execution of our B2B marketplace platform. You will work closely with engineering, design, and business teams to deliver exceptional products.',
-    requirements: [
-      '4+ years of product management experience',
-      'Experience with B2B platforms or marketplaces',
-      'Strong analytical and problem-solving skills',
-      'Excellent communication and leadership skills',
-      'Experience with agile methodologies',
-    ],
-    benefits: ['Health Insurance', 'Flexible Hours', 'Stock Options', 'Gym Membership'],
-  },
-  {
-    id: 3,
-    title: 'UX/UI Designer',
-    department: 'Design',
-    location: 'Remote / London, UK',
-    type: 'full-time',
-    experience: '3+ years',
-    salary: '$80K - $120K',
-    posted: '1 week ago',
-    description: 'We are seeking a talented UX/UI Designer to create beautiful and intuitive user experiences for our global B2B marketplace. You will work on both web and mobile platforms.',
-    requirements: [
-      '3+ years of UX/UI design experience',
-      'Strong portfolio showcasing B2B or marketplace designs',
-      'Proficiency in Figma, Sketch, or Adobe XD',
-      'Understanding of user research and testing',
-      'Experience with design systems',
-    ],
-    benefits: ['Health Insurance', 'Remote Work', 'Design Tools Budget', 'Conference Tickets'],
-  },
-  {
-    id: 4,
-    title: 'Backend Engineer',
-    department: 'Engineering',
-    location: 'Remote / Berlin, Germany',
-    type: 'full-time',
-    experience: '4+ years',
-    salary: '$110K - $160K',
-    posted: '3 days ago',
-    description: 'Looking for a Backend Engineer to build scalable and reliable APIs and services. You will work with Node.js, Python, microservices architecture, and cloud infrastructure.',
-    requirements: [
-      '4+ years of backend development experience',
-      'Strong proficiency in Node.js or Python',
-      'Experience with RESTful APIs and GraphQL',
-      'Knowledge of databases (PostgreSQL, MongoDB)',
-      'Experience with cloud platforms (AWS, GCP)',
-    ],
-    benefits: ['Health Insurance', 'Remote Work', 'Stock Options', 'Learning Budget'],
-  },
-  {
-    id: 5,
-    title: 'Business Development Manager',
-    department: 'Sales',
-    location: 'Dubai, UAE',
-    type: 'full-time',
-    experience: '3+ years',
-    salary: '$90K - $130K + Commission',
-    posted: '1 week ago',
-    description: 'Join our sales team to expand our supplier network in the Middle East and North Africa region. You will identify and onboard new suppliers to our platform.',
-    requirements: [
-      '3+ years of B2B sales experience',
-      'Experience in the Middle East market',
-      'Strong negotiation and communication skills',
-      'Ability to build relationships with key stakeholders',
-      'Fluent in English and Arabic',
-    ],
-    benefits: ['Health Insurance', 'Commission', 'Travel Allowance', 'Phone Allowance'],
-  },
-  {
-    id: 6,
-    title: 'Data Analyst',
-    department: 'Analytics',
-    location: 'Remote / Singapore',
-    type: 'full-time',
-    experience: '2+ years',
-    salary: '$70K - $100K',
-    posted: '4 days ago',
-    description: 'We are looking for a Data Analyst to help us make data-driven decisions. You will analyze user behavior, market trends, and business metrics to provide insights.',
-    requirements: [
-      '2+ years of data analysis experience',
-      'Proficiency in SQL and Python',
-      'Experience with data visualization tools (Tableau, Power BI)',
-      'Strong analytical and problem-solving skills',
-      'Experience with A/B testing',
-    ],
-    benefits: ['Health Insurance', 'Remote Work', 'Learning Budget', 'Flexible Hours'],
-  },
-];
-
 const Careers: React.FC = () => {
   const { language, dir } = useLanguage();
   const navigate = useNavigate();
@@ -174,11 +58,52 @@ const Careers: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>(mockJobs);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        const res = await cmsService.listJobs();
+        const items: Job[] = (res.items || []).map((j: JobItem) => {
+          let requirements: string[] = [];
+          let benefits: string[] = [];
+          try {
+            requirements = j.requirements ? JSON.parse(j.requirements) : [];
+          } catch {
+            requirements = [];
+          }
+          try {
+            benefits = j.benefits ? JSON.parse(j.benefits) : [];
+          } catch {
+            benefits = [];
+          }
+          return {
+            id: Number.NaN,
+            title: j.title,
+            department: j.department,
+            location: j.location,
+            type: j.jobType,
+            experience: j.experience,
+            salary: j.salary,
+            posted: j.postedAt || '',
+            description: j.description,
+            requirements,
+            benefits,
+          };
+        });
+        setJobs(items);
+        setFilteredJobs(items);
+      } catch (e) {
+        console.error('Failed to load jobs:', e);
+      }
+    };
+    loadJobs();
+  }, []);
 
   // Filter jobs
   React.useEffect(() => {
-    let filtered = [...mockJobs];
+    let filtered = [...jobs];
 
     // Search filter
     if (searchQuery) {
@@ -209,7 +134,7 @@ const Careers: React.FC = () => {
     }
 
     setFilteredJobs(filtered);
-  }, [searchQuery, selectedDepartment, selectedLocation, selectedType]);
+  }, [searchQuery, selectedDepartment, selectedLocation, selectedType, jobs]);
 
   const departments = ['Engineering', 'Product', 'Design', 'Sales', 'Analytics', 'Marketing'];
   const locations = ['Remote', 'San Francisco', 'New York', 'London', 'Berlin', 'Dubai', 'Singapore'];

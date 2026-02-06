@@ -55,6 +55,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const response = await authService.login({ email, password });
+    // Persist role and token for other parts of the app that rely on localStorage
+    try {
+      localStorage.setItem('userRole', response.user.role);
+      // Backwards-compatible key used in some legacy code
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('userEmail', response.user.email);
+    } catch {
+      // ignore storage errors
+    }
     setUser(response.user);
   };
 
@@ -66,6 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     role: 'buyer' | 'supplier' | 'market' | 'visitor';
   }) => {
     const response = await authService.register(data);
+    try {
+      localStorage.setItem('userRole', response.user.role);
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('userEmail', response.user.email);
+    } catch {
+      // ignore storage errors
+    }
     setUser(response.user);
   };
 

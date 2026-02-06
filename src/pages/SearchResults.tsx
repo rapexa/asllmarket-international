@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Grid, List, Star, ShieldCheck, Building2, Package, Sparkles, X, ArrowRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -17,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { searchService, SearchResponse } from '@/services';
 
 type ViewMode = 'grid' | 'list';
 type ResultType = 'all' | 'products' | 'suppliers' | 'categories';
@@ -49,81 +51,77 @@ const SearchResults: React.FC = () => {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock search results
+  // Load search results from backend
   useEffect(() => {
-    if (query) {
+    const doSearch = async () => {
+      if (!query) {
+        setResults([]);
+        return;
+      }
       setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        const mockResults: SearchResult[] = [
-          {
-            id: '1',
-            type: 'product',
-            title: 'Wireless Bluetooth Earbuds Pro',
-            subtitle: 'Electronics > Audio',
-            image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80',
-            price: '$12.50 - $18.00',
-            rating: 4.8,
-            verified: true,
-            badge: 'Hot Deal',
-            description: 'Premium wireless earbuds with noise cancellation and 30-hour battery life',
-          },
-          {
-            id: '2',
-            type: 'supplier',
-            title: 'TechGlobal Industries Ltd.',
-            subtitle: 'Verified Supplier • 4.9★ • 10K+ Orders',
-            image: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&q=80',
-            rating: 4.9,
-            verified: true,
-            description: 'Leading manufacturer of electronics and consumer goods',
-          },
-          {
-            id: '3',
-            type: 'product',
-            title: 'Industrial CNC Machine Parts',
-            subtitle: 'Machinery > Industrial',
-            image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80',
-            price: '$450 - $680',
-            rating: 4.6,
-            verified: true,
-            badge: 'Verified',
-            description: 'High-precision CNC machine parts for industrial applications',
-          },
-          {
-            id: '4',
-            type: 'category',
-            title: 'Electronics & Technology',
-            subtitle: '125K+ Products • 5K+ Suppliers',
-            description: 'Comprehensive range of electronics and technology products',
-          },
-          {
-            id: '5',
-            type: 'product',
-            title: 'Cotton T-Shirts Bulk',
-            subtitle: 'Apparel > Men',
-            image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80',
-            price: '$3.50 - $8.00',
-            rating: 4.7,
-            verified: false,
-            description: 'Premium quality cotton t-shirts available in bulk quantities',
-          },
-          {
-            id: '6',
-            type: 'supplier',
-            title: 'Global Textiles Co.',
-            subtitle: 'Verified Supplier • 4.7★ • 5K+ Orders',
-            image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=400&q=80',
-            rating: 4.7,
-            verified: true,
-            description: 'Wholesale textile and apparel manufacturer',
-          },
+      try {
+        const response: SearchResponse = await searchService.search({
+          q: query,
+          limit: 50,
+          offset: 0,
+        });
+
+        const productResults: SearchResult[] = (response.products || []).map((p) => ({
+          id: p.id,
+          type: 'product',
+          title: p.name,
+          subtitle: p.description,
+          image: typeof p.images === 'string' ? p.images : undefined,
+          price: `${p.currency} ${p.price.toFixed(2)}`,
+          rating: p.rating,
+          verified: true,
+          description: p.description,
+        }));
+
+        const supplierResults: SearchResult[] = (response.suppliers || []).map((s) => ({
+          id: s.id,
+          type: 'supplier',
+          title: s.companyName,
+          subtitle: s.country,
+          image: s.logo,
+          rating: s.rating,
+          verified: s.verified,
+          description: s.description,
+        }));
+
+        // Derive simple category results from product categories (best-effort)
+        const categoryMap = new Map<string, SearchResult>();
+        for (const p of response.products || []) {
+          if (!p.id) continue;
+          const categoryId = p.id.split('-')[0]; // placeholder grouping strategy
+          if (!categoryMap.has(categoryId)) {
+            categoryMap.set(categoryId, {
+              id: categoryId,
+              type: 'category',
+              title: `Category ${categoryId}`,
+              subtitle: undefined,
+              description: undefined,
+            });
+          }
+        }
+
+        const nextResults = [
+          ...productResults,
+          ...supplierResults,
+          ...Array.from(categoryMap.values()),
         ];
-        setResults(mockResults.filter(r => activeTab === 'all' || r.type === activeTab));
+
+        setResults(nextResults);
+      } catch (error) {
+        console.error('Search failed:', error);
+        setResults([]);
+      } finally {
         setIsLoading(false);
-      }, 500);
-    }
-  }, [query, activeTab]);
+      }
+    };
+
+    doSearch();
+  }, [query]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

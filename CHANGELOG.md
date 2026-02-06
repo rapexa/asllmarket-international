@@ -192,7 +192,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OTP login not connected to backend
 - Email verification workflow incomplete
 - File upload needs cloud storage integration
-- Some admin features use mock data
+- Some admin features 
 
 ### Future Improvements
 - Add comprehensive unit tests

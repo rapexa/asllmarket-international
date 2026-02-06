@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Flame, ShoppingCart, Filter, Grid, List, SlidersHorizontal, X, Search, Package, TrendingUp, Sparkles } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -19,9 +20,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { productService, Product as ApiProduct } from '@/services';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   image: string;
   price: number;
@@ -41,237 +43,6 @@ interface Product {
   };
 }
 
-const mockProducts: Product[] = [
-  {
-    id: 1,
-    name: 'Wireless Bluetooth Earbuds Pro',
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80',
-    price: 12.50,
-    priceRange: '$12.50 - $18.00',
-    moq: 100,
-    rating: 4.8,
-    reviews: 256,
-    verified: true,
-    badge: 'hot',
-    discount: 15,
-    category: 'Electronics > Audio',
-    supplier: {
-      id: 'supplier-1',
-      name: 'TechGlobal Industries Ltd.',
-      country: 'China',
-      verified: true,
-    },
-  },
-  {
-    id: 2,
-    name: 'Industrial CNC Machine Parts',
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80',
-    price: 450,
-    priceRange: '$450 - $680',
-    moq: 10,
-    rating: 4.9,
-    reviews: 89,
-    verified: true,
-    badge: 'verified',
-    category: 'Machinery > Industrial',
-    supplier: {
-      id: 'supplier-2',
-      name: 'Industrial Solutions Inc.',
-      country: 'Germany',
-      verified: true,
-    },
-  },
-  {
-    id: 3,
-    name: 'Premium Cotton T-Shirts Bulk',
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80',
-    price: 3.20,
-    priceRange: '$3.20 - $5.50',
-    moq: 500,
-    rating: 4.7,
-    reviews: 412,
-    verified: true,
-    badge: 'new',
-    category: 'Apparel > Clothing',
-    supplier: {
-      id: 'supplier-3',
-      name: 'Textile Manufacturing Co.',
-      country: 'India',
-      verified: true,
-    },
-  },
-  {
-    id: 4,
-    name: 'Smart Home Security Camera',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
-    price: 28.90,
-    priceRange: '$28.90 - $45.00',
-    moq: 50,
-    rating: 4.6,
-    reviews: 178,
-    verified: true,
-    discount: 20,
-    category: 'Electronics > Security',
-    supplier: {
-      id: 'supplier-4',
-      name: 'SmartTech Solutions',
-      country: 'China',
-      verified: true,
-    },
-  },
-  {
-    id: 5,
-    name: 'Organic Green Tea Extract',
-    image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400&q=80',
-    price: 8.50,
-    priceRange: '$8.50 - $12.00',
-    moq: 200,
-    rating: 4.9,
-    reviews: 334,
-    verified: true,
-    badge: 'verified',
-    category: 'Food & Beverage > Tea',
-    supplier: {
-      id: 'supplier-5',
-      name: 'Natural Products Ltd.',
-      country: 'Sri Lanka',
-      verified: true,
-    },
-  },
-  {
-    id: 6,
-    name: 'LED Strip Lights RGB',
-    image: 'https://images.unsplash.com/photo-1545128485-c400e7702796?w=400&q=80',
-    price: 2.80,
-    priceRange: '$2.80 - $4.50',
-    moq: 300,
-    rating: 4.5,
-    reviews: 567,
-    verified: false,
-    badge: 'hot',
-    discount: 25,
-    category: 'Electronics > Lighting',
-    supplier: {
-      id: 'supplier-6',
-      name: 'LED Solutions Co.',
-      country: 'China',
-      verified: false,
-    },
-  },
-  {
-    id: 7,
-    name: 'Professional Hair Dryer',
-    image: 'https://images.unsplash.com/photo-1522338242042-2d1c53d14b0a?w=400&q=80',
-    price: 15.00,
-    priceRange: '$15.00 - $22.00',
-    moq: 100,
-    rating: 4.7,
-    reviews: 223,
-    verified: true,
-    category: 'Beauty & Personal Care',
-    supplier: {
-      id: 'supplier-7',
-      name: 'BeautyTech Industries',
-      country: 'South Korea',
-      verified: true,
-    },
-  },
-  {
-    id: 8,
-    name: 'Stainless Steel Water Bottles',
-    image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&q=80',
-    price: 4.50,
-    priceRange: '$4.50 - $7.00',
-    moq: 200,
-    rating: 4.8,
-    reviews: 445,
-    verified: true,
-    badge: 'new',
-    category: 'Home & Garden > Kitchen',
-    supplier: {
-      id: 'supplier-8',
-      name: 'Home Essentials Co.',
-      country: 'Turkey',
-      verified: true,
-    },
-  },
-  {
-    id: 9,
-    name: 'Solar Panel 300W',
-    image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=80',
-    price: 120.00,
-    priceRange: '$120.00 - $180.00',
-    moq: 20,
-    rating: 4.9,
-    reviews: 189,
-    verified: true,
-    badge: 'verified',
-    category: 'Renewable Energy > Solar',
-    supplier: {
-      id: 'supplier-9',
-      name: 'Green Energy Solutions',
-      country: 'Germany',
-      verified: true,
-    },
-  },
-  {
-    id: 10,
-    name: 'Wireless Charging Pad',
-    image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&q=80',
-    price: 8.90,
-    priceRange: '$8.90 - $15.00',
-    moq: 150,
-    rating: 4.6,
-    reviews: 312,
-    verified: true,
-    category: 'Electronics > Accessories',
-    supplier: {
-      id: 'supplier-10',
-      name: 'TechAccessories Inc.',
-      country: 'China',
-      verified: true,
-    },
-  },
-  {
-    id: 11,
-    name: 'Yoga Mat Premium',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80',
-    price: 6.50,
-    priceRange: '$6.50 - $12.00',
-    moq: 300,
-    rating: 4.7,
-    reviews: 278,
-    verified: true,
-    category: 'Sports & Fitness',
-    supplier: {
-      id: 'supplier-11',
-      name: 'Fitness Gear Co.',
-      country: 'Thailand',
-      verified: true,
-    },
-  },
-  {
-    id: 12,
-    name: 'Portable Power Bank 20000mAh',
-    image: 'https://images.unsplash.com/photo-1609091839311-d5365f5bf644?w=400&q=80',
-    price: 18.50,
-    priceRange: '$18.50 - $28.00',
-    moq: 100,
-    rating: 4.8,
-    reviews: 456,
-    verified: true,
-    badge: 'hot',
-    discount: 18,
-    category: 'Electronics > Power',
-    supplier: {
-      id: 'supplier-12',
-      name: 'PowerTech Solutions',
-      country: 'China',
-      verified: true,
-    },
-  },
-];
-
 type ViewMode = 'grid' | 'list';
 
 const Products: React.FC = () => {
@@ -280,9 +51,17 @@ const Products: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { addItem } = useCart();
   const { toast } = useToast();
+  const { data, isLoading } = useQuery({
+    queryKey: ['products', { q: searchParams.get('q') || '' }],
+    queryFn: () =>
+      productService.list({
+        limit: 100,
+        offset: 0,
+      }),
+  });
   
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [sortBy, setSortBy] = useState('relevance');
@@ -299,6 +78,39 @@ const Products: React.FC = () => {
     moq: number;
     price?: number;
   } | null>(null);
+
+  // Map API products to UI products when data changes
+  useEffect(() => {
+    if (!data) return;
+
+    const mapped: Product[] = (data.items || []).map((p: ApiProduct) => {
+      const image = Array.isArray(p.images) ? p.images[0] : (p.images as any) || '';
+      return {
+        id: p.id,
+        name: p.name,
+        image: image || 'https://via.placeholder.com/400x400?text=Product',
+        price: p.price,
+        priceRange: `${p.currency} ${p.price.toFixed(2)}`,
+        moq: p.moq,
+        rating: p.rating,
+        reviews: p.reviewCount,
+        verified: true,
+        // Until we have rich category/supplier info in the API, use simple labels
+        badge: p.featured ? 'hot' : undefined,
+        discount: undefined,
+        category: p.categoryId || 'General',
+        supplier: {
+          id: p.supplierId,
+          name: 'Supplier',
+          country: '',
+          verified: true,
+        },
+      };
+    });
+
+    setProducts(mapped);
+    setFilteredProducts(mapped);
+  }, [data]);
 
   // Filter and search products
   useEffect(() => {
@@ -369,7 +181,7 @@ const Products: React.FC = () => {
 
   const handleAddToCart = (product: Product) => {
     addItem({
-      productId: product.id.toString(),
+      productId: product.id,
       name: product.name,
       image: product.image,
       supplierId: product.supplier.id,
@@ -409,7 +221,13 @@ const Products: React.FC = () => {
                 {language === 'fa' ? 'همه محصولات' : language === 'ar' ? 'جميع المنتجات' : 'All Products'}
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-1 leading-tight">
-                {language === 'fa'
+                {isLoading
+                  ? language === 'fa'
+                    ? 'در حال بارگذاری محصولات...'
+                    : language === 'ar'
+                    ? 'جارٍ تحميل المنتجات...'
+                    : 'Loading products...'
+                  : language === 'fa'
                   ? `${filteredProducts.length} محصول یافت شد`
                   : language === 'ar'
                   ? `تم العثور على ${filteredProducts.length} منتج`
@@ -557,7 +375,18 @@ const Products: React.FC = () => {
         </Card>
 
         {/* Products Display */}
-        {filteredProducts.length === 0 ? (
+        {isLoading ? (
+          <Card className="p-12 text-center">
+            <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <p className="text-sm text-muted-foreground">
+              {language === 'fa'
+                ? 'در حال بارگذاری محصولات...'
+                : language === 'ar'
+                ? 'جارٍ تحميل المنتجات...'
+                : 'Loading products...'}
+            </p>
+          </Card>
+        ) : filteredProducts.length === 0 ? (
           <Card className="p-12 text-center">
             <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h3 className="text-xl font-bold mb-2">

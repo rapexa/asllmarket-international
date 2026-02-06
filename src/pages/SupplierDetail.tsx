@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, ShieldCheck, Star, MapPin, Globe, Package, Users, Award, MessageSquare } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -9,39 +9,81 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { supplierService, Supplier } from '@/services';
+
+interface UISupplier {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  verified: boolean;
+  rating: number;
+  totalOrders: number;
+  responseRate: string;
+  responseTime: string;
+  established: number;
+  employees: string;
+  mainProducts: string[];
+  description: string;
+  certifications: string[];
+  image: string;
+}
 
 const SupplierDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t, language, dir } = useLanguage();
   const navigate = useNavigate();
+  const [supplier, setSupplier] = useState<UISupplier | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Mock supplier data
-  const supplier = {
-    id: id || 'supplier-1',
-    name: 'TechGlobal Industries Ltd.',
-    country: 'China',
-    city: 'Shenzhen',
-    verified: true,
-    rating: 4.9,
-    totalOrders: 10000,
-    responseRate: '98%',
-    responseTime: '< 2 hours',
-    established: 2010,
-    employees: '500-1000',
-    mainProducts: [
-      'Electronics',
-      'Consumer Goods',
-      'Audio Equipment',
-      'Smart Devices',
-    ],
-    description: 'Leading manufacturer of electronics and consumer goods with over 10 years of experience in global trade.',
-    certifications: [
-      'ISO 9001 Certified',
-      'CE Certified',
-      'FCC Certified',
-    ],
-    image: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80',
-  };
+  useEffect(() => {
+    const loadSupplier = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const apiSupplier: Supplier = await supplierService.getById(id);
+        const mapped: UISupplier = {
+          id: apiSupplier.id,
+          name: apiSupplier.companyName,
+          country: apiSupplier.country,
+          city: apiSupplier.city,
+          verified: apiSupplier.verified,
+          rating: apiSupplier.rating ?? 0,
+          totalOrders: apiSupplier.totalOrders ?? 0,
+          responseRate: `${apiSupplier.responseRate ?? 0}%`,
+          responseTime: apiSupplier.responseTime ? `< ${apiSupplier.responseTime}h` : 'N/A',
+          established: apiSupplier.established ?? new Date(apiSupplier.createdAt).getFullYear(),
+          employees: apiSupplier.employees || 'N/A',
+          mainProducts: [],
+          description: apiSupplier.description || '',
+          certifications: [],
+          image: apiSupplier.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80',
+        };
+        setSupplier(mapped);
+      } catch (error) {
+        console.error('Failed to load supplier detail (public):', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSupplier();
+  }, [id]);
+
+  if (loading || !supplier) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+        <Header />
+        <div className="container py-12 flex items-center justify-center">
+          <span className="text-muted-foreground">Loading supplier...</span>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">

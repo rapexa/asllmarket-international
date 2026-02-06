@@ -3,36 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Clock, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const offers = [
-  {
-    id: 1,
-    title: 'Electronics Flash Sale',
-    description: 'Best deals on gadgets and electronics',
-    image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=800&q=80',
-    discount: 40,
-    endTime: new Date(Date.now() + 3600000 * 48), // 48 hours from now
-    color: 'from-blue-600 to-purple-600',
-  },
-  {
-    id: 2,
-    title: 'Fashion Week Special',
-    description: 'Trending apparel at wholesale prices',
-    image: 'https://images.unsplash.com/photo-1558171813-01342c77c3f9?w=800&q=80',
-    discount: 35,
-    endTime: new Date(Date.now() + 3600000 * 72), // 72 hours from now
-    color: 'from-pink-500 to-rose-500',
-  },
-  {
-    id: 3,
-    title: 'Industrial Equipment',
-    description: 'Heavy machinery and tools',
-    image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&q=80',
-    discount: 25,
-    endTime: new Date(Date.now() + 3600000 * 96), // 96 hours from now
-    color: 'from-orange-500 to-amber-500',
-  },
-];
+import { productService, Product as ApiProduct } from '@/services';
 
 interface TimeRemaining {
   hours: number;
@@ -40,14 +11,59 @@ interface TimeRemaining {
   seconds: number;
 }
 
+interface Offer {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  discount: number;
+  endTime: Date;
+  color: string;
+}
+
 const OffersSection: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
-  const [timeRemaining, setTimeRemaining] = useState<Record<number, TimeRemaining>>({});
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [timeRemaining, setTimeRemaining] = useState<Record<string, TimeRemaining>>({});
+
+  useEffect(() => {
+    const loadOffers = async () => {
+      try {
+        const res = await productService.list({ limit: 6 });
+        const items = res.items || [];
+        const palette = [
+          'from-blue-600 to-purple-600',
+          'from-pink-500 to-rose-500',
+          'from-orange-500 to-amber-500',
+        ];
+
+        const mapped: Offer[] = items.slice(0, 3).map((p: ApiProduct, index) => {
+          const baseDiscount = 20 - index * 5;
+          const hoursAhead = 48 + index * 24;
+          return {
+            id: p.id,
+            title: p.name,
+            description: p.description || t('offers.subtitle'),
+            image: p.images?.[0] || 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80',
+            discount: baseDiscount > 5 ? baseDiscount : 5,
+            endTime: new Date(Date.now() + 3600000 * hoursAhead),
+            color: palette[index % palette.length],
+          };
+        });
+
+        setOffers(mapped);
+      } catch (e) {
+        console.error('Failed to load offers for home page:', e);
+      }
+    };
+
+    loadOffers();
+  }, [t]);
 
   useEffect(() => {
     const calculateTimeRemaining = () => {
-      const times: Record<number, TimeRemaining> = {};
+      const times: Record<string, TimeRemaining> = {};
       offers.forEach((offer) => {
         const diff = offer.endTime.getTime() - Date.now();
         if (diff > 0) {
@@ -61,10 +77,12 @@ const OffersSection: React.FC = () => {
       setTimeRemaining(times);
     };
 
-    calculateTimeRemaining();
-    const timer = setInterval(calculateTimeRemaining, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    if (offers.length > 0) {
+      calculateTimeRemaining();
+      const timer = setInterval(calculateTimeRemaining, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [offers]);
 
   return (
     <section className="py-20 bg-background">

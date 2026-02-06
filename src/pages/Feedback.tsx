@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { cmsService } from '@/services';
 import {
   Select,
   SelectContent,
@@ -83,11 +84,31 @@ const Feedback: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const subjectPrefix = `[${data.type.toUpperCase()}]`;
+      const ratingPart = rating ? ` [rating=${rating}]` : '';
+      const subject = `${subjectPrefix}${ratingPart} ${data.title}`;
 
-      // In real app, send to backend
-      console.log('Feedback Submitted:', { ...data, rating });
+      const detailsLines: string[] = [];
+      if (data.page) detailsLines.push(`Page: ${data.page}`);
+      if (data.screenshot) detailsLines.push(`Screenshot: ${data.screenshot}`);
+      if (rating) detailsLines.push(`Rating: ${rating}/5`);
+
+      const messageBody = [
+        data.description,
+        '',
+        detailsLines.length ? '--- Details ---' : '',
+        ...detailsLines,
+      ].filter(Boolean).join('\n');
+
+      await cmsService.submitContact({
+        name: data.email || 'Anonymous',
+        email: data.email || 'no-reply@aslmarket.com',
+        phone: '',
+        company: '',
+        subject,
+        message: messageBody,
+        inquiryType: 'other',
+      });
 
       // Show success toast
       toast({

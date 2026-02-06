@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Flame, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,112 +7,28 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import RequestQuoteModal from '@/components/rfq/RequestQuoteModal';
+import { productService, Product as ApiProduct } from '@/services';
 
-const products = [
-  {
-    id: 1,
-    name: 'Wireless Bluetooth Earbuds Pro',
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80',
-    price: 12.50,
-    priceRange: '$12.50 - $18.00',
-    moq: 100,
-    rating: 4.8,
-    reviews: 256,
-    verified: true,
-    badge: 'hot',
-    discount: 15,
-  },
-  {
-    id: 2,
-    name: 'Industrial CNC Machine Parts',
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80',
-    price: 450,
-    priceRange: '$450 - $680',
-    moq: 10,
-    rating: 4.9,
-    reviews: 89,
-    verified: true,
-    badge: 'verified',
-  },
-  {
-    id: 3,
-    name: 'Premium Cotton T-Shirts Bulk',
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80',
-    price: 3.20,
-    priceRange: '$3.20 - $5.50',
-    moq: 500,
-    rating: 4.7,
-    reviews: 412,
-    verified: true,
-    badge: 'new',
-  },
-  {
-    id: 4,
-    name: 'Smart Home Security Camera',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
-    price: 28.90,
-    priceRange: '$28.90 - $45.00',
-    moq: 50,
-    rating: 4.6,
-    reviews: 178,
-    verified: true,
-    discount: 20,
-  },
-  {
-    id: 5,
-    name: 'Organic Green Tea Extract',
-    image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400&q=80',
-    price: 8.50,
-    priceRange: '$8.50 - $12.00',
-    moq: 200,
-    rating: 4.9,
-    reviews: 334,
-    verified: true,
-    badge: 'verified',
-  },
-  {
-    id: 6,
-    name: 'LED Strip Lights RGB',
-    image: 'https://images.unsplash.com/photo-1545128485-c400e7702796?w=400&q=80',
-    price: 2.80,
-    priceRange: '$2.80 - $4.50',
-    moq: 300,
-    rating: 4.5,
-    reviews: 567,
-    verified: false,
-    badge: 'hot',
-    discount: 25,
-  },
-  {
-    id: 7,
-    name: 'Professional Hair Dryer',
-    image: 'https://images.unsplash.com/photo-1522338242042-2d1c53d14b0a?w=400&q=80',
-    price: 15.00,
-    priceRange: '$15.00 - $22.00',
-    moq: 100,
-    rating: 4.7,
-    reviews: 223,
-    verified: true,
-  },
-  {
-    id: 8,
-    name: 'Stainless Steel Water Bottles',
-    image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&q=80',
-    price: 4.50,
-    priceRange: '$4.50 - $7.00',
-    moq: 200,
-    rating: 4.8,
-    reviews: 445,
-    verified: true,
-    badge: 'new',
-  },
-];
+interface HomeProduct {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  priceRange: string;
+  moq: number;
+  rating: number;
+  reviews: number;
+  verified: boolean;
+  badge?: 'hot' | 'verified' | 'new';
+  discount?: number;
+}
 
 const ProductsSection: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { toast } = useToast();
+  const [products, setProducts] = useState<HomeProduct[]>([]);
   const [requestQuoteProduct, setRequestQuoteProduct] = useState<{
     id: string;
     name: string;
@@ -122,6 +38,40 @@ const ProductsSection: React.FC = () => {
     moq: number;
     price?: number;
   } | null>(null);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const res = await productService.list({ limit: 8 });
+        const items: HomeProduct[] = (res.items || []).map((p: ApiProduct, index) => {
+          const basePrice = p.price;
+          const maxPrice = basePrice * 1.4;
+          const badges: Array<HomeProduct['badge']> = ['hot', 'verified', 'new', undefined];
+          const badge = badges[index % badges.length];
+          const discount = badge === 'hot' ? 20 : badge === 'new' ? 10 : undefined;
+
+          return {
+            id: p.id,
+            name: p.name,
+            image: p.images?.[0] || 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80',
+            price: basePrice,
+            priceRange: `$${basePrice.toFixed(2)} - $${maxPrice.toFixed(2)}`,
+            moq: p.moq ?? 1,
+            rating: p.rating ?? 0,
+            reviews: p.reviewCount ?? 0,
+            verified: p.featured ?? false,
+            badge,
+            discount,
+          };
+        });
+        setProducts(items);
+      } catch (e) {
+        console.error('Failed to load home products:', e);
+      }
+    };
+
+    loadProducts();
+  }, []);
 
   const getBadgeContent = (badge?: string) => {
     switch (badge) {

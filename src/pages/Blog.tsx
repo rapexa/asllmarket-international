@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -31,9 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cmsService, BlogPost as ApiBlogPost } from '@/services';
 
 interface BlogPost {
-  id: number;
+  id: string;
   title: string;
   excerpt: string;
   content: string;
@@ -52,141 +53,53 @@ interface BlogPost {
   featured?: boolean;
 }
 
-const mockPosts: BlogPost[] = [
-  {
-    id: 1,
-    title: '10 Tips for Successful B2B Trading in 2024',
-    excerpt: 'Discover the latest strategies and best practices for successful B2B trading in the modern marketplace.',
-    content: 'Full content here...',
-    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&q=80',
-    author: {
-      name: 'Sarah Johnson',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80',
-      role: 'Trade Expert',
-    },
-    category: 'Trading',
-    tags: ['B2B', 'Trading', 'Tips', '2024'],
-    publishedAt: '2024-01-15',
-    readTime: 5,
-    views: 1250,
-    likes: 89,
-    featured: true,
-  },
-  {
-    id: 2,
-    title: 'How to Build Trust with International Suppliers',
-    excerpt: 'Learn how to establish and maintain trust with suppliers from different countries and cultures.',
-    content: 'Full content here...',
-    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=80',
-    author: {
-      name: 'Michael Chen',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80',
-      role: 'Supply Chain Manager',
-    },
-    category: 'Supply Chain',
-    tags: ['Suppliers', 'Trust', 'International'],
-    publishedAt: '2024-01-12',
-    readTime: 7,
-    views: 980,
-    likes: 67,
-  },
-  {
-    id: 3,
-    title: 'The Future of E-commerce in B2B Markets',
-    excerpt: 'Exploring the trends and technologies shaping the future of B2B e-commerce platforms.',
-    content: 'Full content here...',
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
-    author: {
-      name: 'Emily Rodriguez',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80',
-      role: 'E-commerce Analyst',
-    },
-    category: 'E-commerce',
-    tags: ['E-commerce', 'Future', 'Technology'],
-    publishedAt: '2024-01-10',
-    readTime: 6,
-    views: 1520,
-    likes: 112,
-    featured: true,
-  },
-  {
-    id: 4,
-    title: 'Understanding MOQ: Minimum Order Quantities Explained',
-    excerpt: 'A comprehensive guide to understanding and negotiating minimum order quantities in B2B transactions.',
-    content: 'Full content here...',
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
-    author: {
-      name: 'David Kim',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80',
-      role: 'Business Consultant',
-    },
-    category: 'Business',
-    tags: ['MOQ', 'Business', 'Negotiation'],
-    publishedAt: '2024-01-08',
-    readTime: 4,
-    views: 890,
-    likes: 54,
-  },
-  {
-    id: 5,
-    title: 'Top 5 Payment Methods for International B2B Transactions',
-    excerpt: 'Compare the most secure and efficient payment methods for cross-border B2B transactions.',
-    content: 'Full content here...',
-    image: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800&q=80',
-    author: {
-      name: 'Lisa Wang',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80',
-      role: 'Finance Expert',
-    },
-    category: 'Finance',
-    tags: ['Payment', 'Finance', 'International'],
-    publishedAt: '2024-01-05',
-    readTime: 8,
-    views: 2100,
-    likes: 145,
-  },
-  {
-    id: 6,
-    title: 'Digital Transformation in B2B: A Complete Guide',
-    excerpt: 'How businesses can leverage digital transformation to improve their B2B operations and customer experience.',
-    content: 'Full content here...',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
-    author: {
-      name: 'James Wilson',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80',
-      role: 'Digital Strategist',
-    },
-    category: 'Technology',
-    tags: ['Digital', 'Transformation', 'Technology'],
-    publishedAt: '2024-01-03',
-    readTime: 10,
-    views: 1750,
-    likes: 98,
-  },
-];
-
 const categories = ['All', 'Trading', 'Supply Chain', 'E-commerce', 'Business', 'Finance', 'Technology'];
 const popularTags = ['B2B', 'Trading', 'Suppliers', 'E-commerce', 'Finance', 'Technology', 'International', 'Business'];
-
-// Export mockPosts for use in BlogDetail
-export const getBlogPost = (id: number) => {
-  return mockPosts.find(p => p.id === id);
-};
-
-export const getAllBlogPosts = () => {
-  return mockPosts;
-};
 
 const Blog: React.FC = () => {
   const { language, dir } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>(mockPosts);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        const res = await cmsService.listBlogPosts();
+        const items = (res.items || []).map((p: ApiBlogPost): BlogPost => ({
+          id: p.id,
+          title: p.title,
+          excerpt: p.excerpt,
+          content: p.content,
+          image: p.imageUrl || 'https://via.placeholder.com/800x400?text=Blog',
+          author: {
+            name: p.authorName || 'ASL Market',
+            avatar: p.authorAvatar || 'https://via.placeholder.com/100x100?text=Author',
+            role: p.authorRole || 'Author',
+          },
+          category: p.category || 'General',
+          tags: p.tags ? JSON.parse(p.tags) : [],
+          publishedAt: p.publishedAt || p.createdAt || '',
+          readTime: p.readTime || 5,
+          views: p.views || 0,
+          likes: p.likes || 0,
+          featured: p.featured,
+        }));
+        setPosts(items);
+        setFilteredPosts(items);
+      } catch (e) {
+        console.error('Failed to load blog posts:', e);
+      }
+    };
+
+    loadPosts();
+  }, []);
 
   // Filter posts
   React.useEffect(() => {
-    let filtered = [...mockPosts];
+    let filtered = [...posts];
 
     // Search filter
     if (searchQuery) {
@@ -203,7 +116,7 @@ const Blog: React.FC = () => {
     }
 
     setFilteredPosts(filtered);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, posts]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -527,7 +440,7 @@ const Blog: React.FC = () => {
                     {language === 'fa' ? 'پست‌های محبوب' : language === 'ar' ? 'المنشورات الشائعة' : 'Popular Posts'}
                   </h3>
                   <div className="space-y-4">
-                    {mockPosts
+                    {posts
                       .sort((a, b) => b.views - a.views)
                       .slice(0, 3)
                       .map((post) => (

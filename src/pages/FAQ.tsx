@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   HelpCircle, 
@@ -27,24 +27,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { cmsService, FAQItem } from '@/services';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-
-interface FAQ {
-  id: number;
-  question: string;
-  questionFa: string;
-  questionAr: string;
-  answer: string;
-  answerFa: string;
-  answerAr: string;
-  category: string;
-  popular?: boolean;
-}
 
 const faqCategories = [
   { id: 'all', label: 'All', labelFa: 'همه', labelAr: 'الكل', icon: HelpCircle },
@@ -56,177 +45,43 @@ const faqCategories = [
   { id: 'security', label: 'Security', labelFa: 'امنیت', labelAr: 'الأمان', icon: Shield },
 ];
 
-const mockFAQs: FAQ[] = [
-  {
-    id: 1,
-    question: 'How do I create an account on ASL Market?',
-    questionFa: 'چگونه در ASL Market حساب کاربری ایجاد کنم؟',
-    questionAr: 'كيف أنشئ حساباً على ASL Market؟',
-    answer: 'Creating an account is easy! Click on the "Register" button in the top right corner, fill in your basic information (name, email, password), verify your email address, and complete your profile. You can choose to register as a Buyer, Supplier, or both.',
-    answerFa: 'ایجاد حساب کاربری آسان است! روی دکمه "ثبت‌نام" در گوشه بالا راست کلیک کنید، اطلاعات اولیه خود را وارد کنید (نام، ایمیل، رمز عبور)، ایمیل خود را تأیید کنید و پروفایل خود را تکمیل کنید. می‌توانید به عنوان خریدار، تأمین‌کننده یا هر دو ثبت‌نام کنید.',
-    answerAr: 'إنشاء حساب سهل! انقر فوق زر "التسجيل" في الزاوية اليمنى العلوية، واملأ معلوماتك الأساسية (الاسم والبريد الإلكتروني وكلمة المرور)، وتحقق من بريدك الإلكتروني، وأكمل ملفك الشخصي. يمكنك التسجيل كمشتري أو مورد أو كليهما.',
-    category: 'getting-started',
-    popular: true,
-  },
-  {
-    id: 2,
-    question: 'What is the difference between a Buyer and Supplier account?',
-    questionFa: 'تفاوت حساب خریدار و تأمین‌کننده چیست؟',
-    questionAr: 'ما الفرق بين حساب المشتري والمورد؟',
-    answer: 'A Buyer account allows you to browse products, request quotes, place orders, and manage purchases. A Supplier account enables you to list products, receive quote requests, manage inventory, and fulfill orders. You can also have both roles in a single account.',
-    answerFa: 'حساب خریدار به شما امکان می‌دهد محصولات را مرور کنید، استعلام قیمت درخواست کنید، سفارش دهید و خریدها را مدیریت کنید. حساب تأمین‌کننده به شما امکان می‌دهد محصولات را لیست کنید، درخواست‌های استعلام قیمت دریافت کنید، موجودی را مدیریت کنید و سفارش‌ها را تکمیل کنید. همچنین می‌توانید هر دو نقش را در یک حساب داشته باشید.',
-    answerAr: 'يسمح حساب المشتري لك بتصفح المنتجات وطلب عروض الأسعار ووضع الطلبات وإدارة المشتريات. يتيح حساب المورد لك بإدراج المنتجات وتلقي طلبات عروض الأسعار وإدارة المخزون وتنفيذ الطلبات. يمكنك أيضًا الحصول على كلا الدورين في حساب واحد.',
-    category: 'account',
-    popular: true,
-  },
-  {
-    id: 3,
-    question: 'How do I search for products?',
-    questionFa: 'چگونه محصولات را جستجو کنم؟',
-    questionAr: 'كيف أبحث عن المنتجات؟',
-    answer: 'You can search for products using the search bar at the top of any page. Enter keywords, product names, or categories. You can also use advanced filters to narrow down results by price, location, MOQ, supplier verification status, and more.',
-    answerFa: 'می‌توانید با استفاده از نوار جستجو در بالای هر صفحه، محصولات را جستجو کنید. کلمات کلیدی، نام محصولات یا دسته‌بندی‌ها را وارد کنید. همچنین می‌توانید از فیلترهای پیشرفته برای محدود کردن نتایج بر اساس قیمت، موقعیت، MOQ، وضعیت تأیید تأمین‌کننده و موارد دیگر استفاده کنید.',
-    answerAr: 'يمكنك البحث عن المنتجات باستخدام شريط البحث في أعلى أي صفحة. أدخل الكلمات الرئيسية أو أسماء المنتجات أو الفئات. يمكنك أيضًا استخدام المرشحات المتقدمة لتضييق النتائج حسب السعر والموقع وMOQ وحالة التحقق من المورد والمزيد.',
-    category: 'buying',
-    popular: true,
-  },
-  {
-    id: 4,
-    question: 'How do I request a quote?',
-    questionFa: 'چگونه استعلام قیمت درخواست کنم؟',
-    questionAr: 'كيف أطلب عرض سعر؟',
-    answer: 'To request a quote, click the "Request Quote" button on any product page. Fill in the required information including quantity, specifications, delivery location, and preferred delivery date. Suppliers will respond with their quotes within 24-48 hours.',
-    answerFa: 'برای درخواست استعلام قیمت، روی دکمه "درخواست استعلام قیمت" در صفحه هر محصول کلیک کنید. اطلاعات مورد نیاز از جمله تعداد، مشخصات، آدرس تحویل و تاریخ تحویل مطلوب را وارد کنید. تأمین‌کنندگان ظرف 24-48 ساعت با پیشنهادات خود پاسخ خواهند داد.',
-    answerAr: 'لطلب عرض سعر، انقر فوق زر "طلب عرض سعر" في صفحة أي منتج. املأ المعلومات المطلوبة بما في ذلك الكمية والمواصفات وموقع التسليم وتاريخ التسليم المفضل. سيرد الموردون بعروضهم في غضون 24-48 ساعة.',
-    category: 'buying',
-    popular: true,
-  },
-  {
-    id: 5,
-    question: 'What is MOQ and why is it important?',
-    questionFa: 'MOQ چیست و چرا مهم است؟',
-    questionAr: 'ما هو MOQ ولماذا هو مهم؟',
-    answer: 'MOQ stands for Minimum Order Quantity. It\'s the smallest number of units a supplier is willing to sell in a single order. MOQ helps suppliers maintain profitability and efficiency in production. Different suppliers may have different MOQ requirements.',
-    answerFa: 'MOQ مخفف Minimum Order Quantity (حداقل تعداد سفارش) است. این کمترین تعداد واحد است که یک تأمین‌کننده مایل به فروش در یک سفارش است. MOQ به تأمین‌کنندگان کمک می‌کند تا سودآوری و کارایی در تولید را حفظ کنند. تأمین‌کنندگان مختلف ممکن است نیازمندی‌های MOQ متفاوتی داشته باشند.',
-    answerAr: 'MOQ تعني الحد الأدنى لكمية الطلب. إنه أصغر عدد من الوحدات التي يرغب المورد في بيعها في طلب واحد. يساعد MOQ الموردين في الحفاظ على الربحية والكفاءة في الإنتاج. قد يكون للموردين المختلفين متطلبات MOQ مختلفة.',
-    category: 'buying',
-  },
-  {
-    id: 6,
-    question: 'How do I add products to sell?',
-    questionFa: 'چگونه محصولات برای فروش اضافه کنم؟',
-    questionAr: 'كيف أضيف منتجات للبيع؟',
-    answer: 'As a supplier, go to your dashboard and click "Add Product". Fill in product details including name, description, images, pricing, MOQ, specifications, and shipping information. Once submitted, your products will be reviewed and published on the platform.',
-    answerFa: 'به عنوان تأمین‌کننده، به داشبورد خود بروید و روی "افزودن محصول" کلیک کنید. جزئیات محصول از جمله نام، توضیحات، تصاویر، قیمت، MOQ، مشخصات و اطلاعات ارسال را وارد کنید. پس از ارسال، محصولات شما بررسی و در پلتفرم منتشر می‌شوند.',
-    answerAr: 'كمورد، انتقل إلى لوحة التحكم وانقر فوق "إضافة منتج". املأ تفاصيل المنتج بما في ذلك الاسم والوصف والصور والأسعار وMOQ والمواصفات ومعلومات الشحن. بمجرد الإرسال، سيتم مراجعة منتجاتك ونشرها على المنصة.',
-    category: 'selling',
-    popular: true,
-  },
-  {
-    id: 7,
-    question: 'How do I verify my supplier account?',
-    questionFa: 'چگونه حساب تأمین‌کننده خود را تأیید کنم؟',
-    questionAr: 'كيف أتحقق من حساب المورد؟',
-    answer: 'To verify your supplier account, go to your dashboard and navigate to the "Verification" section. You\'ll need to submit identity documents, business license, and verify your contact information. The verification process usually takes 2-3 business days.',
-    answerFa: 'برای تأیید حساب تأمین‌کننده، به داشبورد خود بروید و به بخش "تأیید هویت" بروید. باید مدارک هویتی، مجوز کسب‌وکار و اطلاعات تماس خود را ارسال کنید. فرآیند تأیید معمولاً 2-3 روز کاری طول می‌کشد.',
-    answerAr: 'للتحقق من حساب المورد، انتقل إلى لوحة التحكم وانتقل إلى قسم "التحقق". ستحتاج إلى تقديم مستندات الهوية وترخيص الأعمال والتحقق من معلومات الاتصال الخاصة بك. تستغرق عملية التحقق عادة 2-3 أيام عمل.',
-    category: 'selling',
-  },
-  {
-    id: 8,
-    question: 'What payment methods are accepted?',
-    questionFa: 'چه روش‌های پرداختی پذیرفته می‌شود؟',
-    questionAr: 'ما هي طرق الدفع المقبولة؟',
-    answer: 'We accept various payment methods including credit cards (Visa, Mastercard, American Express), bank transfers, and our secure Escrow system. We also support international payment methods for cross-border transactions. All payments are processed securely.',
-    answerFa: 'ما روش‌های پرداخت مختلفی از جمله کارت‌های اعتباری (ویزا، مسترکارت، امریکن اکسپرس)، انتقال بانکی و سیستم Escrow امن خود را می‌پذیریم. همچنین از روش‌های پرداخت بین‌المللی برای معاملات فرامرزی پشتیبانی می‌کنیم. همه پرداخت‌ها به صورت امن پردازش می‌شوند.',
-    answerAr: 'نقبل طرق دفع مختلفة بما في ذلك بطاقات الائتمان (Visa وMastercard وAmerican Express) والتحويلات المصرفية ونظام الضمان الآمن الخاص بنا. ندعم أيضًا طرق الدفع الدولية للمعاملات عبر الحدود. تتم معالجة جميع المدفوعات بأمان.',
-    category: 'payment',
-    popular: true,
-  },
-  {
-    id: 9,
-    question: 'Is my payment information secure?',
-    questionFa: 'آیا اطلاعات پرداخت من امن است؟',
-    questionAr: 'هل معلومات الدفع الخاصة بي آمنة؟',
-    answer: 'Yes, absolutely! We use industry-standard SSL encryption and secure payment processing. We also offer Escrow services that hold funds until order completion, providing additional security for both buyers and suppliers. We never store your full payment details.',
-    answerFa: 'بله، کاملاً! ما از رمزگذاری SSL استاندارد صنعتی و پردازش پرداخت امن استفاده می‌کنیم. همچنین خدمات Escrow ارائه می‌دهیم که وجوه را تا تکمیل سفارش نگه می‌دارد و امنیت بیشتری برای خریداران و تأمین‌کنندگان فراهم می‌کند. ما هرگز جزئیات کامل پرداخت شما را ذخیره نمی‌کنیم.',
-    answerAr: 'نعم، بالتأكيد! نستخدم تشفير SSL القياسي في الصناعة ومعالجة الدفع الآمنة. نقدم أيضًا خدمات الضمان التي تحتفظ بالأموال حتى اكتمال الطلب، مما يوفر أمانًا إضافيًا للمشترين والموردين. لا نخزن أبدًا تفاصيل الدفع الكاملة الخاصة بك.',
-    category: 'security',
-    popular: true,
-  },
-  {
-    id: 10,
-    question: 'How do I track my order?',
-    questionFa: 'چگونه سفارش خود را پیگیری کنم؟',
-    questionAr: 'كيف أتتبع طلبي؟',
-    answer: 'You can track your order by going to "My Orders" in your dashboard. Click on the order you want to track to see detailed status updates, shipping information, tracking number, and estimated delivery date. You\'ll also receive email notifications for order updates.',
-    answerFa: 'می‌توانید با رفتن به "سفارش‌های من" در داشبورد خود، سفارش خود را پیگیری کنید. روی سفارشی که می‌خواهید پیگیری کنید کلیک کنید تا به‌روزرسانی‌های وضعیت، اطلاعات ارسال، شماره پیگیری و تاریخ تحویل تخمینی را ببینید. همچنین اعلان‌های ایمیل برای به‌روزرسانی‌های سفارش دریافت خواهید کرد.',
-    answerAr: 'يمكنك تتبع طلبك بالانتقال إلى "طلباتي" في لوحة التحكم. انقر فوق الطلب الذي تريد تتبعه لرؤية تحديثات الحالة التفصيلية ومعلومات الشحن ورقم التتبع وتاريخ التسليم المقدر. ستتلقى أيضًا إشعارات بريد إلكتروني لتحديثات الطلب.',
-    category: 'buying',
-  },
-  {
-    id: 11,
-    question: 'Can I cancel an order?',
-    questionFa: 'آیا می‌توانم سفارش را لغو کنم؟',
-    questionAr: 'هل يمكنني إلغاء طلب؟',
-    answer: 'Yes, you can cancel an order if it hasn\'t been shipped yet. Go to "My Orders", select the order, and click "Cancel Order". If the order has already been shipped, you may need to contact the supplier directly or request a return. Refund policies vary by supplier.',
-    answerFa: 'بله، می‌توانید سفارش را لغو کنید اگر هنوز ارسال نشده باشد. به "سفارش‌های من" بروید، سفارش را انتخاب کنید و روی "لغو سفارش" کلیک کنید. اگر سفارش قبلاً ارسال شده باشد، ممکن است نیاز باشد مستقیماً با تأمین‌کننده تماس بگیرید یا درخواست بازگشت دهید. سیاست‌های بازپرداخت بسته به تأمین‌کننده متفاوت است.',
-    answerAr: 'نعم، يمكنك إلغاء طلب إذا لم يتم شحنه بعد. انتقل إلى "طلباتي"، وحدد الطلب، وانقر فوق "إلغاء الطلب". إذا تم شحن الطلب بالفعل، قد تحتاج إلى الاتصال بالمورد مباشرة أو طلب إرجاع. تختلف سياسات الاسترداد حسب المورد.',
-    category: 'buying',
-  },
-  {
-    id: 12,
-    question: 'How do I change my account password?',
-    questionFa: 'چگونه رمز عبور حساب خود را تغییر دهم؟',
-    questionAr: 'كيف أغير كلمة مرور حسابي؟',
-    answer: 'To change your password, go to your account settings in the dashboard. Click on "Security" or "Password", enter your current password, then enter and confirm your new password. Make sure your new password is strong and unique.',
-    answerFa: 'برای تغییر رمز عبور، به تنظیمات حساب در داشبورد بروید. روی "امنیت" یا "رمز عبور" کلیک کنید، رمز عبور فعلی خود را وارد کنید، سپس رمز عبور جدید را وارد و تأیید کنید. مطمئن شوید که رمز عبور جدید شما قوی و منحصر به فرد است.',
-    answerAr: 'لتغيير كلمة المرور، انتقل إلى إعدادات حسابك في لوحة التحكم. انقر فوق "الأمان" أو "كلمة المرور"، وأدخل كلمة المرور الحالية، ثم أدخل وأكد كلمة المرور الجديدة. تأكد من أن كلمة المرور الجديدة قوية وفريدة.',
-    category: 'account',
-  },
-  {
-    id: 13,
-    question: 'What are the subscription plans for suppliers?',
-    questionFa: 'پلن‌های اشتراک برای تأمین‌کنندگان چیست؟',
-    questionAr: 'ما هي خطط الاشتراك للموردين؟',
-    answer: 'We offer multiple subscription plans: Free (basic features, limited products), Silver (more products, better visibility), Gold (unlimited products, high priority, analytics), and Diamond (all Gold features plus featured placement and dedicated support). You can upgrade anytime from your dashboard.',
-    answerFa: 'ما چندین پلن اشتراک ارائه می‌دهیم: رایگان (امکانات پایه، محصولات محدود)، نقره‌ای (محصولات بیشتر، دید بهتر)، طلایی (محصولات نامحدود، اولویت بالا، آنالیتیکس) و الماس (همه امکانات طلایی به علاوه نمایش ویژه و پشتیبانی اختصاصی). می‌توانید در هر زمان از داشبورد خود ارتقا دهید.',
-    answerAr: 'نقدم خطط اشتراك متعددة: مجاني (ميزات أساسية، منتجات محدودة)، فضي (منتجات أكثر، رؤية أفضل)، ذهبي (منتجات غير محدودة، أولوية عالية، تحليلات)، والماس (جميع ميزات الذهبي بالإضافة إلى الوضع المميز والدعم المخصص). يمكنك الترقية في أي وقت من لوحة التحكم.',
-    category: 'selling',
-  },
-  {
-    id: 14,
-    question: 'How do I contact customer support?',
-    questionFa: 'چگونه با پشتیبانی مشتری تماس بگیرم؟',
-    questionAr: 'كيف أتصل بدعم العملاء؟',
-    answer: 'You can contact our support team through the "Contact Us" page, email us at support@aslmarket.com, use the live chat feature available in your dashboard, or call us at +1 (234) 567-890. We\'re available 24/7 to assist you.',
-    answerFa: 'می‌توانید از طریق صفحه "تماس با ما"، ایمیل به support@aslmarket.com، استفاده از ویژگی چت زنده موجود در داشبورد خود یا تماس با ما در +1 (234) 567-890 با تیم پشتیبانی ما تماس بگیرید. ما 24/7 در دسترس هستیم تا به شما کمک کنیم.',
-    answerAr: 'يمكنك الاتصال بفريق الدعم من خلال صفحة "اتصل بنا" أو إرسال بريد إلكتروني إلى support@aslmarket.com أو استخدام ميزة الدردشة المباشرة المتاحة في لوحة التحكم أو الاتصال بنا على +1 (234) 567-890. نحن متاحون على مدار الساعة لمساعدتك.',
-    category: 'getting-started',
-    popular: true,
-  },
-  {
-    id: 15,
-    question: 'How do I update my profile information?',
-    questionFa: 'چگونه اطلاعات پروفایل خود را به‌روزرسانی کنم؟',
-    questionAr: 'كيف أحدث معلومات ملفي الشخصي؟',
-    answer: 'To update your profile, go to your dashboard and click on "Profile" or "Account Settings". You can update your personal information, company details, contact information, and preferences. Remember to save your changes.',
-    answerFa: 'برای به‌روزرسانی پروفایل، به داشبورد خود بروید و روی "پروفایل" یا "تنظیمات حساب" کلیک کنید. می‌توانید اطلاعات شخصی، جزئیات شرکت، اطلاعات تماس و تنظیمات خود را به‌روزرسانی کنید. فراموش نکنید که تغییرات خود را ذخیره کنید.',
-    answerAr: 'لتحديث ملفك الشخصي، انتقل إلى لوحة التحكم وانقر فوق "الملف الشخصي" أو "إعدادات الحساب". يمكنك تحديث معلوماتك الشخصية وتفاصيل الشركة ومعلومات الاتصال والتفضيلات. تذكر حفظ التغييرات.',
-    category: 'account',
-  },
-];
 
 const FAQ: React.FC = () => {
   const { language, dir } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [filteredFAQs, setFilteredFAQs] = useState<FAQ[]>(mockFAQs);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [filteredFAQs, setFilteredFAQs] = useState<FAQ[]>([]);
+
+  useEffect(() => {
+    const loadFAQs = async () => {
+      try {
+        const res = await cmsService.listFAQs();
+        const items: FAQ[] = (res.items || []).map((f: FAQItem) => ({
+          id: Number.NaN, // numeric id not used for backend references
+          question: f.questionEn,
+          questionFa: f.questionFa,
+          questionAr: f.questionAr,
+          answer: f.answerEn,
+          answerFa: f.answerFa,
+          answerAr: f.answerAr,
+          category: f.category,
+          popular: f.popular,
+        }));
+        setFaqs(items);
+        setFilteredFAQs(items);
+      } catch (e) {
+        console.error('Failed to load FAQs:', e);
+      }
+    };
+
+    loadFAQs();
+  }, []);
 
   // Filter FAQs
   React.useEffect(() => {
-    let filtered = [...mockFAQs];
+    let filtered = [...faqs];
 
     // Search filter
     if (searchQuery) {
@@ -246,7 +101,7 @@ const FAQ: React.FC = () => {
     }
 
     setFilteredFAQs(filtered);
-  }, [searchQuery, selectedCategory, language]);
+  }, [searchQuery, selectedCategory, language, faqs]);
 
   const getQuestion = (faq: FAQ) => {
     if (language === 'fa') return faq.questionFa;
@@ -273,7 +128,7 @@ const FAQ: React.FC = () => {
 
   const hasActiveFilters = searchQuery || selectedCategory !== 'all';
 
-  const popularFAQs = mockFAQs.filter(faq => faq.popular);
+  const popularFAQs = faqs.filter(faq => faq.popular);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">

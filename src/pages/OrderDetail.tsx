@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, DollarSign, Truck, Calendar, CheckCircle2, Clock, XCircle, Building2, MapPin, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,12 +10,15 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { orderService, Order } from '@/services';
 
 const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t, language, dir } = useLanguage();
   const navigate = useNavigate();
   const { notifications, markAsRead } = useNotifications();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Mark related notifications as read
   React.useEffect(() => {
@@ -26,51 +29,25 @@ const OrderDetail: React.FC = () => {
       });
   }, [id, notifications, markAsRead]);
 
-  // Mock order data
-  const order = {
-    id: id || '12345',
-    status: 'pending_payment',
-    orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    estimatedDelivery: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-    totalAmount: 12500,
-    currency: 'USD',
-    paymentMethod: 'Escrow',
-    paymentStatus: 'pending',
-    shippingAddress: {
-      company: 'TechCorp Inc.',
-      address: '123 Business Street',
-      city: 'New York',
-      state: 'NY',
-      zip: '10001',
-      country: 'United States',
-    },
-    supplier: {
-      id: 'supplier-1',
-      name: 'TechGlobal Industries Ltd.',
-      country: 'China',
-      verified: true,
-      contact: {
-        phone: '+86 123 456 7890',
-        email: 'contact@techglobal.com',
-      },
-    },
-    items: [
-      {
-        id: 'item-1',
-        productId: 'product-1',
-        name: 'Wireless Bluetooth Earbuds Pro',
-        image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=200&q=80',
-        quantity: 500,
-        unitPrice: 25,
-        totalPrice: 12500,
-        moq: 100,
-      },
-    ],
-    timeline: [
-      { status: 'order_placed', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), description: 'Order placed' },
-      { status: 'payment_pending', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), description: 'Waiting for payment' },
-    ],
-  };
+  useEffect(() => {
+    const loadOrder = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const apiOrder = await orderService.getById(id);
+        setOrder(apiOrder);
+      } catch (error) {
+        console.error('Failed to load order detail:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrder();
+  }, [id]);
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any }> = {
@@ -84,6 +61,24 @@ const OrderDetail: React.FC = () => {
     };
     return statusMap[status] || statusMap.order_placed;
   };
+
+  if (loading || !order) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+        <Header />
+        <div className="container py-12 flex items-center justify-center">
+          <span className="text-muted-foreground">
+            {language === 'fa'
+              ? 'در حال بارگذاری سفارش...'
+              : language === 'ar'
+              ? 'جارٍ تحميل الطلب...'
+              : 'Loading order...'}
+          </span>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const statusInfo = getStatusBadge(order.status);
 
@@ -106,17 +101,17 @@ const OrderDetail: React.FC = () => {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">
-                Order #{order.id}
+                Order #{order.orderNumber || order.id}
               </h1>
               <Badge variant={statusInfo.variant} className="gap-2 text-sm py-2 px-4">
                 <statusInfo.icon className="h-4 w-4" />
                 {statusInfo.label}
               </Badge>
             </div>
-            <p className="text-muted-foreground flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Placed on {order.orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
+              <p className="text-muted-foreground flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Placed on {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => navigate(`/orders/${id}/payment`)}>
@@ -138,7 +133,19 @@ const OrderDetail: React.FC = () => {
             <Card className="p-6">
               <h2 className="text-xl font-bold mb-4">Order Items</h2>
               <div className="space-y-4">
-                {order.items.map((item) => (
+              {/* Note: current backend Order model is single-product; we treat it as one line item */}
+              {[
+                {
+                  id: order.id,
+                  productId: order.productId,
+                  name: 'Product',
+                  image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=200&q=80',
+                  quantity: order.quantity,
+                  unitPrice: order.unitPrice,
+                  totalPrice: order.totalAmount,
+                  moq: 1,
+                },
+              ].map((item) => (
                   <div
                     key={item.id}
                     className="flex gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors cursor-pointer"
@@ -167,39 +174,26 @@ const OrderDetail: React.FC = () => {
               </div>
             </Card>
 
-            {/* Order Timeline */}
+            {/* Order Timeline (derived from status dates) */}
             <Card className="p-6">
               <h2 className="text-xl font-bold mb-4">Order Timeline</h2>
               <div className="space-y-4">
-                {order.timeline.map((event, index) => {
-                  const eventStatusInfo = getStatusBadge(event.status);
-                  return (
-                    <div key={index} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center border-2",
-                          index === order.timeline.length - 1
-                            ? "bg-primary border-primary text-primary-foreground"
-                            : "bg-muted border-muted-foreground/30"
-                        )}>
-                          <eventStatusInfo.icon className="h-5 w-5" />
-                        </div>
-                        {index < order.timeline.length - 1 && (
-                          <div className="w-0.5 h-full bg-border my-2" />
-                        )}
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="font-semibold">{eventStatusInfo.label}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {event.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </p>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{event.description}</p>
-                      </div>
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-primary border-primary text-primary-foreground">
+                      <Package className="h-5 w-5" />
                     </div>
-                  );
-                })}
+                  </div>
+                  <div className="flex-1 pb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-semibold">Order Placed</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Your order has been created.</p>
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
@@ -212,7 +206,7 @@ const OrderDetail: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-semibold">${order.totalAmount.toLocaleString()}</span>
+                    <span className="font-semibold">${order.totalAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
@@ -233,23 +227,20 @@ const OrderDetail: React.FC = () => {
               </div>
             </Card>
 
-            {/* Shipping Address */}
+            {/* Shipping Address (basic from string field) */}
             <Card className="p-6">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Truck className="h-5 w-5" />
                 Shipping Address
               </h2>
               <div className="space-y-2 text-sm">
-                <p className="font-semibold">{order.shippingAddress.company}</p>
-                <p className="text-muted-foreground">{order.shippingAddress.address}</p>
-                <p className="text-muted-foreground">
-                  {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}
+                <p className="text-muted-foreground whitespace-pre-wrap">
+                  {order.shippingAddress}
                 </p>
-                <p className="text-muted-foreground">{order.shippingAddress.country}</p>
               </div>
             </Card>
 
-            {/* Supplier Info */}
+            {/* Supplier Info (basic link using supplierId) */}
             <Card className="p-6">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Building2 className="h-5 w-5" />
@@ -257,24 +248,18 @@ const OrderDetail: React.FC = () => {
               </h2>
               <div className="space-y-3">
                 <div>
-                  <p className="font-semibold mb-1">{order.supplier.name}</p>
+                  <p className="font-semibold mb-1">Supplier #{order.supplierId}</p>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4" />
-                    {order.supplier.country}
+                    <span>ID: {order.supplierId}</span>
                   </div>
-                  {order.supplier.verified && (
-                    <Badge variant="default" className="mt-2 gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Verified
-                    </Badge>
-                  )}
                 </div>
                 <div className="space-y-2 pt-3 border-t border-border">
                   <Button
                     variant="outline"
                     size="sm"
                     className="w-full justify-start gap-2"
-                    onClick={() => navigate(`/suppliers/${order.supplier.id}`)}
+                    onClick={() => navigate(`/suppliers/${order.supplierId}`)}
                   >
                     <Building2 className="h-4 w-4" />
                     View Supplier

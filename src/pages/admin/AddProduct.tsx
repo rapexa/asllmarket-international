@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,6 +31,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { productService, CreateProductRequest, supplierService, Supplier } from '@/services';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Product name must be at least 3 characters'),
@@ -60,14 +61,6 @@ const categories = [
   'Other',
 ];
 
-const mockSuppliers = [
-  { id: '1', name: 'Tech Supplier Co.', country: 'China' },
-  { id: '2', name: 'Audio Solutions Ltd.', country: 'USA' },
-  { id: '3', name: 'Computing Inc.', country: 'Taiwan' },
-  { id: '4', name: 'Wearables Co.', country: 'China' },
-  { id: '5', name: 'Mobile Devices Ltd.', country: 'South Korea' },
-];
-
 const AddProduct: React.FC = () => {
   const navigate = useNavigate();
   const { language, dir } = useLanguage();
@@ -75,6 +68,8 @@ const AddProduct: React.FC = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
   const {
     register,
@@ -91,6 +86,20 @@ const AddProduct: React.FC = () => {
       price: 0,
     },
   });
+
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      try {
+        const res = await supplierService.list({ limit: 100, offset: 0 });
+        setSuppliers(res.items || []);
+      } catch (error) {
+        console.error('Failed to load suppliers for product form:', error);
+        setSuppliers([]);
+      }
+    };
+
+    loadSuppliers();
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -114,13 +123,25 @@ const AddProduct: React.FC = () => {
 
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // For now, only support a single image URL per product; image upload/storage can be added later.
+      const imageUrls: string[] = [];
 
-      // In real app, upload images and create product
-      console.log('Product data:', data);
-      console.log('Images:', images);
+      const payload: CreateProductRequest = {
+        categoryId: data.category,
+        name: data.name,
+        description: data.description,
+        specifications: data.specifications,
+        images: imageUrls,
+        price: data.price,
+        currency: 'USD',
+        moq: data.moq,
+        stockQuantity: data.stock,
+        unit: 'piece',
+      };
+
+      await productService.create(payload);
 
       setSubmitSuccess(true);
       setTimeout(() => {
@@ -128,6 +149,7 @@ const AddProduct: React.FC = () => {
       }, 2000);
     } catch (error) {
       console.error('Error creating product:', error);
+      setSubmitError('Error creating product. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -256,9 +278,9 @@ const AddProduct: React.FC = () => {
                           <SelectValue placeholder="Select supplier" />
                         </SelectTrigger>
                         <SelectContent>
-                          {mockSuppliers.map((supplier) => (
+                          {suppliers.map((supplier) => (
                             <SelectItem key={supplier.id} value={supplier.id}>
-                              {supplier.name} ({supplier.country})
+                              {supplier.companyName} ({supplier.country})
                             </SelectItem>
                           ))}
                         </SelectContent>

@@ -116,68 +116,6 @@ const Verifications: React.FC = () => {
     }
   };
 
-  // Mock data for fallback
-  const mockVerifications: any[] = [
-    {
-      id: '1',
-      supplierId: 'SUP-001',
-      companyName: 'Tech Supplier Co.',
-      contactName: 'John Smith',
-      email: 'john@techsupplier.com',
-      country: 'China',
-      status: 'pending',
-      submittedAt: '2024-02-20',
-    },
-    {
-      id: '2',
-      supplierId: 'SUP-002',
-      companyName: 'Audio Solutions Ltd.',
-      contactName: 'Sarah Johnson',
-      email: 'sarah@audiosolutions.com',
-      country: 'USA',
-      status: 'verified',
-      submittedAt: '2024-02-15',
-      reviewedAt: '2024-02-18',
-      reviewedBy: 'Admin User',
-    },
-    {
-      id: '3',
-      supplierId: 'SUP-003',
-      companyName: 'Wearables Co.',
-      contactName: 'Li Wei',
-      email: 'liwei@wearables.com',
-      country: 'China',
-      status: 'needs_update',
-      submittedAt: '2024-02-10',
-      reviewedAt: '2024-02-12',
-      reviewedBy: 'Admin User',
-      rejectionReason: 'Business license document is not clear',
-    },
-    {
-      id: '4',
-      supplierId: 'SUP-004',
-      companyName: 'Computing Inc.',
-      contactName: 'David Chen',
-      email: 'david@computing.com',
-      country: 'Taiwan',
-      status: 'rejected',
-      submittedAt: '2024-01-30',
-      reviewedAt: '2024-02-01',
-      reviewedBy: 'Admin User',
-      rejectionReason: 'Incomplete documentation',
-    },
-    {
-      id: '5',
-      supplierId: 'SUP-005',
-      companyName: 'Mobile Devices Ltd.',
-      contactName: 'Kim Soo',
-      email: 'kim@mobiledevices.com',
-      country: 'South Korea',
-      status: 'pending',
-      submittedAt: '2024-02-25',
-    },
-  ];
-
   const filteredVerifications = verifications.filter((verification) => {
     const matchesSearch =
       verification.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||

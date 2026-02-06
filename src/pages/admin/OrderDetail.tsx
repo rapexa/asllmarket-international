@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -44,6 +44,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { cn } from '@/lib/utils';
+import { orderService, Order } from '@/services';
 
 interface OrderDetailData {
   id: string;
@@ -129,108 +130,8 @@ const OrderDetail: React.FC = () => {
   const [newStatus, setNewStatus] = useState<string>('');
   const [statusNotes, setStatusNotes] = useState('');
   const [updateSuccess, setUpdateSuccess] = useState(false);
-
-  // Mock data - In real app, fetch from API
-  const mockOrder: OrderDetailData = {
-    id: id || '1',
-    orderNumber: 'ORD-2024-001',
-    orderDate: '2024-02-15T10:30:00Z',
-    status: 'shipped',
-    paymentStatus: 'paid',
-    buyer: {
-      id: 'BUY-001',
-      name: 'John Doe',
-      company: 'ABC Trading Co.',
-      email: 'john@abctrading.com',
-      phone: '+1 234 567 8900',
-      country: 'USA',
-      city: 'New York',
-      address: '123 Business Street, New York, NY 10001',
-    },
-    supplier: {
-      id: 'SUP-001',
-      name: 'Li Wei',
-      company: 'Tech Supplier Co.',
-      email: 'liwei@techsupplier.com',
-      phone: '+86 138 0013 8000',
-      country: 'China',
-      city: 'Shanghai',
-    },
-    product: {
-      id: 'PROD-001',
-      name: 'Smartphone Pro Max 256GB',
-      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
-      sku: 'SPM-256-BLK',
-      category: 'Consumer Electronics',
-    },
-    quantity: 100,
-    unitPrice: 899,
-    subtotal: 89900,
-    shippingCost: 1500,
-    tax: 9140,
-    discount: 0,
-    totalAmount: 100140,
-    currency: 'USD',
-    shippingAddress: {
-      name: 'John Doe',
-      company: 'ABC Trading Co.',
-      address: '123 Business Street',
-      city: 'New York',
-      state: 'NY',
-      country: 'USA',
-      zipCode: '10001',
-      phone: '+1 234 567 8900',
-    },
-    billingAddress: {
-      name: 'John Doe',
-      company: 'ABC Trading Co.',
-      address: '123 Business Street',
-      city: 'New York',
-      state: 'NY',
-      country: 'USA',
-      zipCode: '10001',
-    },
-    paymentMethod: {
-      type: 'Credit Card',
-      last4: '4242',
-      expiryDate: '12/25',
-    },
-    shippingMethod: 'Express Shipping (5-7 days)',
-    trackingNumber: 'TRK-1234567890',
-    estimatedDelivery: '2024-03-01',
-    notes: 'Handle with care. Fragile items.',
-    history: [
-      {
-        date: '2024-02-15T10:30:00Z',
-        status: 'Order Placed',
-        description: 'Order was placed by buyer',
-        user: 'John Doe',
-      },
-      {
-        date: '2024-02-15T11:00:00Z',
-        status: 'Payment Received',
-        description: 'Payment of $100,140.00 was successfully processed',
-      },
-      {
-        date: '2024-02-16T09:00:00Z',
-        status: 'Confirmed',
-        description: 'Order confirmed by supplier',
-        user: 'Li Wei',
-      },
-      {
-        date: '2024-02-18T14:30:00Z',
-        status: 'Processing',
-        description: 'Order is being prepared for shipment',
-      },
-      {
-        date: '2024-02-20T10:00:00Z',
-        status: 'Shipped',
-        description: 'Order has been shipped. Tracking number: TRK-1234567890',
-      },
-    ],
-  };
-
-  const [order, setOrder] = useState<OrderDetailData>(mockOrder);
+  const [order, setOrder] = useState<OrderDetailData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const getStatusBadge = (status: OrderDetailData['status']) => {
     const config = {
@@ -257,28 +158,132 @@ const OrderDetail: React.FC = () => {
     return <Badge variant="outline" className={className}>{label}</Badge>;
   };
 
-  const handleStatusUpdate = () => {
-    if (newStatus) {
-      setOrder({
-        ...order,
-        status: newStatus as OrderDetailData['status'],
-        history: [
-          ...order.history,
-          {
-            date: new Date().toISOString(),
-            status: newStatus,
-            description: statusNotes || `Status updated to ${newStatus}`,
-            user: 'Admin User',
-          },
-        ],
+  const handleStatusUpdate = async () => {
+    if (!newStatus || !id || !order) return;
+    try {
+      await orderService.updateStatus(id, {
+        status: newStatus as any,
+        trackingNumber: order.trackingNumber,
+        deliveredAt: order.deliveryDate,
       });
+      const updated = await orderService.getById(id);
+      setOrder(mapOrderToDetail(updated));
       setStatusDialogOpen(false);
       setNewStatus('');
       setStatusNotes('');
       setUpdateSuccess(true);
       setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (e) {
+      console.error('Failed to update order status:', e);
     }
   };
+
+  const mapOrderToDetail = (o: Order): OrderDetailData => {
+    return {
+      id: o.id,
+      orderNumber: o.orderNumber,
+      orderDate: o.createdAt,
+      status: o.status,
+      paymentStatus: o.paymentStatus,
+      buyer: {
+        id: o.buyerId,
+        name: `Buyer ${o.buyerId.substring(0, 6)}`,
+        company: '',
+        email: '',
+        phone: '',
+        country: '',
+        city: '',
+        address: '',
+      },
+      supplier: {
+        id: o.supplierId,
+        name: `Supplier ${o.supplierId.substring(0, 6)}`,
+        company: '',
+        email: '',
+        phone: '',
+        country: '',
+        city: '',
+      },
+      product: {
+        id: o.productId,
+        name: `Product ${o.productId.substring(0, 6)}`,
+        image: '',
+        sku: '',
+        category: '',
+      },
+      quantity: o.quantity,
+      unitPrice: o.unitPrice,
+      subtotal: o.unitPrice * o.quantity,
+      shippingCost: 0,
+      tax: 0,
+      discount: 0,
+      totalAmount: o.totalAmount,
+      currency: o.currency,
+      shippingAddress: {
+        name: '',
+        company: '',
+        address: o.shippingAddress,
+        city: '',
+        state: '',
+        country: '',
+        zipCode: '',
+        phone: '',
+      },
+      billingAddress: {
+        name: '',
+        company: '',
+        address: o.shippingAddress,
+        city: '',
+        state: '',
+        country: '',
+        zipCode: '',
+      },
+      paymentMethod: {
+        type: o.paymentMethod,
+        last4: undefined,
+        expiryDate: undefined,
+      },
+      shippingMethod: o.shippingMethod,
+      trackingNumber: o.trackingNumber,
+      estimatedDelivery: o.estimatedDelivery,
+      deliveryDate: o.deliveredAt,
+      notes: '',
+      history: [
+        {
+          date: o.createdAt,
+          status: 'Order Created',
+          description: 'Order was created',
+        },
+      ],
+    };
+  };
+
+  useEffect(() => {
+    const loadOrder = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const o = await orderService.getById(id);
+        setOrder(mapOrderToDetail(o));
+      } catch (e) {
+        console.error('Failed to load order detail:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrder();
+  }, [id]);
+
+  if (loading || !order) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <span className="text-muted-foreground">Loading order...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

@@ -36,7 +36,26 @@ const Login: React.FC = () => {
       
       // Redirect based on role after successful login
       setTimeout(() => {
-        navigate(from, { replace: true });
+        // If we know the role, send user directly to role-based dashboard
+        const role = (user?.role || localStorage.getItem('userRole')) as
+          | 'buyer'
+          | 'supplier'
+          | 'market'
+          | 'visitor'
+          | 'admin'
+          | null;
+
+        if (role === 'buyer') {
+          navigate('/dashboard/buyer', { replace: true });
+        } else if (role === 'supplier') {
+          navigate('/dashboard/supplier', { replace: true });
+        } else if (role === 'market') {
+          navigate('/dashboard/market', { replace: true });
+        } else if (role === 'visitor') {
+          navigate('/dashboard/visitor', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }, 2000);
     } catch (err: any) {
       setError(err.message || 'Invalid email or password. Please try again.');
@@ -52,7 +71,7 @@ const Login: React.FC = () => {
       // In real app, verify OTP and login
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Store mock auth session (OTP login defaults to buyer in this demo)
+      // TODO: Store temporary auth session (OTP login defaults to buyer in this demo)
       localStorage.setItem('authToken', 'dev-auth-token');
       localStorage.setItem('userRole', 'buyer');
       if (data.email) localStorage.setItem('userEmail', data.email);

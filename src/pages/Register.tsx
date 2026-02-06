@@ -15,7 +15,7 @@ const Register: React.FC = () => {
       <RegisterFlow 
         initialRole={roleParam || undefined}
         onComplete={(role) => {
-          // Redirect based on role
+          // Redirect based on role after successful registration
           if (role === 'buyer') {
             navigate('/dashboard/buyer');
           } else if (role === 'supplier') {
@@ -24,6 +24,9 @@ const Register: React.FC = () => {
             navigate('/dashboard/visitor');
           } else if (role === 'market') {
             navigate('/dashboard/market');
+          } else if (role === 'both') {
+            // Default to buyer dashboard for "both" role
+            navigate('/dashboard/buyer');
           } else {
             navigate('/dashboard');
           }

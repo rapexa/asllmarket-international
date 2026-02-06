@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { productService, Product as ApiProduct } from '@/services';
 
 interface CompareProduct {
   id: string;
@@ -45,103 +46,53 @@ const Compare: React.FC = () => {
   
   const [products, setProducts] = useState<CompareProduct[]>([]);
 
-  // Mock product data - In real app, fetch from API based on productIds
+  // Load products from API based on productIds
   useEffect(() => {
-    const mockProducts: CompareProduct[] = productIds
-      .filter(id => id)
-      .map(id => {
-        // Mock data based on ID - In real app, fetch from API
-        const mockData: Record<string, CompareProduct> = {
-          '1': {
-            id: '1',
-            name: 'Wireless Bluetooth Earbuds Pro',
-            image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80',
-            price: 12.50,
-            priceRange: '$12.50 - $18.00',
-            moq: 100,
-            rating: 4.8,
-            reviews: 256,
+    const loadProducts = async () => {
+      const ids = productIds.filter((id) => id);
+      if (ids.length === 0) {
+        setProducts([]);
+        return;
+      }
+
+      try {
+        const apiProducts: ApiProduct[] = await Promise.all(
+          ids.map((id) => productService.getById(id))
+        );
+
+        const mapped: CompareProduct[] = apiProducts.map((p) => {
+          const image = Array.isArray(p.images) ? p.images[0] : (p.images as any) || '';
+          return {
+            id: p.id,
+            name: p.name,
+            image: image || 'https://via.placeholder.com/400x400?text=Product',
+            price: p.price,
+            priceRange: `${p.currency} ${p.price.toFixed(2)}`,
+            moq: p.moq,
+            rating: p.rating,
+            reviews: p.reviewCount,
             verified: true,
-            category: 'Electronics > Audio',
-            inStock: true,
-            deliveryTime: '7-15 days',
+            category: p.categoryId || 'General',
+            inStock: p.stockQuantity > 0,
+            deliveryTime: p.leadTime ? `${p.leadTime} days` : undefined,
             supplier: {
-              id: 'supplier-1',
-              name: 'TechGlobal Industries Ltd.',
-              country: 'China',
+              id: p.supplierId,
+              name: 'Supplier',
+              country: '',
               verified: true,
-              rating: 4.9,
+              rating: p.rating,
             },
-          },
-          '2': {
-            id: '2',
-            name: 'Industrial CNC Machine Parts',
-            image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80',
-            price: 450,
-            priceRange: '$450 - $680',
-            moq: 10,
-            rating: 4.9,
-            reviews: 89,
-            verified: true,
-            category: 'Machinery > Industrial',
-            inStock: true,
-            deliveryTime: '14-30 days',
-            supplier: {
-              id: 'supplier-2',
-              name: 'Industrial Solutions Inc.',
-              country: 'Germany',
-              verified: true,
-              rating: 4.8,
-            },
-          },
-          '3': {
-            id: '3',
-            name: 'Premium Cotton T-Shirts Bulk',
-            image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80',
-            price: 3.20,
-            priceRange: '$3.20 - $5.50',
-            moq: 500,
-            rating: 4.7,
-            reviews: 412,
-            verified: true,
-            category: 'Apparel > Clothing',
-            inStock: true,
-            deliveryTime: '10-20 days',
-            supplier: {
-              id: 'supplier-3',
-              name: 'Textile Manufacturing Co.',
-              country: 'India',
-              verified: true,
-              rating: 4.6,
-            },
-          },
-          '4': {
-            id: '4',
-            name: 'Smart Home Security Camera',
-            image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
-            price: 28.90,
-            priceRange: '$28.90 - $45.00',
-            moq: 50,
-            rating: 4.6,
-            reviews: 178,
-            verified: true,
-            category: 'Electronics > Security',
-            inStock: true,
-            deliveryTime: '7-14 days',
-            supplier: {
-              id: 'supplier-4',
-              name: 'SmartTech Solutions',
-              country: 'China',
-              verified: true,
-              rating: 4.7,
-            },
-          },
-        };
-        return mockData[id] || null;
-      })
-      .filter((p): p is CompareProduct => p !== null);
-    
-    setProducts(mockProducts);
+          };
+        });
+
+        setProducts(mapped);
+      } catch (error) {
+        console.error('Failed to load products for compare:', error);
+        setProducts([]);
+      }
+    };
+
+    loadProducts();
   }, [productIds]);
 
   const handleRemove = (productId: string) => {

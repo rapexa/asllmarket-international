@@ -11,6 +11,7 @@ import (
 	"github.com/example/global-trade-hub/backend/internal/domain/admin"
 	"github.com/example/global-trade-hub/backend/internal/domain/auth"
 	"github.com/example/global-trade-hub/backend/internal/domain/category"
+	"github.com/example/global-trade-hub/backend/internal/domain/cms"
 	"github.com/example/global-trade-hub/backend/internal/domain/message"
 	"github.com/example/global-trade-hub/backend/internal/domain/notification"
 	"github.com/example/global-trade-hub/backend/internal/domain/order"
@@ -39,6 +40,7 @@ func NewRouter(
 	messageService *message.Service,
 	searchService *search.Service,
 	adminService *admin.Service,
+	cmsService *cms.Service,
 ) *gin.Engine {
 	if cfg.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -78,8 +80,17 @@ func NewRouter(
 	searchHandler := search.NewHandler(searchService)
 	categoryHandler := category.NewHandler()
 	adminHandler := admin.NewHandler(adminService)
+	cmsHandler := cms.NewHandler(cmsService)
 
 	api := router.Group("/api/v1")
+
+	// Public CMS endpoints (no auth)
+	api.POST("/contact", cmsHandler.SubmitContact)
+	api.GET("/blog-posts", cmsHandler.ListBlogPosts)
+	api.GET("/blog-posts/:id", cmsHandler.GetBlogPost)
+	api.GET("/faqs", cmsHandler.ListFAQs)
+	api.GET("/jobs", cmsHandler.ListJobs)
+	api.GET("/press-releases", cmsHandler.ListPressReleases)
 
 	// Auth
 	authGroup := api.Group("/auth")

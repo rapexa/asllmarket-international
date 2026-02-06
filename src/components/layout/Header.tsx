@@ -4,6 +4,7 @@ import { Search, Menu, X, ChevronDown, User, Globe, ShoppingCart, Sparkles, Bell
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useCart } from '@/contexts/CartContext';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -23,6 +24,7 @@ import { cn } from '@/lib/utils';
 const Header: React.FC = () => {
   const { t, language, setLanguage, dir } = useLanguage();
   const { theme } = useTheme();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -131,20 +133,68 @@ const Header: React.FC = () => {
                   </span>
                 )}
               </Button>
-              <Button 
-                variant="ghost" 
-                className="gap-1.5 lg:gap-2 h-9 lg:h-10 px-3 lg:px-4 text-sm"
-                onClick={() => navigate('/login')}
-              >
-                <User className="h-4 w-4 shrink-0" />
-                <span className="hidden lg:inline whitespace-nowrap">{t('nav.login')}</span>
-              </Button>
-              <Button 
-                className="btn-gradient-primary rounded-xl px-4 lg:px-6 h-9 lg:h-10 text-sm lg:text-base whitespace-nowrap"
-                onClick={() => navigate('/register')}
-              >
-                {t('nav.register')}
-              </Button>
+
+              {/* Auth Area: show Login/Register when not authenticated, Profile menu when logged in */}
+              {!isAuthenticated ? (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    className="gap-1.5 lg:gap-2 h-9 lg:h-10 px-3 lg:px-4 text-sm"
+                    onClick={() => navigate('/login')}
+                  >
+                    <User className="h-4 w-4 shrink-0" />
+                    <span className="hidden lg:inline whitespace-nowrap">{t('nav.login')}</span>
+                  </Button>
+                  <Button 
+                    className="btn-gradient-primary rounded-xl px-4 lg:px-6 h-9 lg:h-10 text-sm lg:text-base whitespace-nowrap"
+                    onClick={() => navigate('/register')}
+                  >
+                    {t('nav.register')}
+                  </Button>
+                </>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="gap-1.5 lg:gap-2 h-9 lg:h-10 px-3 lg:px-4 text-sm"
+                    >
+                      <User className="h-4 w-4 shrink-0" />
+                      <span className="hidden lg:inline whitespace-nowrap">
+                        {user?.fullName || user?.email}
+                      </span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align={dir === 'rtl' ? 'start' : 'end'}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const role = user?.role;
+                        if (role === 'buyer') navigate('/dashboard/buyer');
+                        else if (role === 'supplier') navigate('/dashboard/supplier');
+                        else if (role === 'market') navigate('/dashboard/market');
+                        else if (role === 'visitor') navigate('/dashboard/visitor');
+                        else navigate('/dashboard');
+                      }}
+                    >
+                      {t('nav.dashboard') || 'Dashboard'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate('/profile')}
+                    >
+                      {t('nav.profile') || 'Profile'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        logout();
+                        navigate('/');
+                      }}
+                    >
+                      {t('nav.logout') || 'Logout'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
 
             {/* Mobile Menu Button */}

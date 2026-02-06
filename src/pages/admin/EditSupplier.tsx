@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,6 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { cn } from '@/lib/utils';
+import { supplierService, Supplier, UpdateSupplierRequest } from '@/services';
 
 const supplierSchema = z.object({
   companyName: z.string().min(2, 'Company name must be at least 2 characters'),
@@ -60,26 +61,7 @@ const EditSupplier: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Mock data - in real app, fetch from API
-  const mockSupplier: SupplierFormInputs = {
-    companyName: 'Tech Supplier Co.',
-    legalName: 'Tech Supplier Co. Ltd.',
-    contactName: 'John Smith',
-    email: 'john@techsupplier.com',
-    phone: '+1-234-567-8900',
-    website: 'https://techsupplier.com',
-    country: 'China',
-    city: 'Shanghai',
-    address: '123 Tech Park, Shanghai, China',
-    zipCode: '200000',
-    status: 'active',
-    subscription: 'gold',
-    description: 'Leading supplier of electronic components and consumer electronics with over 10 years of experience in the global market.',
-    businessType: 'Manufacturer & Exporter',
-    registrationNumber: 'TSCL-2023-001',
-    taxId: 'TAX-CN-987654321',
-  };
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const {
     register,
@@ -89,27 +71,85 @@ const EditSupplier: React.FC = () => {
     watch,
   } = useForm<SupplierFormInputs>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: mockSupplier,
   });
 
+  useEffect(() => {
+    const loadSupplier = async () => {
+      if (!id) return;
+      try {
+        setInitialLoading(true);
+        const supplier: Supplier = await supplierService.getById(id);
+        const defaults: SupplierFormInputs = {
+          companyName: supplier.companyName,
+          legalName: supplier.companyName,
+          contactName: supplier.contactName,
+          email: supplier.email,
+          phone: supplier.phone,
+          website: '',
+          country: supplier.country,
+          city: supplier.city,
+          address: supplier.address,
+          zipCode: '',
+          status: supplier.status,
+          subscription: supplier.subscription,
+          description: supplier.description,
+          businessType: '',
+          registrationNumber: '',
+          taxId: '',
+        };
+        (Object.keys(defaults) as (keyof SupplierFormInputs)[]).forEach((key) => {
+          setValue(key, defaults[key]);
+        });
+      } catch (error) {
+        console.error('Failed to load supplier:', error);
+        setSubmitError('Failed to load supplier data. Please try again.');
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadSupplier();
+  }, [id, setValue]);
+
   const onSubmit = async (data: SupplierFormInputs) => {
+    if (!id) return;
     setIsSubmitting(true);
     setSubmitError(null);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      const payload: UpdateSupplierRequest = {
+        companyName: data.companyName,
+        contactName: data.contactName,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        description: data.description,
+        status: data.status,
+        subscription: data.subscription,
+      };
+
+      await supplierService.update(id, payload);
       setSubmitSuccess(true);
       setTimeout(() => {
         navigate(`/admin/suppliers/${id}`);
       }, 2000);
     } catch (error) {
+      console.error('Failed to update supplier:', error);
       setSubmitError('Failed to update supplier. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

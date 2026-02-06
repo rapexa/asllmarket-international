@@ -12,3 +12,4 @@ export * from './subscription.service';
 export * from './message.service';
 export * from './search.service';
 export * from './admin.service';
+export * from './cms.service';

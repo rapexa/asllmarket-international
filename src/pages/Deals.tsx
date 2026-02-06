@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Flame, ShoppingCart, Filter, Grid, List, SlidersHorizontal, Clock, TrendingDown, Sparkles, ArrowLeft } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -19,9 +20,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { productService, Product as ApiProduct } from '@/services';
 
 interface DealProduct {
-  id: number;
+  id: string;
   name: string;
   image: string;
   price: number;
@@ -44,190 +46,6 @@ interface DealProduct {
   stockLeft?: number;
 }
 
-const mockDealProducts: DealProduct[] = [
-  {
-    id: 1,
-    name: 'Wireless Bluetooth Earbuds Pro',
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80',
-    price: 12.50,
-    originalPrice: 18.00,
-    discount: 30,
-    priceRange: '$12.50 - $18.00',
-    moq: 100,
-    rating: 4.8,
-    reviews: 256,
-    verified: true,
-    badge: 'hot',
-    category: 'Electronics > Audio',
-    supplier: {
-      id: 'supplier-1',
-      name: 'TechGlobal Industries Ltd.',
-      country: 'China',
-      verified: true,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 48), // 48 hours
-    stockLeft: 150,
-  },
-  {
-    id: 2,
-    name: 'Premium Cotton T-Shirts Bulk',
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80',
-    price: 3.20,
-    originalPrice: 5.50,
-    discount: 42,
-    priceRange: '$3.20 - $5.50',
-    moq: 500,
-    rating: 4.7,
-    reviews: 412,
-    verified: true,
-    badge: 'new',
-    category: 'Apparel > Clothing',
-    supplier: {
-      id: 'supplier-3',
-      name: 'Textile Manufacturing Co.',
-      country: 'India',
-      verified: true,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 72), // 72 hours
-    stockLeft: 300,
-  },
-  {
-    id: 3,
-    name: 'Smart Home Security Camera',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
-    price: 28.90,
-    originalPrice: 45.00,
-    discount: 36,
-    priceRange: '$28.90 - $45.00',
-    moq: 50,
-    rating: 4.6,
-    reviews: 178,
-    verified: true,
-    category: 'Electronics > Security',
-    supplier: {
-      id: 'supplier-4',
-      name: 'SmartTech Solutions',
-      country: 'China',
-      verified: true,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 24), // 24 hours
-    stockLeft: 80,
-  },
-  {
-    id: 4,
-    name: 'LED Strip Lights RGB',
-    image: 'https://images.unsplash.com/photo-1545128485-c400e7702796?w=400&q=80',
-    price: 2.80,
-    originalPrice: 4.50,
-    discount: 38,
-    priceRange: '$2.80 - $4.50',
-    moq: 300,
-    rating: 4.5,
-    reviews: 567,
-    verified: false,
-    badge: 'hot',
-    category: 'Electronics > Lighting',
-    supplier: {
-      id: 'supplier-6',
-      name: 'LED Solutions Co.',
-      country: 'China',
-      verified: false,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 36), // 36 hours
-    stockLeft: 500,
-  },
-  {
-    id: 5,
-    name: 'Professional Hair Dryer',
-    image: 'https://images.unsplash.com/photo-1522338242042-2d1c53d14b0a?w=400&q=80',
-    price: 15.00,
-    originalPrice: 22.00,
-    discount: 32,
-    priceRange: '$15.00 - $22.00',
-    moq: 100,
-    rating: 4.7,
-    reviews: 223,
-    verified: true,
-    category: 'Beauty & Personal Care',
-    supplier: {
-      id: 'supplier-7',
-      name: 'BeautyTech Industries',
-      country: 'South Korea',
-      verified: true,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 60), // 60 hours
-    stockLeft: 200,
-  },
-  {
-    id: 6,
-    name: 'Stainless Steel Water Bottles',
-    image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&q=80',
-    price: 4.50,
-    originalPrice: 7.00,
-    discount: 36,
-    priceRange: '$4.50 - $7.00',
-    moq: 200,
-    rating: 4.8,
-    reviews: 445,
-    verified: true,
-    badge: 'new',
-    category: 'Home & Garden > Kitchen',
-    supplier: {
-      id: 'supplier-8',
-      name: 'Home Essentials Co.',
-      country: 'Turkey',
-      verified: true,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 48), // 48 hours
-    stockLeft: 350,
-  },
-  {
-    id: 7,
-    name: 'Portable Power Bank 20000mAh',
-    image: 'https://images.unsplash.com/photo-1609091839311-d5365f5bf644?w=400&q=80',
-    price: 18.50,
-    originalPrice: 28.00,
-    discount: 34,
-    priceRange: '$18.50 - $28.00',
-    moq: 100,
-    rating: 4.8,
-    reviews: 456,
-    verified: true,
-    badge: 'hot',
-    category: 'Electronics > Power',
-    supplier: {
-      id: 'supplier-12',
-      name: 'PowerTech Solutions',
-      country: 'China',
-      verified: true,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 12), // 12 hours
-    stockLeft: 120,
-  },
-  {
-    id: 8,
-    name: 'Yoga Mat Premium',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80',
-    price: 6.50,
-    originalPrice: 12.00,
-    discount: 46,
-    priceRange: '$6.50 - $12.00',
-    moq: 300,
-    rating: 4.7,
-    reviews: 278,
-    verified: true,
-    category: 'Sports & Fitness',
-    supplier: {
-      id: 'supplier-11',
-      name: 'Fitness Gear Co.',
-      country: 'Thailand',
-      verified: true,
-    },
-    dealEndTime: new Date(Date.now() + 3600000 * 96), // 96 hours
-    stockLeft: 400,
-  },
-];
-
 type ViewMode = 'grid' | 'list';
 
 const Deals: React.FC = () => {
@@ -236,14 +54,23 @@ const Deals: React.FC = () => {
   const { addItem } = useCart();
   const { toast } = useToast();
 
-  const [products, setProducts] = useState<DealProduct[]>(mockDealProducts);
-  const [filteredProducts, setFilteredProducts] = useState<DealProduct[]>(mockDealProducts);
+  const { data, isLoading } = useQuery({
+    queryKey: ['deals'],
+    queryFn: () =>
+      productService.list({
+        limit: 100,
+        offset: 0,
+      }),
+  });
+
+  const [products, setProducts] = useState<DealProduct[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<DealProduct[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('discount-high');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [minDiscount, setMinDiscount] = useState<number>(0);
-  const [timeRemaining, setTimeRemaining] = useState<Record<number, { hours: number; minutes: number; seconds: number }>>({});
+  const [timeRemaining, setTimeRemaining] = useState<Record<string, { hours: number; minutes: number; seconds: number }>>({});
   const [requestQuoteProduct, setRequestQuoteProduct] = useState<{
     id: string;
     name: string;
@@ -254,10 +81,49 @@ const Deals: React.FC = () => {
     price?: number;
   } | null>(null);
 
+  // Map API products to deal products when data changes
+  useEffect(() => {
+    if (!data) return;
+
+    const mapped: DealProduct[] = (data.items || []).map((p: ApiProduct, index: number) => {
+      const image = Array.isArray(p.images) ? p.images[0] : (p.images as any) || '';
+      // Synthetic discount/original price for "deals" view
+      const discount = 20 + (index % 20);
+      const originalPrice = p.price * (1 + discount / 100);
+
+      return {
+        id: p.id,
+        name: p.name,
+        image: image || 'https://via.placeholder.com/400x400?text=Product',
+        price: p.price,
+        originalPrice,
+        discount,
+        priceRange: `${p.currency} ${p.price.toFixed(2)}`,
+        moq: p.moq,
+        rating: p.rating,
+        reviews: p.reviewCount,
+        verified: true,
+        badge: p.featured ? 'hot' : undefined,
+        category: p.categoryId || 'General',
+        supplier: {
+          id: p.supplierId,
+          name: 'Supplier',
+          country: '',
+          verified: true,
+        },
+        dealEndTime: new Date(Date.now() + 1000 * 60 * 60 * (24 + index * 2)),
+        stockLeft: p.stockQuantity,
+      };
+    });
+
+    setProducts(mapped);
+    setFilteredProducts(mapped);
+  }, [data]);
+
   // Countdown timer
   useEffect(() => {
     const calculateTimeRemaining = () => {
-      const times: Record<number, { hours: number; minutes: number; seconds: number }> = {};
+      const times: Record<string, { hours: number; minutes: number; seconds: number }> = {};
       products.forEach((product) => {
         if (product.dealEndTime) {
           const diff = product.dealEndTime.getTime() - Date.now();
@@ -365,7 +231,7 @@ const Deals: React.FC = () => {
     });
   };
 
-  const formatTimeRemaining = (productId: number) => {
+  const formatTimeRemaining = (productId: string) => {
     const time = timeRemaining[productId];
     if (!time) return null;
     return `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}:${String(time.seconds).padStart(2, '0')}`;

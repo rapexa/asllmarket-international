@@ -7,9 +7,19 @@ import { Button } from '@/components/ui/button';
 import { BarChart3, Settings, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { adminService } from '@/services';
 
 const MarketDashboard: React.FC = () => {
   const { language, dir } = useLanguage();
+
+  const {
+    data: stats,
+    isLoading,
+  } = useQuery({
+    queryKey: ['marketDashboard', 'stats'],
+    queryFn: adminService.getDashboardStats,
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -38,19 +48,29 @@ const MarketDashboard: React.FC = () => {
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <div className="p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground">Active Users</p>
-                  <p className="text-xl font-bold mt-1">45,678</p>
+                  <p className="text-xl font-bold mt-1">
+                    {isLoading ? '...' : stats?.activeSuppliers ?? 0}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground">Orders</p>
-                  <p className="text-xl font-bold mt-1">12,345</p>
+                  <p className="text-xl font-bold mt-1">
+                    {isLoading ? '...' : stats?.totalOrders ?? 0}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground">Revenue</p>
-                  <p className="text-xl font-bold mt-1">$1.25M</p>
+                  <p className="text-xl font-bold mt-1">
+                    {isLoading
+                      ? '...'
+                      : `$${(stats?.totalRevenue ?? 0).toLocaleString()}`}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground">RFQs</p>
-                  <p className="text-xl font-bold mt-1">2,345</p>
+                  <p className="text-xl font-bold mt-1">
+                    {isLoading ? '...' : stats?.pendingVerifications ?? 0}
+                  </p>
                 </div>
               </div>
               <Button asChild variant="outline" className="w-full mt-4 rounded-xl">

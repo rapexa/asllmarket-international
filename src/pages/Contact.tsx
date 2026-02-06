@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
+import { cmsService, ContactRequest } from '@/services';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -70,11 +71,17 @@ const Contact: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const payload: ContactRequest = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone || undefined,
+        company: data.company || undefined,
+        subject: data.subject,
+        message: data.message,
+        inquiryType: data.inquiryType,
+      };
 
-      // In real app, send to backend
-      console.log('Contact Form Submitted:', data);
+      await cmsService.submitContact(payload);
 
       // Show success toast
       toast({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Heart, Share2, Star, ShieldCheck, Building2, Package, DollarSign, Truck, FileText } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,6 +12,33 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import RequestQuoteModal from '@/components/rfq/RequestQuoteModal';
+import { productService, supplierService, Product as ApiProduct, Supplier as ApiSupplier } from '@/services';
+
+interface UISupplier {
+  id: string;
+  name: string;
+  country: string;
+  verified: boolean;
+  rating: number;
+}
+
+interface UIProduct {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  minPrice: number;
+  maxPrice: number;
+  moq: number;
+  rating: number;
+  reviews: number;
+  verified: boolean;
+  inStock: boolean;
+  supplier: UISupplier;
+  images: string[];
+  description: string;
+  features: string[];
+}
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,40 +47,85 @@ const ProductDetail: React.FC = () => {
   const { addItem } = useCart();
   const { toast } = useToast();
   const [requestQuoteOpen, setRequestQuoteOpen] = useState(false);
+  const [product, setProduct] = useState<UIProduct | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Mock product data
-  const product = {
-    id: id || '1',
-    name: 'Wireless Bluetooth Earbuds Pro',
-    category: 'Electronics > Audio',
-    price: 15.50,
-    minPrice: 12.50,
-    maxPrice: 18.00,
-    moq: 100,
-    rating: 4.8,
-    reviews: 1250,
-    verified: true,
-    inStock: true,
-    supplier: {
-      id: 'supplier-1',
-      name: 'TechGlobal Industries Ltd.',
-      country: 'China',
-      verified: true,
-      rating: 4.9,
-    },
-    images: [
-      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80',
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-    ],
-    description: 'Premium wireless earbuds with active noise cancellation, 30-hour battery life, and premium sound quality.',
-    features: [
-      'Active Noise Cancellation',
-      '30-hour Battery Life',
-      'IPX7 Waterproof',
-      'Touch Controls',
-      'Wireless Charging',
-    ],
-  };
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const apiProduct: ApiProduct = await productService.getById(id);
+
+        let apiSupplier: ApiSupplier | null = null;
+        try {
+          apiSupplier = await supplierService.getById(apiProduct.supplierId);
+        } catch (e) {
+          console.error('Failed to load supplier for product detail:', e);
+        }
+
+        const basePrice = apiProduct.price;
+        const minPrice = Number((basePrice * 0.85).toFixed(2));
+        const maxPrice = Number((basePrice * 1.2).toFixed(2));
+
+        const uiSupplier: UISupplier = {
+          id: apiSupplier?.id || apiProduct.supplierId,
+          name: apiSupplier?.companyName || 'Supplier',
+          country: apiSupplier?.country || 'N/A',
+          verified: apiSupplier?.verified ?? (apiProduct.featured ?? false),
+          rating: apiSupplier?.rating ?? 0,
+        };
+
+        const uiProduct: UIProduct = {
+          id: apiProduct.id,
+          name: apiProduct.name,
+          category: apiProduct.categoryId || 'General',
+          price: basePrice,
+          minPrice,
+          maxPrice,
+          moq: apiProduct.moq ?? 1,
+          rating: apiProduct.rating ?? 0,
+          reviews: apiProduct.reviewCount ?? 0,
+          verified: uiSupplier.verified,
+          inStock: apiProduct.stockQuantity > 0,
+          supplier: uiSupplier,
+          images:
+            apiProduct.images && apiProduct.images.length > 0
+              ? apiProduct.images
+              : ['https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80'],
+          description: apiProduct.description || '',
+          features: apiProduct.specifications
+            ? apiProduct.specifications.split('\n').map((s) => s.trim()).filter(Boolean)
+            : [],
+        };
+
+        setProduct(uiProduct);
+      } catch (error) {
+        console.error('Failed to load product detail:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [id]);
+
+  if (loading || !product) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+        <Header />
+        <div className="container py-12 flex items-center justify-center">
+          <span className="text-muted-foreground">
+            {language === 'fa' ? 'در حال بارگذاری محصول...' : language === 'ar' ? 'جارٍ تحميل المنتج...' : 'Loading product...'}
+          </span>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleAddToCart = () => {
     addItem({

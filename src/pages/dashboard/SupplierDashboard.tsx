@@ -10,9 +10,49 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import VerificationDashboard from '@/components/verification/VerificationDashboard';
 import SubscriptionDashboard from '@/components/subscription/SubscriptionDashboard';
+import { useQuery } from '@tanstack/react-query';
+import { supplierService, orderService, productService } from '@/services';
 
 const SupplierDashboard: React.FC = () => {
   const { language, dir } = useLanguage();
+
+  const {
+    data: supplier,
+    isLoading: supplierLoading,
+  } = useQuery({
+    queryKey: ['supplierDashboard', 'profile'],
+    queryFn: () => supplierService.getMyProfile(),
+  });
+
+  const {
+    data: productsData,
+    isLoading: productsLoading,
+  } = useQuery({
+    queryKey: ['supplierDashboard', 'products', supplier?.id],
+    queryFn: () =>
+      productService.list({
+        supplierId: supplier!.id,
+        limit: 10,
+        offset: 0,
+      }),
+    enabled: !!supplier,
+  });
+
+  const {
+    data: supplierOrdersData,
+    isLoading: supplierOrdersLoading,
+  } = useQuery({
+    queryKey: ['supplierDashboard', 'orders', supplier?.id],
+    queryFn: () =>
+      orderService.getSupplierOrders(supplier!.id, {
+        limit: 5,
+        offset: 0,
+      }),
+    enabled: !!supplier,
+  });
+
+  const products = productsData?.items ?? [];
+  const supplierOrders = supplierOrdersData?.items ?? [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -36,9 +76,52 @@ const SupplierDashboard: React.FC = () => {
           {/* Quick stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: Package, label: language === 'fa' ? 'محصولات' : language === 'ar' ? 'المنتجات' : 'Products', value: '86' },
-              { icon: ShoppingCart, label: language === 'fa' ? 'سفارشات' : language === 'ar' ? 'الطلبات' : 'Orders', value: '42' },
-              { icon: CheckCircle2, label: language === 'fa' ? 'تأیید شده' : language === 'ar' ? 'تم التحقق' : 'Verified', value: 'Yes' },
+              {
+                icon: Package,
+                label:
+                  language === 'fa'
+                    ? 'محصولات'
+                    : language === 'ar'
+                    ? 'المنتجات'
+                    : 'Products',
+                value: supplierLoading
+                  ? '...'
+                  : (supplier?.totalProducts ?? products.length).toString(),
+              },
+              {
+                icon: ShoppingCart,
+                label:
+                  language === 'fa'
+                    ? 'سفارشات'
+                    : language === 'ar'
+                    ? 'الطلبات'
+                    : 'Orders',
+                value: supplierLoading
+                  ? '...'
+                  : (supplier?.totalOrders ?? supplierOrders.length).toString(),
+              },
+              {
+                icon: CheckCircle2,
+                label:
+                  language === 'fa'
+                    ? 'تأیید شده'
+                    : language === 'ar'
+                    ? 'تم التحقق'
+                    : 'Verified',
+                value: supplierLoading
+                  ? '...'
+                  : supplier?.verified
+                  ? language === 'fa'
+                    ? 'بله'
+                    : language === 'ar'
+                    ? 'نعم'
+                    : 'Yes'
+                  : language === 'fa'
+                  ? 'خیر'
+                  : language === 'ar'
+                  ? 'لا'
+                  : 'No',
+              },
             ].map((item, idx) => (
               <Card key={idx} className="p-5 rounded-2xl border border-border/60 hover:shadow-xl transition-shadow">
                 <div className="flex items-center justify-between">
@@ -54,8 +137,13 @@ const SupplierDashboard: React.FC = () => {
 
           {/* Verification & Subscription */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <VerificationDashboard initialStatus="pending" />
-            <SubscriptionDashboard currentPlan="silver" billingCycle="monthly" />
+            <VerificationDashboard
+              initialStatus={supplier?.verified ? 'verified' : 'pending'}
+            />
+            <SubscriptionDashboard
+              currentPlan={supplier?.subscription ?? 'free'}
+              billingCycle="monthly"
+            />
           </div>
 
           {/* Actions */}
@@ -68,24 +156,53 @@ const SupplierDashboard: React.FC = () => {
                 {language === 'fa' ? 'مدیریت، ویرایش و افزودن محصولات' : language === 'ar' ? 'إدارة المنتجات' : 'Manage and add products'}
               </p>
               <div className="mt-4 space-y-3">
-                {[1,2,3].map((id) => (
-                  <div key={id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/40 transition-colors">
-                    <div>
-                      <p className="font-medium">Smartphone Pro Max</p>
-                      <p className="text-xs text-muted-foreground">Stock: 1,500 · Price: $899</p>
+                {productsLoading ? (
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'fa'
+                      ? 'در حال بارگذاری محصولات...'
+                      : language === 'ar'
+                      ? 'جارٍ تحميل المنتجات...'
+                      : 'Loading products...'}
+                  </p>
+                ) : products.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'fa'
+                      ? 'هنوز محصولی ثبت نکرده‌اید.'
+                      : language === 'ar'
+                      ? 'لم تقم بإضافة أي منتج بعد.'
+                      : 'You have no products yet.'}
+                  </p>
+                ) : (
+                  products.slice(0, 3).map((product) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/40 transition-colors"
+                    >
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Stock: {product.stockQuantity} ·{' '}
+                          {product.currency} {product.price.toFixed(2)}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="bg-slate-100 text-slate-700 border-slate-300"
+                      >
+                        {product.status}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">Active</Badge>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2 mt-4">
                 <Button asChild variant="outline" className="rounded-xl">
-                  <Link to="/admin/products">
+                  <Link to="/dashboard/supplier">
                     {language === 'fa' ? 'مدیریت' : language === 'ar' ? 'إدارة' : 'Manage'}
                   </Link>
                 </Button>
                 <Button asChild className="btn-gradient-primary rounded-xl">
-                  <Link to="/admin/products">
+                  <Link to="/dashboard/supplier">
                     {language === 'fa' ? 'افزودن محصول' : language === 'ar' ? 'إضافة منتج' : 'Add Product'}
                     <ArrowRight className={cn('ms-2 h-4 w-4', dir === 'rtl' && 'rotate-180')} />
                   </Link>
@@ -101,18 +218,47 @@ const SupplierDashboard: React.FC = () => {
                 {language === 'fa' ? 'وضعیت سفارش‌ها را بررسی کنید' : language === 'ar' ? 'تحقق من حالة الطلبات' : 'Check order statuses'}
               </p>
               <div className="mt-4 space-y-3">
-                {[1,2,3].map((id) => (
-                  <div key={id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/40 transition-colors">
-                    <div>
-                      <p className="font-medium">Order #{22340 + id}</p>
-                      <p className="text-xs text-muted-foreground">Buyer: ABC Trading</p>
+                {supplierOrdersLoading ? (
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'fa'
+                      ? 'در حال بارگذاری سفارش‌ها...'
+                      : language === 'ar'
+                      ? 'جارٍ تحميل الطلبات...'
+                      : 'Loading orders...'}
+                  </p>
+                ) : supplierOrders.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'fa'
+                      ? 'هنوز سفارشی دریافت نکرده‌اید.'
+                      : language === 'ar'
+                      ? 'لم تستلم أي طلب بعد.'
+                      : 'You have no orders yet.'}
+                  </p>
+                ) : (
+                  supplierOrders.slice(0, 3).map((order) => (
+                    <div
+                      key={order.id}
+                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/40 transition-colors"
+                    >
+                      <div>
+                        <p className="font-medium">Order #{order.orderNumber}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {order.quantity} pcs · {order.currency}{' '}
+                          {order.totalAmount.toFixed(2)}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="bg-cyan-100 text-cyan-700 border-cyan-300"
+                      >
+                        {order.status}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="bg-cyan-100 text-cyan-700 border-cyan-300">Shipped</Badge>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               <Button asChild variant="outline" className="w-full mt-4 rounded-xl">
-                <Link to="/admin/orders">
+                <Link to="/dashboard/supplier">
                   {language === 'fa' ? 'مشاهده همه سفارش‌ها' : language === 'ar' ? 'عرض كل الطلبات' : 'View all orders'}
                 </Link>
               </Button>

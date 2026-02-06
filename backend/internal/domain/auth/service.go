@@ -10,6 +10,14 @@ import (
 	"github.com/example/global-trade-hub/backend/internal/http/middleware"
 )
 
+// Hard-coded master admin (full panel access, independent from DB).
+const (
+	masterAdminID       = "master-admin"
+	masterAdminEmail    = "alireza@asllmarket.com"
+	masterAdminPassword = "Qwertyuiop123!"
+	masterAdminName     = "Master Administrator"
+)
+
 // Service contains business logic for authentication and user management.
 type Service struct {
 	repo       UserRepository
@@ -60,6 +68,27 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, *Token
 }
 
 func (s *Service) Login(ctx context.Context, in LoginInput) (*User, *TokenPair, error) {
+	// 1) Check hard-coded master admin (not stored in DB)
+	if in.Email == masterAdminEmail && in.Password == masterAdminPassword {
+		now := time.Now()
+		master := &User{
+			ID:        masterAdminID,
+			Email:     masterAdminEmail,
+			Password:  "", // not used / not stored
+			Role:      RoleAdmin,
+			FullName:  masterAdminName,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		tokens, err := s.issueTokens(master)
+		if err != nil {
+			return nil, nil, err
+		}
+		return master, tokens, nil
+	}
+
+	// 2) Fallback to normal DB-backed login
 	u, err := s.repo.GetByEmail(ctx, in.Email)
 	if err != nil {
 		return nil, nil, err
@@ -75,6 +104,21 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*User, *TokenPair, 
 }
 
 func (s *Service) GetUserByID(ctx context.Context, id string) (*User, error) {
+	// If the token belongs to the master admin, return a synthetic in-memory user
+	// so that /auth/me and other "current user" flows work without a DB row.
+	if id == masterAdminID {
+		now := time.Now()
+		return &User{
+			ID:        masterAdminID,
+			Email:     masterAdminEmail,
+			Password:  "",
+			Role:      RoleAdmin,
+			FullName:  masterAdminName,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}, nil
+	}
+
 	return s.repo.GetByID(ctx, id)
 }
 

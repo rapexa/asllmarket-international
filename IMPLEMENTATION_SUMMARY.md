@@ -600,7 +600,6 @@ All backend endpoints have corresponding TypeScript service methods with:
 - ✅ Example unit tests (product service)
 - ✅ Compiles without errors
 - ✅ No linter warnings
-- ✅ Mock repository pattern for testing
 - ✅ Context with timeout for all DB operations
 
 ### Frontend

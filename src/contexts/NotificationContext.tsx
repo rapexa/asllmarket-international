@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { notificationService, Notification as BackendNotification } from '@/services';
 
 export type NotificationType = 'system' | 'business' | 'interaction' | 'promotional';
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'critical';
@@ -31,100 +32,49 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-// Mock notifications for demo
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'business',
-    priority: 'high',
-    title: 'New Order Received',
-    description: 'Order #12345 for 500 units of Wireless Earbuds has been placed',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    read: false,
-    icon: '💼',
-    actionUrl: '/orders/12345',
-    actionLabel: 'View Order',
-  },
-  {
-    id: '2',
-    type: 'interaction',
-    priority: 'high',
-    title: 'New Message from Supplier',
-    description: 'TechGlobal Industries sent you a message about your RFQ',
-    timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-    read: false,
-    icon: '💬',
-    actionUrl: '/messages/1',
-    actionLabel: 'View Message',
-  },
-  {
-    id: '3',
-    type: 'business',
-    priority: 'high',
-    title: 'Escrow Payment Locked',
-    description: 'Payment of $12,500 has been secured for Order #12345',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-    read: false,
-    icon: '🔒',
-    actionUrl: '/orders/12345',
-  },
-  {
-    id: '4',
-    type: 'system',
-    priority: 'medium',
-    title: 'Account Verified',
-    description: 'Your supplier account has been successfully verified',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    read: true,
-    icon: '✅',
-    actionUrl: '/dashboard/supplier',
-  },
-  {
-    id: '5',
-    type: 'promotional',
-    priority: 'low',
-    title: 'Special Offer Available',
-    description: 'Get 20% off on bulk orders this week',
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-    read: true,
-    icon: '⭐',
-    actionUrl: '/deals',
-    actionLabel: 'View Deal',
-  },
-  {
-    id: '6',
-    type: 'business',
-    priority: 'critical',
-    title: 'Payment Required',
-    description: 'Payment for Order #12345 is pending. Please complete payment to proceed.',
-    timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-    read: false,
-    icon: '💳',
-    actionUrl: '/orders/12345/payment',
-    actionLabel: 'Pay Now',
-  },
-  {
-    id: '7',
-    type: 'interaction',
-    priority: 'high',
-    title: 'RFQ Response Received',
-    description: '3 suppliers have responded to your RFQ for Industrial Pumps',
-    timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-    read: false,
-    icon: '📋',
-    actionUrl: '/rfq/responses',
-    actionLabel: 'View Responses',
-  },
-];
+// Map backend notification shape to frontend context notification
+const mapBackendNotification = (n: BackendNotification): Notification => ({
+  id: n.id,
+  type: (n.type as NotificationType) ?? 'system',
+  priority: (n.priority as NotificationPriority) ?? 'medium',
+  title: n.title,
+  description: n.description || n.message,
+  timestamp: new Date(n.createdAt),
+  read: n.isRead || !!n.read,
+  icon: '🔔',
+  actionUrl: n.actionUrl,
+  actionLabel: n.actionLabel,
+  metadata: n.metadata ? { raw: n.metadata } : undefined,
+});
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     const saved = localStorage.getItem('notifications');
-    return saved ? JSON.parse(saved).map((n: any) => ({
-      ...n,
-      timestamp: new Date(n.timestamp),
-    })) : mockNotifications;
+    return saved
+      ? JSON.parse(saved).map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp),
+        }))
+      : [];
   });
+
+  // Load from backend on mount
+  useEffect(() => {
+    const loadFromBackend = async () => {
+      try {
+        const response = await notificationService.getMyNotifications({
+          limit: 100,
+          offset: 0,
+        });
+        setNotifications(response.items.map(mapBackendNotification));
+      } catch (error) {
+        console.error('Failed to load notifications from backend:', error);
+        // Fallback to existing (possibly localStorage) notifications
+      }
+    };
+
+    loadFromBackend();
+  }, []);
 
   // Save to localStorage
   useEffect(() => {

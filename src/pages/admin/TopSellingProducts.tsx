@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -49,6 +49,7 @@ import {
 } from 'recharts';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { cn } from '@/lib/utils';
+import { adminService, TopProduct, AdminProduct } from '@/services';
 
 const TopSellingProducts: React.FC = () => {
   const navigate = useNavigate();
@@ -57,35 +58,64 @@ const TopSellingProducts: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('sales');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [allTopProducts, setAllTopProducts] = useState<
+    {
+      id: string;
+      name: string;
+      category: string;
+      sales: number;
+      revenue: number;
+      avgOrder: number;
+      growth: number;
+      stock: number;
+      status: string;
+    }[]
+  >([]);
 
-  // Mock data - Extended list of top selling products
-  const allTopProducts = [
-    { id: 1, name: 'Smartphone Pro Max 256GB', category: 'Electronics', sales: 1234, revenue: 1108800, avgOrder: 899, growth: 12.5, stock: 450, status: 'active' },
-    { id: 2, name: 'Wireless Headphones Premium', category: 'Electronics', sales: 987, revenue: 127323, avgOrder: 129, growth: 8.3, stock: 320, status: 'active' },
-    { id: 3, name: 'Laptop Ultra 15" 512GB', category: 'Electronics', sales: 765, revenue: 1147350, avgOrder: 1499, growth: -5.2, stock: 180, status: 'active' },
-    { id: 4, name: 'Smart Watch Series 8', category: 'Electronics', sales: 654, revenue: 195546, avgOrder: 299, growth: 15.7, stock: 280, status: 'active' },
-    { id: 5, name: 'Tablet Air 12.9" 256GB', category: 'Electronics', sales: 543, revenue: 325257, avgOrder: 599, growth: 3.1, stock: 150, status: 'active' },
-    { id: 6, name: 'Gaming Mouse Pro', category: 'Electronics', sales: 432, revenue: 51840, avgOrder: 120, growth: 9.8, stock: 500, status: 'active' },
-    { id: 7, name: 'Mechanical Keyboard RGB', category: 'Electronics', sales: 321, revenue: 48150, avgOrder: 150, growth: 7.2, stock: 380, status: 'active' },
-    { id: 8, name: 'Monitor 27" 4K', category: 'Electronics', sales: 298, revenue: 447000, avgOrder: 1500, growth: 11.4, stock: 120, status: 'active' },
-    { id: 9, name: 'Wireless Charger Stand', category: 'Electronics', sales: 287, revenue: 43050, avgOrder: 150, growth: 6.5, stock: 600, status: 'active' },
-    { id: 10, name: 'USB-C Hub 7-in-1', category: 'Electronics', sales: 265, revenue: 39750, avgOrder: 150, growth: 4.8, stock: 450, status: 'active' },
-    { id: 11, name: 'Cotton T-Shirt Premium', category: 'Apparel', sales: 1234, revenue: 61700, avgOrder: 50, growth: 18.2, stock: 2000, status: 'active' },
-    { id: 12, name: 'Denim Jeans Classic', category: 'Apparel', sales: 987, revenue: 98700, avgOrder: 100, growth: 12.5, stock: 1500, status: 'active' },
-    { id: 13, name: 'Leather Jacket', category: 'Apparel', sales: 654, revenue: 196200, avgOrder: 300, growth: 9.3, stock: 400, status: 'active' },
-    { id: 14, name: 'Running Shoes Pro', category: 'Apparel', sales: 543, revenue: 108600, avgOrder: 200, growth: 15.7, stock: 800, status: 'active' },
-    { id: 15, name: 'Backpack Travel 30L', category: 'Apparel', sales: 432, revenue: 86400, avgOrder: 200, growth: 7.8, stock: 600, status: 'active' },
-    { id: 16, name: 'Coffee Maker Deluxe', category: 'Home & Garden', sales: 321, revenue: 96300, avgOrder: 300, growth: 11.2, stock: 250, status: 'active' },
-    { id: 17, name: 'Air Purifier HEPA', category: 'Home & Garden', sales: 298, revenue: 89400, avgOrder: 300, growth: 8.9, stock: 180, status: 'active' },
-    { id: 18, name: 'Robot Vacuum Cleaner', category: 'Home & Garden', sales: 265, revenue: 132500, avgOrder: 500, growth: 13.5, stock: 120, status: 'active' },
-    { id: 19, name: 'LED Desk Lamp', category: 'Home & Garden', sales: 234, revenue: 35100, avgOrder: 150, growth: 5.6, stock: 800, status: 'active' },
-    { id: 20, name: 'Smart Thermostat', category: 'Home & Garden', sales: 198, revenue: 59400, avgOrder: 300, growth: 10.3, stock: 300, status: 'active' },
-    { id: 21, name: 'Car Phone Mount', category: 'Automotive', sales: 456, revenue: 45600, avgOrder: 100, growth: 14.2, stock: 1000, status: 'active' },
-    { id: 22, name: 'Dash Cam 4K', category: 'Automotive', sales: 345, revenue: 103500, avgOrder: 300, growth: 9.7, stock: 400, status: 'active' },
-    { id: 23, name: 'Car Charger Fast', category: 'Automotive', sales: 287, revenue: 28700, avgOrder: 100, growth: 6.4, stock: 1200, status: 'active' },
-    { id: 24, name: 'Tire Pressure Monitor', category: 'Automotive', sales: 198, revenue: 59400, avgOrder: 300, growth: 8.1, stock: 350, status: 'active' },
-    { id: 25, name: 'Car Seat Cover Set', category: 'Automotive', sales: 165, revenue: 49500, avgOrder: 300, growth: 4.5, stock: 500, status: 'active' },
-  ];
+  useEffect(() => {
+    const loadTopProducts = async () => {
+      try {
+        setLoading(true);
+        const [topRes, productsRes] = await Promise.all([
+          adminService.getTopProducts(50),
+          adminService.listProducts({ limit: 200, offset: 0 }),
+        ]);
+
+        const topItems = topRes.items || [];
+        const prodItems = productsRes.items || [];
+
+        const productMap: Record<string, AdminProduct> = {};
+        prodItems.forEach((p) => {
+          productMap[p.id] = p;
+        });
+
+        const mapped = topItems.map((t: TopProduct) => {
+          const p = productMap[t.productId];
+          const avgOrder = t.salesCount ? t.revenue / t.salesCount : 0;
+          return {
+            id: t.productId,
+            name: t.productName,
+            category: p?.categoryName || 'Unknown',
+            sales: t.salesCount,
+            revenue: t.revenue,
+            avgOrder: Math.round(avgOrder),
+            growth: t.change,
+            stock: p?.stock ?? 0,
+            status: p?.status ?? 'active',
+          };
+        });
+
+        setAllTopProducts(mapped);
+      } catch (e) {
+        console.error('Failed to load top selling products:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTopProducts();
+  }, [timeRange]);
 
   // Filter and sort products
   const filteredProducts = allTopProducts
@@ -133,7 +163,10 @@ const TopSellingProducts: React.FC = () => {
   // Summary stats
   const totalSales = filteredProducts.reduce((sum, p) => sum + p.sales, 0);
   const totalRevenue = filteredProducts.reduce((sum, p) => sum + p.revenue, 0);
-  const avgGrowth = filteredProducts.reduce((sum, p) => sum + p.growth, 0) / filteredProducts.length;
+  const avgGrowth =
+    filteredProducts.length > 0
+      ? filteredProducts.reduce((sum, p) => sum + p.growth, 0) / filteredProducts.length
+      : 0;
   const totalProducts = filteredProducts.length;
 
   const handleSort = (field: string) => {
@@ -144,6 +177,16 @@ const TopSellingProducts: React.FC = () => {
       setSortOrder('desc');
     }
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <span className="text-muted-foreground">Loading top selling products...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

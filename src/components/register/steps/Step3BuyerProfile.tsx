@@ -8,14 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 
 const buyerProfileSchema = z.object({
   companyName: z.string().optional(),
@@ -113,26 +105,23 @@ const Step3BuyerProfile: React.FC<Step3BuyerProfileProps> = ({ onNext, onBack })
           <Label htmlFor="businessType" className="text-sm font-semibold">
             Business Type <span className="text-destructive">*</span>
           </Label>
-          <Select
-            value={watch('businessType')}
-            onValueChange={(value) => setValue('businessType', value)}
+          <select
+            id="businessType"
+            {...register('businessType')}
+            className={cn(
+              "h-12 rounded-xl w-full border border-input bg-background px-3 py-2 text-sm",
+              errors.businessType && "border-destructive"
+            )}
+            defaultValue=""
           >
-            <SelectTrigger
-              id="businessType"
-              className={cn(
-                "h-12 rounded-xl",
-                errors.businessType && "border-destructive"
-              )}
-            >
-              <SelectValue placeholder="Select your business type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="retailer">Retailer</SelectItem>
-              <SelectItem value="wholesaler">Wholesaler</SelectItem>
-              <SelectItem value="distributor">Distributor</SelectItem>
-              <SelectItem value="individual">Individual</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value="" disabled>
+              Select your business type
+            </option>
+            <option value="retailer">Retailer</option>
+            <option value="wholesaler">Wholesaler</option>
+            <option value="distributor">Distributor</option>
+            <option value="individual">Individual</option>
+          </select>
           {errors.businessType && (
             <p className="text-sm text-destructive">{errors.businessType.message}</p>
           )}
@@ -145,19 +134,20 @@ const Step3BuyerProfile: React.FC<Step3BuyerProfileProps> = ({ onNext, onBack })
           </Label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {categories.map((category) => (
-              <div
+              <label
                 key={category}
                 className="flex items-center space-x-2 p-3 rounded-xl border border-border hover:border-primary/50 cursor-pointer transition-colors"
-                onClick={() => toggleCategory(category)}
               >
-                <Checkbox
+                <input
+                  type="checkbox"
                   checked={interestedCategories.includes(category)}
-                  onCheckedChange={() => toggleCategory(category)}
+                  onChange={() => toggleCategory(category)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
-                <Label className="text-sm font-normal cursor-pointer flex-1">
+                <span className="text-sm font-normal cursor-pointer flex-1">
                   {category}
-                </Label>
-              </div>
+                </span>
+              </label>
             ))}
           </div>
           {errors.interestedCategories && (
@@ -170,28 +160,25 @@ const Step3BuyerProfile: React.FC<Step3BuyerProfileProps> = ({ onNext, onBack })
           <Label htmlFor="estimatedVolume" className="text-sm font-semibold">
             Estimated Purchase Volume <span className="text-destructive">*</span>
           </Label>
-          <Select
-            value={watch('estimatedVolume')}
-            onValueChange={(value) => setValue('estimatedVolume', value)}
+          <select
+            id="estimatedVolume"
+            {...register('estimatedVolume')}
+            className={cn(
+              "h-12 rounded-xl w-full border border-input bg-background px-3 py-2 text-sm",
+              errors.estimatedVolume && "border-destructive"
+            )}
+            defaultValue=""
           >
-            <SelectTrigger
-              id="estimatedVolume"
-              className={cn(
-                "h-12 rounded-xl",
-                errors.estimatedVolume && "border-destructive"
-              )}
-            >
-              <SelectValue placeholder="Select estimated volume" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="under-10k">Under $10,000/year</SelectItem>
-              <SelectItem value="10k-50k">$10,000 - $50,000/year</SelectItem>
-              <SelectItem value="50k-100k">$50,000 - $100,000/year</SelectItem>
-              <SelectItem value="100k-500k">$100,000 - $500,000/year</SelectItem>
-              <SelectItem value="500k-1m">$500,000 - $1M/year</SelectItem>
-              <SelectItem value="over-1m">Over $1M/year</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value="" disabled>
+              Select estimated volume
+            </option>
+            <option value="under-10k">Under $10,000/year</option>
+            <option value="10k-50k">$10,000 - $50,000/year</option>
+            <option value="50k-100k">$50,000 - $100,000/year</option>
+            <option value="100k-500k">$100,000 - $500,000/year</option>
+            <option value="500k-1m">$500,000 - $1M/year</option>
+            <option value="over-1m">Over $1M/year</option>
+          </select>
           {errors.estimatedVolume && (
             <p className="text-sm text-destructive">{errors.estimatedVolume.message}</p>
           )}
@@ -202,26 +189,23 @@ const Step3BuyerProfile: React.FC<Step3BuyerProfileProps> = ({ onNext, onBack })
           <Label htmlFor="contactMethod" className="text-sm font-semibold">
             Preferred Contact Method <span className="text-destructive">*</span>
           </Label>
-          <Select
-            value={watch('contactMethod')}
-            onValueChange={(value) => setValue('contactMethod', value)}
+          <select
+            id="contactMethod"
+            {...register('contactMethod')}
+            className={cn(
+              "h-12 rounded-xl w-full border border-input bg-background px-3 py-2 text-sm",
+              errors.contactMethod && "border-destructive"
+            )}
+            defaultValue=""
           >
-            <SelectTrigger
-              id="contactMethod"
-              className={cn(
-                "h-12 rounded-xl",
-                errors.contactMethod && "border-destructive"
-              )}
-            >
-              <SelectValue placeholder="Select contact method" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="phone">Phone</SelectItem>
-              <SelectItem value="whatsapp">WhatsApp</SelectItem>
-              <SelectItem value="telegram">Telegram</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value="" disabled>
+              Select contact method
+            </option>
+            <option value="email">Email</option>
+            <option value="phone">Phone</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="telegram">Telegram</option>
+          </select>
           {errors.contactMethod && (
             <p className="text-sm text-destructive">{errors.contactMethod.message}</p>
           )}

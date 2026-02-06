@@ -4,8 +4,8 @@ export interface User {
   id: string;
   email: string;
   fullName: string;
-  phone: string;
-  role: 'buyer' | 'supplier' | 'market_visitor' | 'admin';
+  phone?: string;
+  role: 'buyer' | 'supplier' | 'market' | 'visitor' | 'admin';
   createdAt: string;
 }
 
@@ -19,7 +19,7 @@ export interface RegisterRequest {
   password: string;
   fullName: string;
   phone?: string;
-  role: 'buyer' | 'supplier' | 'market_visitor';
+  role: 'buyer' | 'supplier' | 'market' | 'visitor';
 }
 
 export interface AuthResponse {

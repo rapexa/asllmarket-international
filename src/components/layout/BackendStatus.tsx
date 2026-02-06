@@ -21,7 +21,7 @@ const BackendStatus: React.FC = () => {
     try {
       const apiUrl = import.meta.env.PROD 
         ? 'https://asllmarket.org/backend/healthz'
-        : 'http://localhost:8083/healthz';
+        : 'https://asllmarket.org/backend/healthz';
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000);

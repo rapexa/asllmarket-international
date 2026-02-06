@@ -10,7 +10,7 @@ interface AuthContextType {
     password: string;
     fullName: string;
     phone?: string;
-    role: 'buyer' | 'supplier' | 'market_visitor';
+    role: 'buyer' | 'supplier' | 'market' | 'visitor';
   }) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string;
     fullName: string;
     phone?: string;
-    role: 'buyer' | 'supplier' | 'market_visitor';
+    role: 'buyer' | 'supplier' | 'market' | 'visitor';
   }) => {
     const response = await authService.register(data);
     setUser(response.user);

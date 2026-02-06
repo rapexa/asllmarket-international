@@ -13,9 +13,11 @@ interface Step4VerificationProps {
   onBack: () => void;
   email: string;
   phone: string;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
-const Step4Verification: React.FC<Step4VerificationProps> = ({ onNext, onBack, email, phone }) => {
+const Step4Verification: React.FC<Step4VerificationProps> = ({ onNext, onBack, email, phone, isLoading = false, error = null }) => {
   const { t, language, dir } = useLanguage();
   const [emailCode, setEmailCode] = useState('');
   const [phoneCode, setPhoneCode] = useState('');
@@ -261,6 +263,13 @@ const Step4Verification: React.FC<Step4VerificationProps> = ({ onNext, onBack, e
         </div>
       </Card>
 
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Info */}
       <Alert>
         <AlertDescription className="text-sm text-muted-foreground">
@@ -284,10 +293,10 @@ const Step4Verification: React.FC<Step4VerificationProps> = ({ onNext, onBack, e
           type="button"
           size="lg"
           onClick={onNext}
-          disabled={!canProceed}
+          disabled={!canProceed || isLoading}
           className="btn-gradient-primary rounded-xl px-12 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue
+          {isLoading ? 'Creating Account...' : 'Continue'}
           <ArrowRight className={cn("ms-2 h-5 w-5", dir === 'rtl' && "rotate-180")} />
         </Button>
       </div>

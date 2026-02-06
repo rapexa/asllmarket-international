@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import Step1RoleSelection from './steps/Step1RoleSelection';
 import Step2BasicInfo from './steps/Step2BasicInfo';
@@ -8,6 +9,7 @@ import Step3BuyerProfile from './steps/Step3BuyerProfile';
 import Step3SupplierProfile from './steps/Step3SupplierProfile';
 import Step3VisitorProfile from './steps/Step3VisitorProfile';
 import Step3MarketProfile from './steps/Step3MarketProfile';
+import Step3BothProfile from './steps/Step3BothProfile';
 import Step4Verification from './steps/Step4Verification';
 import Step5Success from './steps/Step5Success';
 
@@ -38,7 +40,10 @@ interface RegisterFlowProps {
 
 const RegisterFlow: React.FC<RegisterFlowProps> = ({ onComplete, initialRole }) => {
   const { t, dir } = useLanguage();
+  const { register: authRegister } = useAuth();
   const [currentStep, setCurrentStep] = useState(initialRole ? 2 : 1);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerData, setRegisterData] = useState<RegisterData>({
     role: initialRole || null,
     basicInfo: {
@@ -62,7 +67,7 @@ const RegisterFlow: React.FC<RegisterFlowProps> = ({ onComplete, initialRole }) 
     { number: 5, title: 'Complete', key: 'complete' },
   ];
 
-  const handleStepComplete = (stepData: any) => {
+  const handleStepComplete = async (stepData: any) => {
     if (currentStep === 1) {
       setRegisterData(prev => ({ ...prev, role: stepData.role }));
       setCurrentStep(2);
@@ -79,11 +84,36 @@ const RegisterFlow: React.FC<RegisterFlowProps> = ({ onComplete, initialRole }) 
       } else if (registerData.role === 'market') {
         setRegisterData(prev => ({ ...prev, marketProfile: stepData }));
       } else if (registerData.role === 'both') {
-        // Handle both case
+        setRegisterData(prev => ({ ...prev, buyerProfile: stepData, supplierProfile: stepData }));
       }
       setCurrentStep(4);
     } else if (currentStep === 4) {
-      setCurrentStep(5);
+      // Step 4: Verification complete, now submit registration to backend
+      setIsRegistering(true);
+      setRegisterError(null);
+      
+      try {
+        const { basicInfo, role } = registerData;
+        const fullName = `${basicInfo.firstName} ${basicInfo.lastName}`.trim();
+        
+        // Map 'both' to 'buyer' for backend (user can have both roles via separate mechanism)
+        const backendRole = role === 'both' ? 'buyer' : role;
+        
+        await authRegister({
+          email: basicInfo.email,
+          password: basicInfo.password,
+          fullName,
+          phone: basicInfo.phone || undefined,
+          role: backendRole as 'buyer' | 'supplier' | 'market' | 'visitor',
+        });
+        
+        // Registration successful, move to success step
+        setCurrentStep(5);
+      } catch (error: any) {
+        setRegisterError(error.message || 'Registration failed. Please try again.');
+        setIsRegistering(false);
+        // Stay on step 4 to show error
+      }
     } else if (currentStep === 5) {
       if (registerData.role) {
         onComplete(registerData.role);
@@ -184,12 +214,20 @@ const RegisterFlow: React.FC<RegisterFlowProps> = ({ onComplete, initialRole }) 
               onBack={handleBack}
             />
           )}
+          {currentStep === 3 && registerData.role === 'both' && (
+            <Step3BothProfile
+              onNext={handleStepComplete}
+              onBack={handleBack}
+            />
+          )}
           {currentStep === 4 && (
             <Step4Verification
-              onNext={handleStepComplete}
+              onNext={() => handleStepComplete({})}
               onBack={handleBack}
               email={registerData.basicInfo.email}
               phone={registerData.basicInfo.phone}
+              isLoading={isRegistering}
+              error={registerError}
             />
           )}
           {currentStep === 5 && (

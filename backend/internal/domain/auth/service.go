@@ -74,6 +74,39 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*User, *TokenPair, 
 	return u, tokens, nil
 }
 
+func (s *Service) GetUserByID(ctx context.Context, id string) (*User, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
+func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (*User, *TokenPair, error) {
+	// Parse and validate the refresh token
+	token, err := jwt.ParseWithClaims(refreshToken, &middleware.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.jwtSecret), nil
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	claims, ok := token.Claims.(*middleware.Claims)
+	if !ok || !token.Valid {
+		return nil, nil, jwt.ErrSignatureInvalid
+	}
+
+	// Get user from database
+	u, err := s.repo.GetByID(ctx, claims.UserID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Issue new tokens
+	tokens, err := s.issueTokens(u)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return u, tokens, nil
+}
+
 func (s *Service) issueTokens(u *User) (*TokenPair, error) {
 	now := time.Now()
 
@@ -116,4 +149,3 @@ func (s *Service) issueTokens(u *User) (*TokenPair, error) {
 		RefreshToken: rt,
 	}, nil
 }
-

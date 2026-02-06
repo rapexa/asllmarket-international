@@ -45,8 +45,9 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"user":   user,
-		"tokens": tokens,
+		"user":         user,
+		"token":        tokens.AccessToken,
+		"refreshToken": tokens.RefreshToken,
 	})
 }
 
@@ -68,15 +69,36 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user":   user,
-		"tokens": tokens,
+		"user":         user,
+		"token":        tokens.AccessToken,
+		"refreshToken": tokens.RefreshToken,
 	})
 }
 
 // RefreshToken parses a refresh token and issues a new access token.
-// For simplicity this demo expects refresh token in Authorization: Bearer header.
 func (h *Handler) RefreshToken(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented yet"})
+	var in struct {
+		RefreshToken string `json:"refreshToken" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&in); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	user, tokens, err := h.svc.RefreshToken(ctx, in.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user":         user,
+		"token":        tokens.AccessToken,
+		"refreshToken": tokens.RefreshToken,
+	})
 }
 
 // Me returns the current authenticated user info based on JWT claims.
@@ -92,11 +114,15 @@ func (h *Handler) Me(c *gin.Context) {
 		return
 	}
 
-	// In a full implementation we'd hit the repository; for now we only return
-	// the identity contained in the token.
-	c.JSON(http.StatusOK, gin.H{
-		"userId": claims.UserID,
-		"role":   claims.Role,
-	})
-}
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
 
+	// Fetch full user from database
+	user, err := h.svc.GetUserByID(ctx, claims.UserID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}

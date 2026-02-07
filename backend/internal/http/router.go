@@ -12,10 +12,12 @@ import (
 	"github.com/example/global-trade-hub/backend/internal/domain/auth"
 	"github.com/example/global-trade-hub/backend/internal/domain/category"
 	"github.com/example/global-trade-hub/backend/internal/domain/cms"
+	"github.com/example/global-trade-hub/backend/internal/domain/favorite"
 	"github.com/example/global-trade-hub/backend/internal/domain/message"
 	"github.com/example/global-trade-hub/backend/internal/domain/notification"
 	"github.com/example/global-trade-hub/backend/internal/domain/order"
 	"github.com/example/global-trade-hub/backend/internal/domain/product"
+	"github.com/example/global-trade-hub/backend/internal/domain/review"
 	"github.com/example/global-trade-hub/backend/internal/domain/rfq"
 	"github.com/example/global-trade-hub/backend/internal/domain/search"
 	"github.com/example/global-trade-hub/backend/internal/domain/subscription"
@@ -39,6 +41,9 @@ func NewRouter(
 	subscriptionService *subscription.Service,
 	messageService *message.Service,
 	searchService *search.Service,
+	categoryService *category.Service,
+	reviewService *review.Service,
+	favoriteService *favorite.Service,
 	adminService *admin.Service,
 	cmsService *cms.Service,
 ) *gin.Engine {
@@ -78,7 +83,9 @@ func NewRouter(
 	subscriptionHandler := subscription.NewHandler(subscriptionService)
 	messageHandler := message.NewHandler(messageService)
 	searchHandler := search.NewHandler(searchService)
-	categoryHandler := category.NewHandler()
+	categoryHandler := category.NewHandler(categoryService)
+	reviewHandler := review.NewHandler(reviewService)
+	favoriteHandler := favorite.NewHandler(favoriteService)
 	adminHandler := admin.NewHandler(adminService)
 	cmsHandler := cms.NewHandler(cmsService)
 
@@ -177,12 +184,28 @@ func NewRouter(
 		protectedVerifications.POST("", verificationHandler.Submit)
 	}
 
-	// Categories (public read-only, static data)
+	// Categories (public read-only from DB)
 	api.GET("/categories", categoryHandler.List)
 	api.GET("/categories/:id", categoryHandler.GetByID)
 
+	// Reviews (public list, protected create)
+	api.GET("/products/:productId/reviews", reviewHandler.ListByProduct)
+	api.GET("/suppliers/:supplierId/reviews", reviewHandler.ListBySupplier)
+	protected.POST("/reviews", reviewHandler.Create)
+
+	// Favorites (protected)
+	protectedFavorites := protected.Group("/favorites")
+	{
+		protectedFavorites.GET("", favoriteHandler.List)
+		protectedFavorites.POST("/:productId", favoriteHandler.Add)
+		protectedFavorites.DELETE("/:productId", favoriteHandler.Remove)
+	}
+
 	// Search (public)
 	api.GET("/search", searchHandler.Search)
+	// Search history (protected)
+	protected.GET("/search/history", searchHandler.ListHistory)
+	protected.POST("/search/history", searchHandler.RecordHistory)
 
 	// Subscriptions (protected)
 	protectedSubscriptions := protected.Group("/subscriptions")

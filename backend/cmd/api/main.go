@@ -13,11 +13,14 @@ import (
 	"github.com/example/global-trade-hub/backend/internal/database"
 	"github.com/example/global-trade-hub/backend/internal/domain/admin"
 	"github.com/example/global-trade-hub/backend/internal/domain/auth"
+	"github.com/example/global-trade-hub/backend/internal/domain/category"
 	"github.com/example/global-trade-hub/backend/internal/domain/cms"
+	"github.com/example/global-trade-hub/backend/internal/domain/favorite"
 	"github.com/example/global-trade-hub/backend/internal/domain/message"
 	"github.com/example/global-trade-hub/backend/internal/domain/notification"
 	"github.com/example/global-trade-hub/backend/internal/domain/order"
 	"github.com/example/global-trade-hub/backend/internal/domain/product"
+	"github.com/example/global-trade-hub/backend/internal/domain/review"
 	"github.com/example/global-trade-hub/backend/internal/domain/rfq"
 	"github.com/example/global-trade-hub/backend/internal/domain/search"
 	"github.com/example/global-trade-hub/backend/internal/domain/subscription"
@@ -78,6 +81,15 @@ func main() {
 
 	searchService := search.NewService(db)
 
+	categoryRepo := category.NewMySQLCategoryRepository(db)
+	categoryService := category.NewService(categoryRepo)
+
+	reviewRepo := review.NewMySQLReviewRepository(db)
+	reviewService := review.NewService(reviewRepo)
+
+	favoriteRepo := favorite.NewMySQLFavoriteRepository(db)
+	favoriteService := favorite.NewService(favoriteRepo)
+
 	adminService := admin.NewService(db)
 
 	cmsRepo := cms.NewMySQLCMSRepository(db)
@@ -97,6 +109,9 @@ func main() {
 		subscriptionService,
 		messageService,
 		searchService,
+		categoryService,
+		reviewService,
+		favoriteService,
 		adminService,
 		cmsService,
 	)

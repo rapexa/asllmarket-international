@@ -3,6 +3,8 @@ package search
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -137,4 +139,48 @@ WHERE status = 'active'
 	}
 
 	return results, rows.Err()
+}
+
+// SaveSearchHistory records a search for a user.
+func (s *Service) SaveSearchHistory(ctx context.Context, userID, query string, searchType SearchType, filters string, resultCount int) error {
+	if query == "" {
+		return nil
+	}
+	id := uuid.NewString()
+	if filters == "" {
+		filters = "{}"
+	}
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO search_history (id, user_id, query, search_type, filters, result_count) VALUES (?, ?, ?, ?, ?, ?)`,
+		id, userID, query, string(searchType), filters, resultCount,
+	)
+	return err
+}
+
+// ListSearchHistory returns recent search history for a user.
+func (s *Service) ListSearchHistory(ctx context.Context, userID string, limit, offset int) ([]*SearchHistory, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 20
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, user_id, query, search_type, filters, result_count, created_at FROM search_history WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		userID, limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []*SearchHistory
+	for rows.Next() {
+		var h SearchHistory
+		if err := rows.Scan(&h.ID, &h.UserID, &h.Query, &h.SearchType, &h.Filters, &h.ResultCount, &h.CreatedAt); err != nil {
+			return nil, err
+		}
+		list = append(list, &h)
+	}
+	return list, rows.Err()
 }

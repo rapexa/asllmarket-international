@@ -188,9 +188,9 @@ func NewRouter(
 	api.GET("/categories", categoryHandler.List)
 	api.GET("/categories/:id", categoryHandler.GetByID)
 
-	// Reviews (public list, protected create)
-	api.GET("/products/:productId/reviews", reviewHandler.ListByProduct)
-	api.GET("/suppliers/:supplierId/reviews", reviewHandler.ListBySupplier)
+	// Reviews (public list, protected create). Use :id to avoid conflict with GET /products/:id and GET /suppliers/:id
+	api.GET("/products/:id/reviews", reviewHandler.ListByProduct)
+	api.GET("/suppliers/:id/reviews", reviewHandler.ListBySupplier)
 	protected.POST("/reviews", reviewHandler.Create)
 
 	// Favorites (protected)

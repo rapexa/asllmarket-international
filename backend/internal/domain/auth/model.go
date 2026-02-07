@@ -17,7 +17,7 @@ const (
 type User struct {
 	ID        string    `db:"id" json:"id"`
 	Email     string    `db:"email" json:"email"`
-	Password  string    `db:"password" json:"-"` // bcrypt hash
+	Password  string    `db:"password_hash" json:"-"` // bcrypt hash; column in DB is password_hash (001_init_schema)
 	Role      UserRole  `db:"role" json:"role"`
 	FullName  string    `db:"full_name" json:"fullName"`
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`

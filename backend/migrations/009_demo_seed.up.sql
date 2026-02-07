@@ -10,10 +10,8 @@
 START TRANSACTION;
 
 -- Users (buyer, supplier, market visitor, admin)
--- NOTE:
--- - Use only columns that exist in all deployments (id, email, password, full_name, role)
---   to avoid issues with older schemas that might not have `phone`.
-INSERT INTO users (id, email, password, full_name, role)
+-- NOTE: 001_init_schema uses column password_hash (not password).
+INSERT INTO users (id, email, password_hash, full_name, role)
 VALUES
   ('11111111-1111-1111-1111-111111111111', 'buyer1@example.com',   '$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5CR5a9z1Qp/IrYFQEz5k.uq4/8F2W', 'Demo Buyer One',    'buyer'),
   ('11111111-1111-1111-1111-111111111112', 'supplier1@example.com','$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5CR5a9z1Qp/IrYFQEz5k.uq4/8F2W', 'Demo Supplier One', 'supplier'),

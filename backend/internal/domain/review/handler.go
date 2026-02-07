@@ -19,9 +19,9 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-// ListByProduct returns reviews for a product (public).
+// ListByProduct returns reviews for a product (public). Route: GET /products/:id/reviews
 func (h *Handler) ListByProduct(c *gin.Context) {
-	productID := c.Param("productId")
+	productID := c.Param("id")
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
@@ -39,9 +39,9 @@ func (h *Handler) ListByProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"items": list})
 }
 
-// ListBySupplier returns reviews for a supplier (public).
+// ListBySupplier returns reviews for a supplier (public). Route: GET /suppliers/:id/reviews
 func (h *Handler) ListBySupplier(c *gin.Context) {
-	supplierID := c.Param("supplierId")
+	supplierID := c.Param("id")
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 

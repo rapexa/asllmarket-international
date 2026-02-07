@@ -93,9 +93,9 @@ func seedUp(db *sql.DB) error {
 		_ = tx.Rollback()
 	}()
 
-	// Users (buyer, supplier, market visitor, admin)
+	// Users (buyer, supplier, market visitor, admin). Column is password_hash per 001_init_schema.
 	if _, err := execIgnoreMissing(tx, "users", `
-INSERT INTO users (id, email, password, full_name, role)
+INSERT INTO users (id, email, password_hash, full_name, role)
 VALUES
   ('11111111-1111-1111-1111-111111111111', 'buyer1@example.com',   '$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5CR5a9z1Qp/IrYFQEz5k.uq4/8F2W', 'Demo Buyer One',    'buyer'),
   ('11111111-1111-1111-1111-111111111112', 'supplier1@example.com','$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5CR5a9z1Qp/IrYFQEz5k.uq4/8F2W', 'Demo Supplier One', 'supplier'),

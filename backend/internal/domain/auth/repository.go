@@ -34,7 +34,7 @@ func NewMySQLUserRepository(db *sql.DB) UserRepository {
 
 func (r *mySQLUserRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
 	const query = `
-SELECT id, email, password, role, full_name, created_at, updated_at
+SELECT id, email, password_hash, role, full_name, created_at, updated_at
 FROM users
 WHERE email = ? LIMIT 1`
 
@@ -58,7 +58,7 @@ WHERE email = ? LIMIT 1`
 
 func (r *mySQLUserRepository) GetByID(ctx context.Context, id string) (*User, error) {
 	const query = `
-SELECT id, email, password, role, full_name, created_at, updated_at
+SELECT id, email, password_hash, role, full_name, created_at, updated_at
 FROM users
 WHERE id = ? LIMIT 1`
 
@@ -89,7 +89,7 @@ func (r *mySQLUserRepository) Create(ctx context.Context, u *User) error {
 	u.UpdatedAt = now
 
 	const query = `
-INSERT INTO users (id, email, password, role, full_name, created_at, updated_at)
+INSERT INTO users (id, email, password_hash, role, full_name, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := r.db.ExecContext(ctx, query,

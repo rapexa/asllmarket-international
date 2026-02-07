@@ -22,30 +22,30 @@ func (MigrationUser) TableName() string { return "users" }
 
 // MigrationSupplier matches suppliers table (001_init_schema).
 type MigrationSupplier struct {
-	ID             string    `gorm:"column:id;type:varchar(36);primaryKey"`
-	UserID         string    `gorm:"column:user_id;type:varchar(36);not null;index"`
-	CompanyName    string    `gorm:"column:company_name;type:varchar(255);not null"`
-	ContactName    string    `gorm:"column:contact_name;type:varchar(255);not null"`
-	Email          string    `gorm:"column:email;type:varchar(255);not null"`
-	Phone          string    `gorm:"column:phone;type:varchar(50);not null"`
-	Country        string    `gorm:"column:country;type:varchar(100);not null"`
-	City           string    `gorm:"column:city;type:varchar(100);not null"`
-	Address        string    `gorm:"column:address;type:text"`
-	Logo           string    `gorm:"column:logo;type:text"`
-	Description    string    `gorm:"column:description;type:text"`
-	Verified       bool      `gorm:"column:verified;default:false"`
-	Status         string    `gorm:"column:status;type:enum('active','inactive','suspended','pending');default:pending"`
-	Subscription   string    `gorm:"column:subscription;type:enum('free','silver','gold','diamond');default:free"`
-	Rating         float64   `gorm:"column:rating;type:decimal(3,2);default:0"`
-	TotalProducts  int       `gorm:"column:total_products;default:0"`
-	TotalOrders    int       `gorm:"column:total_orders;default:0"`
-	TotalRevenue   float64   `gorm:"column:total_revenue;type:decimal(15,2);default:0"`
-	ResponseRate   float64   `gorm:"column:response_rate;type:decimal(5,2);default:0"`
-	ResponseTime   int       `gorm:"column:response_time;default:0"`
-	Established    *int      `gorm:"column:established;type:int"`
-	Employees      string    `gorm:"column:employees;type:varchar(50)"`
-	CreatedAt      time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime"`
-	UpdatedAt      time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
+	ID            string    `gorm:"column:id;type:varchar(36);primaryKey"`
+	UserID        string    `gorm:"column:user_id;type:varchar(36);not null;index"`
+	CompanyName   string    `gorm:"column:company_name;type:varchar(255);not null"`
+	ContactName   string    `gorm:"column:contact_name;type:varchar(255);not null"`
+	Email         string    `gorm:"column:email;type:varchar(255);not null"`
+	Phone         string    `gorm:"column:phone;type:varchar(50);not null"`
+	Country       string    `gorm:"column:country;type:varchar(100);not null"`
+	City          string    `gorm:"column:city;type:varchar(100);not null"`
+	Address       string    `gorm:"column:address;type:text"`
+	Logo          string    `gorm:"column:logo;type:text"`
+	Description   string    `gorm:"column:description;type:text"`
+	Verified      bool      `gorm:"column:verified;default:false"`
+	Status        string    `gorm:"column:status;type:enum('active','inactive','suspended','pending');default:pending"`
+	Subscription  string    `gorm:"column:subscription;type:enum('free','silver','gold','diamond');default:free"`
+	Rating        float64   `gorm:"column:rating;type:decimal(3,2);default:0"`
+	TotalProducts int       `gorm:"column:total_products;default:0"`
+	TotalOrders   int       `gorm:"column:total_orders;default:0"`
+	TotalRevenue  float64   `gorm:"column:total_revenue;type:decimal(15,2);default:0"`
+	ResponseRate  float64   `gorm:"column:response_rate;type:decimal(5,2);default:0"`
+	ResponseTime  int       `gorm:"column:response_time;default:0"`
+	Established   *int      `gorm:"column:established;type:int"`
+	Employees     string    `gorm:"column:employees;type:varchar(50)"`
+	CreatedAt     time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime"`
+	UpdatedAt     time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
 }
 
 func (MigrationSupplier) TableName() string { return "suppliers" }
@@ -91,26 +91,26 @@ func (MigrationSubcategory) TableName() string { return "subcategories" }
 
 // MigrationProduct matches products table (001_init_schema).
 type MigrationProduct struct {
-	ID              string     `gorm:"column:id;type:varchar(36);primaryKey"`
-	SupplierID      string     `gorm:"column:supplier_id;type:varchar(36);not null;index"`
-	CategoryID      string     `gorm:"column:category_id;type:varchar(36);index"`
-	SubcategoryID   string     `gorm:"column:subcategory_id;type:varchar(36);index"`
-	Name            string     `gorm:"column:name;type:varchar(255);not null"`
-	Description     string     `gorm:"column:description;type:text"`
-	Specifications  string     `gorm:"column:specifications;type:text"`
-	Images          string     `gorm:"column:images;type:text"`
-	Price           float64    `gorm:"column:price;type:decimal(15,2);not null"`
-	Currency        string     `gorm:"column:currency;type:varchar(10);default:USD"`
-	MOQ             int        `gorm:"column:moq;default:1"`
-	StockQuantity   int        `gorm:"column:stock_quantity;default:0"`
-	Unit            string     `gorm:"column:unit;type:varchar(50);default:piece"`
-	LeadTime        int        `gorm:"column:lead_time;default:0"`
-	Rating          float64    `gorm:"column:rating;type:decimal(3,2);default:0"`
-	ReviewCount     int        `gorm:"column:review_count;default:0"`
-	Featured        bool      `gorm:"column:featured;default:false"`
-	Status          string     `gorm:"column:status;type:varchar(20);default:draft"`
-	CreatedAt       time.Time  `gorm:"column:created_at;type:timestamp;autoCreateTime"`
-	UpdatedAt       time.Time  `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
+	ID             string    `gorm:"column:id;type:varchar(36);primaryKey"`
+	SupplierID     string    `gorm:"column:supplier_id;type:varchar(36);not null;index"`
+	CategoryID     string    `gorm:"column:category_id;type:varchar(36);index"`
+	SubcategoryID  string    `gorm:"column:subcategory_id;type:varchar(36);index"`
+	Name           string    `gorm:"column:name;type:varchar(255);not null"`
+	Description    string    `gorm:"column:description;type:text"`
+	Specifications string    `gorm:"column:specifications;type:text"`
+	Images         string    `gorm:"column:images;type:text"`
+	Price          float64   `gorm:"column:price;type:decimal(15,2);not null"`
+	Currency       string    `gorm:"column:currency;type:varchar(10);default:USD"`
+	MOQ            int       `gorm:"column:moq;default:1"`
+	StockQuantity  int       `gorm:"column:stock_quantity;default:0"`
+	Unit           string    `gorm:"column:unit;type:varchar(50);default:piece"`
+	LeadTime       int       `gorm:"column:lead_time;default:0"`
+	Rating         float64   `gorm:"column:rating;type:decimal(3,2);default:0"`
+	ReviewCount    int       `gorm:"column:review_count;default:0"`
+	Featured       bool      `gorm:"column:featured;default:false"`
+	Status         string    `gorm:"column:status;type:varchar(20);default:draft"`
+	CreatedAt      time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime"`
+	UpdatedAt      time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
 }
 
 func (MigrationProduct) TableName() string { return "products" }

@@ -66,7 +66,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           limit: 100,
           offset: 0,
         });
-        setNotifications(response.items.map(mapBackendNotification));
+        setNotifications((response.items ?? []).map(mapBackendNotification));
       } catch (error) {
         console.error('Failed to load notifications from backend:', error);
         // Fallback to existing (possibly localStorage) notifications

@@ -36,13 +36,16 @@ ORDER BY featured DESC, name_en ASC`
 	var list []*DBCategory
 	for rows.Next() {
 		var c DBCategory
+		var descEn, descFa, descAr, icon, image, gradient, accent sql.NullString
 		if err := rows.Scan(
-			&c.ID, &c.NameEn, &c.NameFa, &c.NameAr, &c.DescriptionEn, &c.DescriptionFa, &c.DescriptionAr,
-			&c.Icon, &c.Image, &c.Gradient, &c.Accent, &c.ProductCount, &c.SupplierCount, &c.Featured, &c.Trending,
+			&c.ID, &c.NameEn, &c.NameFa, &c.NameAr, &descEn, &descFa, &descAr,
+			&icon, &image, &gradient, &accent, &c.ProductCount, &c.SupplierCount, &c.Featured, &c.Trending,
 			&c.CreatedAt, &c.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
+		c.DescriptionEn, c.DescriptionFa, c.DescriptionAr = descEn.String, descFa.String, descAr.String
+		c.Icon, c.Image, c.Gradient, c.Accent = icon.String, image.String, gradient.String, accent.String
 		list = append(list, &c)
 	}
 	return list, rows.Err()
@@ -57,9 +60,10 @@ FROM categories
 WHERE id = ? LIMIT 1`
 
 	var c DBCategory
+	var descEn, descFa, descAr, icon, image, gradient, accent sql.NullString
 	if err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&c.ID, &c.NameEn, &c.NameFa, &c.NameAr, &c.DescriptionEn, &c.DescriptionFa, &c.DescriptionAr,
-		&c.Icon, &c.Image, &c.Gradient, &c.Accent, &c.ProductCount, &c.SupplierCount, &c.Featured, &c.Trending,
+		&c.ID, &c.NameEn, &c.NameFa, &c.NameAr, &descEn, &descFa, &descAr,
+		&icon, &image, &gradient, &accent, &c.ProductCount, &c.SupplierCount, &c.Featured, &c.Trending,
 		&c.CreatedAt, &c.UpdatedAt,
 	); err != nil {
 		if err == sql.ErrNoRows {
@@ -67,6 +71,8 @@ WHERE id = ? LIMIT 1`
 		}
 		return nil, err
 	}
+	c.DescriptionEn, c.DescriptionFa, c.DescriptionAr = descEn.String, descFa.String, descAr.String
+	c.Icon, c.Image, c.Gradient, c.Accent = icon.String, image.String, gradient.String, accent.String
 	return &c, nil
 }
 
@@ -86,12 +92,14 @@ ORDER BY name_en ASC`
 	var list []*DBSubcategory
 	for rows.Next() {
 		var s DBSubcategory
+		var icon sql.NullString
 		if err := rows.Scan(
-			&s.ID, &s.CategoryID, &s.NameEn, &s.NameFa, &s.NameAr, &s.Icon, &s.ProductCount, &s.Trending,
+			&s.ID, &s.CategoryID, &s.NameEn, &s.NameFa, &s.NameAr, &icon, &s.ProductCount, &s.Trending,
 			&s.CreatedAt, &s.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
+		s.Icon = icon.String
 		list = append(list, &s)
 	}
 	return list, rows.Err()

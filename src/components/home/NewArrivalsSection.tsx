@@ -77,7 +77,7 @@ const NewArrivalsSection: React.FC = () => {
                 {/* Product Image */}
                 <div className="relative aspect-square overflow-hidden bg-muted">
                   <img
-                    src={product.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'}
+                    src={product.images?.[0] ?? (product as { imageUrl?: string }).imageUrl ?? 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
@@ -98,13 +98,13 @@ const NewArrivalsSection: React.FC = () => {
                   <div className="mb-1">
                     <span className="text-primary font-bold text-base">
                       {product.currency === 'USD' ? '$' : product.currency === 'EUR' ? '€' : ''}
-                      {product.price.toFixed(2)}
+                      {(Number(product.price) ?? 0).toFixed(2)}
                     </span>
                   </div>
 
                   {/* MOQ */}
                   <div className="text-xs text-muted-foreground">
-                    MOQ: {product.moq}
+                    MOQ: {product.moq ?? 1}
                   </div>
                 </div>
               </div>

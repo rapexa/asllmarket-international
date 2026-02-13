@@ -77,7 +77,7 @@ const TopRankingSection: React.FC = () => {
                 {/* Product Image */}
                 <div className="relative aspect-square overflow-hidden bg-muted">
                   <img
-                    src={product.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop'}
+                    src={product.images?.[0] ?? (product as { imageUrl?: string }).imageUrl ?? 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop'}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
@@ -98,9 +98,9 @@ const TopRankingSection: React.FC = () => {
                   {/* Rating */}
                   <div className="flex items-center gap-1 mb-3">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground'}`} />
+                      <Star key={i} className={`h-4 w-4 ${i < Math.floor(Number(product.rating) ?? 0) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground'}`} />
                     ))}
-                    <span className="text-sm text-muted-foreground ms-2">{product.rating.toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground ms-2">{(Number(product.rating) ?? 0).toFixed(1)}</span>
                   </div>
 
                   {/* Price & MOQ */}
@@ -108,11 +108,11 @@ const TopRankingSection: React.FC = () => {
                     <div>
                       <span className="text-xl font-bold text-primary">
                         {product.currency === 'USD' ? '$' : product.currency === 'EUR' ? '€' : ''}
-                        {product.price.toFixed(2)}
+                        {(Number(product.price) ?? 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      MOQ: {product.moq}
+                      MOQ: {product.moq ?? 1}
                     </div>
                   </div>
                 </div>

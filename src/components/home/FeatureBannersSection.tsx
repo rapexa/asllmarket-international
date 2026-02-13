@@ -8,6 +8,7 @@ const FeatureBannersSection: React.FC = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
 
+  /* رنگ سازمانی: نارنجی و بنفش */
   const features = [
     {
       titleEn: 'EU local stock',
@@ -20,14 +21,14 @@ const FeatureBannersSection: React.FC = () => {
       descFa: 'بدون عوارض گمرکی',
       descAr: 'بدون رسوم استيراد',
       icon: Package,
-      gradient: 'from-red-900 to-red-700',
+      gradient: 'from-primary to-primary-light',
       image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=400&fit=crop',
       action: '/products?filter=eu-stock'
     },
     {
-      titleEn: 'Alibaba Guaranteed',
+      titleEn: 'ASL Guaranteed',
       titleFa: 'تضمین کیفیت',
-      titleAr: 'ضمان علي بابا',
+      titleAr: 'ضمان ASL',
       subtitleEn: 'Quick and easy to order',
       subtitleFa: 'سریع و آسان برای سفارش',
       subtitleAr: 'سريع وسهل الطلب',
@@ -35,7 +36,7 @@ const FeatureBannersSection: React.FC = () => {
       descFa: 'تحویل به موقع',
       descAr: 'التسليم في الوقت المحدد',
       icon: Shield,
-      gradient: 'from-orange-900 to-orange-700',
+      gradient: 'from-accent to-accent-light',
       image: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&h=400&fit=crop',
       action: '/trade-assurance'
     },
@@ -50,7 +51,7 @@ const FeatureBannersSection: React.FC = () => {
       descFa: 'ارسال ۱ روزه',
       descAr: 'شحن يوم واحد',
       icon: Zap,
-      gradient: 'from-purple-900 to-purple-700',
+      gradient: 'from-violet-700 to-violet-900',
       image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=400&fit=crop',
       action: '/products?filter=custom'
     },

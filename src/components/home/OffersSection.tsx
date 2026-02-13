@@ -45,7 +45,7 @@ const OffersSection: React.FC = () => {
             id: p.id,
             title: p.name,
             description: p.description || t('offers.subtitle'),
-            image: p.images?.[0] || 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80',
+            image: p.images?.[0] ?? (p as { imageUrl?: string }).imageUrl ?? 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80',
             discount: baseDiscount > 5 ? baseDiscount : 5,
             endTime: new Date(Date.now() + 3600000 * hoursAhead),
             color: palette[index % palette.length],

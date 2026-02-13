@@ -2,10 +2,13 @@ import React from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HeroSectionCompact from '@/components/home/HeroSectionCompact';
+import HeroSection from '@/components/home/HeroSection';
 import CategoryMenuSection from '@/components/home/CategoryMenuSection';
 import FrequentlySearchedSection from '@/components/home/FrequentlySearchedSection';
 import FeatureBannersSection from '@/components/home/FeatureBannersSection';
 import TopDealsSection from '@/components/home/TopDealsSection';
+import ProductsSection from '@/components/home/ProductsSection';
+import OffersSection from '@/components/home/OffersSection';
 import TopRankingSection from '@/components/home/TopRankingSection';
 import NewArrivalsSection from '@/components/home/NewArrivalsSection';
 import TailoredSelectionsSection from '@/components/home/TailoredSelectionsSection';
@@ -18,34 +21,43 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        {/* Hero Section - Compact Alibaba style with prominent search */}
+        {/* Hero جدید - جستجو برجسته (بهتر) */}
         <HeroSectionCompact />
-        
-        {/* Category Menu - Horizontal scrollable categories */}
+
+        {/* منوی دسته‌بندی */}
         <CategoryMenuSection />
-        
-        {/* Frequently Searched - Image cards with search queries */}
+
+        {/* جستجوهای پرتکرار */}
         <FrequentlySearchedSection />
-        
-        {/* Feature Banners - EU Stock, Guaranteed, Fast Customization */}
+
+        {/* بنرهای ویژه */}
         <FeatureBannersSection />
-        
-        {/* Top Deals - Products with prices and MOQ */}
+
+        {/* پیشنهادات ویژه */}
         <TopDealsSection />
-        
-        {/* Top Ranking - Best rated products */}
+
+        {/* Hero قدیمی - پایین وسط، کنار محصولات؛ رنگ سازمانی نارنجی و بنفش */}
+        <HeroSection />
+
+        {/* بخش محصولات (کارت‌ها با RFQ و سبد) */}
+        <ProductsSection />
+
+        {/* پیشنهادات با تایمر - قبلی */}
+        <OffersSection />
+
+        {/* برترین رتبه‌ها */}
         <TopRankingSection />
-        
-        {/* New Arrivals - Latest products */}
+
+        {/* تازه‌ها */}
         <NewArrivalsSection />
-        
-        {/* Tailored Selections - Curated product collections */}
+
+        {/* انتخاب‌های ویژه */}
         <TailoredSelectionsSection />
-        
-        {/* Special Offers - Discount promotions */}
+
+        {/* تخفیف‌ها */}
         <SpecialOffersSection />
-        
-        {/* Trust & CTA Sections */}
+
+        {/* اعتماد و CTA */}
         <TrustSection />
         <CTASection />
       </main>

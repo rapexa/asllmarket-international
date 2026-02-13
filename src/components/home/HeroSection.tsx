@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, Users, Globe } from 'lucide-react';
+import { ArrowRight, Shield, Users, Globe, Search, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TimeLeft {
@@ -15,6 +16,12 @@ const HeroSection: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 7, hours: 23, minutes: 59, seconds: 59 });
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,15 +62,14 @@ const HeroSection: React.FC = () => {
 
   return (
     <section className="relative overflow-hidden hero-gradient min-h-[600px] sm:min-h-[650px] md:min-h-[750px] lg:min-h-[850px] xl:min-h-[900px]">
-      {/* Premium Background with Glassmorphism */}
+      {/* Premium Background: نارنجی و بنفش سازمانی */}
       <div className="absolute inset-0">
-        {/* Animated Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-light to-accent/20" />
-        
-        {/* Animated Orbs */}
-        <div className="absolute top-10 start-5 md:top-20 md:start-10 w-64 h-64 md:w-96 md:h-96 bg-accent/30 rounded-full blur-3xl animate-pulse-glow" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-10 end-5 md:bottom-20 md:end-10 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-primary-light/40 rounded-full blur-3xl animate-pulse-glow" style={{ animationDuration: '6s', animationDelay: '1s' }} />
-        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] md:w-[600px] md:h-[600px] bg-accent/10 rounded-full blur-3xl animate-pulse-glow" style={{ animationDuration: '8s', animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-violet-900/90 to-accent/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-accent/20" />
+        {/* Orbs - نارنجی و بنفش */}
+        <div className="absolute top-10 start-5 md:top-20 md:start-10 w-64 h-64 md:w-96 md:h-96 bg-accent/40 rounded-full blur-3xl animate-pulse-glow" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-10 end-5 md:bottom-20 md:end-10 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-violet-500/40 rounded-full blur-3xl animate-pulse-glow" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] md:w-[600px] md:h-[600px] bg-accent/20 rounded-full blur-3xl animate-pulse-glow" style={{ animationDuration: '8s', animationDelay: '2s' }} />
       </div>
 
       {/* Glassmorphism Overlay */}
@@ -118,6 +124,26 @@ const HeroSection: React.FC = () => {
               </p>
             </div>
 
+            {/* Search Bar - مثل علی‌بابا */}
+            <form onSubmit={handleSearch} className="max-w-xl">
+              <div className="flex gap-2 bg-white/95 dark:bg-background/20 rounded-full shadow-2xl p-2 border border-primary-foreground/10 backdrop-blur-sm">
+                <Input
+                  type="text"
+                  placeholder={language === 'fa' ? 'محصولات، تامین‌کنندگان را جستجو کنید...' : language === 'ar' ? 'ابحث عن المنتجات والموردين...' : 'Search products, suppliers...'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 border-0 focus-visible:ring-0 bg-transparent text-foreground text-base"
+                />
+                <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0" onClick={() => navigate('/advanced-search')}>
+                  <Camera className="h-5 w-5" />
+                </Button>
+                <Button type="submit" size="lg" className="rounded-full bg-accent hover:bg-accent/90 text-accent-foreground px-6 shrink-0">
+                  <Search className="h-5 w-5 me-2" />
+                  {language === 'fa' ? 'جستجو' : language === 'ar' ? 'بحث' : 'Search'}
+                </Button>
+              </div>
+            </form>
+
             {/* Premium CTA Buttons */}
             <div className="flex flex-wrap gap-3 md:gap-4">
               <Button 
@@ -156,8 +182,8 @@ const HeroSection: React.FC = () => {
           {/* Right - Premium Campaign Card */}
           <div className="relative mt-8 lg:mt-0">
             <div className="relative bg-background/15 backdrop-blur-2xl rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 lg:p-8 xl:p-10 border-2 border-primary-foreground/20 shadow-2xl overflow-hidden group mx-2 sm:mx-0">
-              {/* Animated Background Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-primary-light/20 to-transparent opacity-50 group-hover:opacity-75 transition-opacity" />
+              {/* نارنجی و بنفش سازمانی */}
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/25 via-violet-500/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
               
               {/* Campaign Badge - Floating */}
               <div className="absolute top-1 md:top-2 start-1/2 -translate-x-1/2 bg-gradient-to-r from-accent to-accent-light text-accent-foreground px-4 sm:px-5 md:px-6 lg:px-8 py-1.5 md:py-2 lg:py-2.5 rounded-full font-bold text-[10px] sm:text-xs md:text-sm shadow-2xl pulse-glow z-10 whitespace-nowrap">

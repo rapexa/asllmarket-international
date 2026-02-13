@@ -44,16 +44,17 @@ const ProductsSection: React.FC = () => {
       try {
         const res = await productService.list({ limit: 8 });
         const items: HomeProduct[] = (res.items || []).map((p: ApiProduct, index) => {
-          const basePrice = p.price;
+          const basePrice = Number(p.price) ?? 0;
           const maxPrice = basePrice * 1.4;
           const badges: Array<HomeProduct['badge']> = ['hot', 'verified', 'new', undefined];
           const badge = badges[index % badges.length];
           const discount = badge === 'hot' ? 20 : badge === 'new' ? 10 : undefined;
+          const img = p.images?.[0] ?? (p as { imageUrl?: string }).imageUrl;
 
           return {
             id: p.id,
             name: p.name,
-            image: p.images?.[0] || 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80',
+            image: img || 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80',
             price: basePrice,
             priceRange: `$${basePrice.toFixed(2)} - $${maxPrice.toFixed(2)}`,
             moq: p.moq ?? 1,

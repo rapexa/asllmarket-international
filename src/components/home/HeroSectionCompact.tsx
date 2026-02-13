@@ -30,8 +30,8 @@ const HeroSectionCompact: React.FC = () => {
   };
 
   return (
-    <section className="relative bg-gradient-to-br from-primary via-primary-light to-accent/20 text-primary-foreground py-12 md:py-16">
-      {/* Background Pattern */}
+    <section className="relative bg-gradient-to-br from-primary via-violet-900/80 to-accent/30 text-primary-foreground py-12 md:py-16">
+      {/* رنگ سازمانی نارنجی و بنفش */}
       <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
       
       <div className="container relative z-10 mx-auto px-4">
@@ -81,11 +81,11 @@ const HeroSectionCompact: React.FC = () => {
               >
                 <Camera className="h-5 w-5" />
               </Button>
-              <Button
-                type="submit"
-                size="lg"
-                className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-8"
-              >
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="rounded-full bg-accent hover:bg-accent/90 text-accent-foreground px-8"
+                >
                 <Search className="h-5 w-5 me-2" />
                 {language === 'fa' ? 'جستجو' : language === 'ar' ? 'بحث' : 'Search'}
               </Button>

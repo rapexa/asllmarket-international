@@ -44,6 +44,12 @@ const productSchema = z.object({
   status: z.enum(['active', 'inactive', 'pending']),
   specifications: z.string().optional(),
   shippingInfo: z.string().optional(),
+  discountPercent: z.number().int().min(0).max(100).optional(),
+  freeShipping: z.boolean().optional(),
+  firstOrderFreeShipping: z.boolean().optional(),
+  guaranteed: z.boolean().optional(),
+  fastCustomization: z.boolean().optional(),
+  sellingPointTags: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -84,6 +90,10 @@ const AddProduct: React.FC = () => {
       stock: 0,
       moq: 1,
       price: 0,
+      freeShipping: false,
+      firstOrderFreeShipping: false,
+      guaranteed: false,
+      fastCustomization: false,
     },
   });
 
@@ -139,6 +149,12 @@ const AddProduct: React.FC = () => {
         moq: data.moq,
         stockQuantity: data.stock,
         unit: 'piece',
+        discountPercent: data.discountPercent ?? 0,
+        freeShipping: data.freeShipping ?? false,
+        firstOrderFreeShipping: data.firstOrderFreeShipping ?? false,
+        guaranteed: data.guaranteed ?? false,
+        fastCustomization: data.fastCustomization ?? false,
+        sellingPointTags: data.sellingPointTags ? JSON.stringify(data.sellingPointTags.split(',').map((s) => s.trim()).filter(Boolean)) : undefined,
       };
 
       await productService.create(payload);
@@ -349,6 +365,53 @@ const AddProduct: React.FC = () => {
                         <p className="text-sm text-destructive">{errors.stock.message}</p>
                       )}
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Selling points & Shipping */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Selling points & Shipping</CardTitle>
+                  <CardDescription>First order FREE shipping, Guaranteed, Fast customization, tags</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="discountPercent">Discount (%)</Label>
+                    <Input
+                      id="discountPercent"
+                      type="number"
+                      min={0}
+                      max={100}
+                      {...register('discountPercent', { valueAsNumber: true })}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" {...register('freeShipping')} className="rounded" />
+                      <span className="text-sm">Free shipping</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" {...register('firstOrderFreeShipping')} className="rounded" />
+                      <span className="text-sm">First order FREE shipping</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" {...register('guaranteed')} className="rounded" />
+                      <span className="text-sm">Guaranteed (ASL)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" {...register('fastCustomization')} className="rounded" />
+                      <span className="text-sm">Fast customization</span>
+                    </label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sellingPointTags">Selling point tags (comma-separated)</Label>
+                    <Input
+                      id="sellingPointTags"
+                      {...register('sellingPointTags')}
+                      placeholder="Lower priced than similar, FREE shipping, 180-day lowest prices"
+                    />
                   </div>
                 </CardContent>
               </Card>

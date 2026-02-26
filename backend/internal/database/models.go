@@ -109,6 +109,12 @@ type MigrationProduct struct {
 	ReviewCount    int       `gorm:"column:review_count;default:0"`
 	Featured       bool      `gorm:"column:featured;default:false"`
 	Status         string    `gorm:"column:status;type:varchar(20);default:draft"`
+	DiscountPercent int      `gorm:"column:discount_percent;default:0"`
+	FreeShipping   bool      `gorm:"column:free_shipping;default:false"`
+	FirstOrderFreeShipping bool `gorm:"column:first_order_free_shipping;default:false"`
+	Guaranteed     bool      `gorm:"column:guaranteed;default:false"`
+	FastCustomization bool   `gorm:"column:fast_customization;default:false"`
+	SellingPointTags string  `gorm:"column:selling_point_tags;type:text"`
 	CreatedAt      time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime"`
 	UpdatedAt      time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
 }

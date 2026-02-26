@@ -13,6 +13,13 @@ var (
 	ErrNotFound = errors.New("product not found")
 )
 
+func nullIfEmpty(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
 type Repository interface {
 	List(ctx context.Context, limit, offset int) ([]*Product, error)
 	GetByID(ctx context.Context, id string) (*Product, error)
@@ -31,7 +38,10 @@ func NewMySQLProductRepository(db *sql.DB) Repository {
 
 func (r *mySQLProductRepository) List(ctx context.Context, limit, offset int) ([]*Product, error) {
 	const query = `
-SELECT id, name, description, image_url, price, moq, currency, supplier_id, created_at, updated_at
+SELECT id, name, description, image_url, price, moq, currency, supplier_id,
+       COALESCE(discount_percent, 0), COALESCE(free_shipping, 0), COALESCE(first_order_free_shipping, 0),
+       COALESCE(guaranteed, 0), COALESCE(fast_customization, 0), selling_point_tags,
+       created_at, updated_at
 FROM products
 ORDER BY created_at DESC
 LIMIT ? OFFSET ?`
@@ -45,6 +55,7 @@ LIMIT ? OFFSET ?`
 	var products []*Product
 	for rows.Next() {
 		var p Product
+		var sellingTags sql.NullString
 		if err := rows.Scan(
 			&p.ID,
 			&p.Name,
@@ -54,10 +65,19 @@ LIMIT ? OFFSET ?`
 			&p.MOQ,
 			&p.Currency,
 			&p.SupplierID,
+			&p.DiscountPercent,
+			&p.FreeShipping,
+			&p.FirstOrderFreeShipping,
+			&p.Guaranteed,
+			&p.FastCustomization,
+			&sellingTags,
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		); err != nil {
 			return nil, err
+		}
+		if sellingTags.Valid {
+			p.SellingPointTags = sellingTags.String
 		}
 		products = append(products, &p)
 	}
@@ -66,11 +86,15 @@ LIMIT ? OFFSET ?`
 
 func (r *mySQLProductRepository) GetByID(ctx context.Context, id string) (*Product, error) {
 	const query = `
-SELECT id, name, description, image_url, price, moq, currency, supplier_id, created_at, updated_at
+SELECT id, name, description, image_url, price, moq, currency, supplier_id,
+       COALESCE(discount_percent, 0), COALESCE(free_shipping, 0), COALESCE(first_order_free_shipping, 0),
+       COALESCE(guaranteed, 0), COALESCE(fast_customization, 0), selling_point_tags,
+       created_at, updated_at
 FROM products
 WHERE id = ? LIMIT 1`
 
 	var p Product
+	var sellingTags sql.NullString
 	if err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&p.ID,
 		&p.Name,
@@ -80,6 +104,12 @@ WHERE id = ? LIMIT 1`
 		&p.MOQ,
 		&p.Currency,
 		&p.SupplierID,
+		&p.DiscountPercent,
+		&p.FreeShipping,
+		&p.FirstOrderFreeShipping,
+		&p.Guaranteed,
+		&p.FastCustomization,
+		&sellingTags,
 		&p.CreatedAt,
 		&p.UpdatedAt,
 	); err != nil {
@@ -87,6 +117,9 @@ WHERE id = ? LIMIT 1`
 			return nil, ErrNotFound
 		}
 		return nil, err
+	}
+	if sellingTags.Valid {
+		p.SellingPointTags = sellingTags.String
 	}
 	return &p, nil
 }
@@ -100,8 +133,10 @@ func (r *mySQLProductRepository) Create(ctx context.Context, p *Product) error {
 	p.UpdatedAt = now
 
 	const query = `
-INSERT INTO products (id, name, description, image_url, price, moq, currency, supplier_id, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+INSERT INTO products (id, name, description, image_url, price, moq, currency, supplier_id,
+  discount_percent, free_shipping, first_order_free_shipping, guaranteed, fast_customization, selling_point_tags,
+  created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := r.db.ExecContext(ctx, query,
 		p.ID,
@@ -112,6 +147,12 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		p.MOQ,
 		p.Currency,
 		p.SupplierID,
+		p.DiscountPercent,
+		p.FreeShipping,
+		p.FirstOrderFreeShipping,
+		p.Guaranteed,
+		p.FastCustomization,
+		nullIfEmpty(p.SellingPointTags),
 		p.CreatedAt,
 		p.UpdatedAt,
 	)
@@ -123,7 +164,9 @@ func (r *mySQLProductRepository) Update(ctx context.Context, p *Product) error {
 
 	const query = `
 UPDATE products
-SET name = ?, description = ?, image_url = ?, price = ?, moq = ?, currency = ?, updated_at = ?
+SET name = ?, description = ?, image_url = ?, price = ?, moq = ?, currency = ?,
+    discount_percent = ?, free_shipping = ?, first_order_free_shipping = ?, guaranteed = ?, fast_customization = ?, selling_point_tags = ?,
+    updated_at = ?
 WHERE id = ?`
 
 	res, err := r.db.ExecContext(ctx, query,
@@ -133,6 +176,12 @@ WHERE id = ?`
 		p.Price,
 		p.MOQ,
 		p.Currency,
+		p.DiscountPercent,
+		p.FreeShipping,
+		p.FirstOrderFreeShipping,
+		p.Guaranteed,
+		p.FastCustomization,
+		nullIfEmpty(p.SellingPointTags),
 		p.UpdatedAt,
 		p.ID,
 	)

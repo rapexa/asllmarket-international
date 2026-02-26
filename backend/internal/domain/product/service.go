@@ -29,13 +29,19 @@ func (s *Service) GetByID(ctx context.Context, id string) (*Product, error) {
 
 func (s *Service) Create(ctx context.Context, supplierID string, in CreateInput) (*Product, error) {
 	p := &Product{
-		Name:        in.Name,
-		Description: in.Description,
-		ImageURL:    in.ImageURL,
-		Price:       in.Price,
-		MOQ:         in.MOQ,
-		Currency:    in.Currency,
-		SupplierID:  supplierID,
+		Name:                   in.Name,
+		Description:            in.Description,
+		ImageURL:               in.ImageURL,
+		Price:                  in.Price,
+		MOQ:                    in.MOQ,
+		Currency:               in.Currency,
+		SupplierID:             supplierID,
+		DiscountPercent:        in.DiscountPercent,
+		FreeShipping:           in.FreeShipping,
+		FirstOrderFreeShipping: in.FirstOrderFreeShipping,
+		Guaranteed:             in.Guaranteed,
+		FastCustomization:      in.FastCustomization,
+		SellingPointTags:       in.SellingPointTags,
 	}
 	if err := s.repo.Create(ctx, p); err != nil {
 		return nil, err
@@ -66,6 +72,24 @@ func (s *Service) Update(ctx context.Context, id string, in UpdateInput) (*Produ
 	}
 	if in.Currency != nil {
 		p.Currency = *in.Currency
+	}
+	if in.DiscountPercent != nil {
+		p.DiscountPercent = *in.DiscountPercent
+	}
+	if in.FreeShipping != nil {
+		p.FreeShipping = *in.FreeShipping
+	}
+	if in.FirstOrderFreeShipping != nil {
+		p.FirstOrderFreeShipping = *in.FirstOrderFreeShipping
+	}
+	if in.Guaranteed != nil {
+		p.Guaranteed = *in.Guaranteed
+	}
+	if in.FastCustomization != nil {
+		p.FastCustomization = *in.FastCustomization
+	}
+	if in.SellingPointTags != nil {
+		p.SellingPointTags = *in.SellingPointTags
 	}
 
 	if err := s.repo.Update(ctx, p); err != nil {

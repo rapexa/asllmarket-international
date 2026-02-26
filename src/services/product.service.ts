@@ -3,39 +3,59 @@ import { api } from './api';
 export interface Product {
   id: string;
   supplierId: string;
-  categoryId: string;
-  subcategoryId?: string;
-  name: string;
-  description: string;
-  specifications: string;
-  images: string[];
-  price: number;
-  currency: string;
-  moq: number;
-  stockQuantity: number;
-  unit: string;
-  leadTime: number;
-  rating: number;
-  reviewCount: number;
-  featured: boolean;
-  status: 'active' | 'inactive' | 'draft' | 'out_of_stock';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateProductRequest {
-  categoryId: string;
+  categoryId?: string;
   subcategoryId?: string;
   name: string;
   description: string;
   specifications?: string;
   images: string[];
+  imageUrl?: string;
   price: number;
   currency: string;
   moq: number;
-  stockQuantity: number;
-  unit: string;
+  stockQuantity?: number;
+  unit?: string;
   leadTime?: number;
+  rating?: number;
+  reviewCount?: number;
+  featured?: boolean;
+  status?: 'active' | 'inactive' | 'draft' | 'out_of_stock';
+  /** درصد تخفیف (۰–۱۰۰) */
+  discountPercent?: number;
+  /** ارسال رایگان */
+  freeShipping?: boolean;
+  /** اولین سفارش ارسال رایگان */
+  firstOrderFreeShipping?: boolean;
+  /** تضمین شده (ASL Guaranteed) */
+  guaranteed?: boolean;
+  /** سفارشی‌سازی سریع */
+  fastCustomization?: boolean;
+  /** تگ‌های فروش مثلاً ["Lower priced than similar","FREE shipping"] */
+  sellingPointTags?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProductRequest {
+  categoryId?: string;
+  subcategoryId?: string;
+  name: string;
+  description: string;
+  specifications?: string;
+  images?: string[];
+  imageUrl?: string;
+  price: number;
+  currency: string;
+  moq: number;
+  stockQuantity?: number;
+  unit?: string;
+  leadTime?: number;
+  discountPercent?: number;
+  freeShipping?: boolean;
+  firstOrderFreeShipping?: boolean;
+  guaranteed?: boolean;
+  fastCustomization?: boolean;
+  sellingPointTags?: string;
 }
 
 export interface UpdateProductRequest {
@@ -49,6 +69,12 @@ export interface UpdateProductRequest {
   unit?: string;
   leadTime?: number;
   status?: 'active' | 'inactive' | 'draft' | 'out_of_stock';
+  discountPercent?: number;
+  freeShipping?: boolean;
+  firstOrderFreeShipping?: boolean;
+  guaranteed?: boolean;
+  fastCustomization?: boolean;
+  sellingPointTags?: string;
 }
 
 export interface ProductListResponse {

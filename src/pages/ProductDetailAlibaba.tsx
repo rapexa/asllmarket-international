@@ -63,9 +63,13 @@ const ProductDetailAlibaba: React.FC = () => {
     );
   }
 
-  const images = product.images?.length > 0 ? product.images : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'];
+  const images = product.images?.length > 0 ? product.images : (product.imageUrl ? [product.imageUrl] : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80']);
   const price = Number(product.price) ?? 0;
-  const originalPrice = price * 1.11; // 10% off simulation
+  const discountPercent = product.discountPercent ?? 0;
+  const originalPrice = discountPercent > 0 ? price / (1 - discountPercent / 100) : price * 1.11;
+  const sellingTags: string[] = product.sellingPointTags
+    ? (() => { try { const t = JSON.parse(product.sellingPointTags); return Array.isArray(t) ? t : [product.sellingPointTags]; } catch { return product.sellingPointTags.split(',').map((s: string) => s.trim()).filter(Boolean); } })()
+    : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,6 +170,11 @@ const ProductDetailAlibaba: React.FC = () => {
                 <ChevronRight className="h-5 w-5" />
               </button>
 
+              {discountPercent > 0 && (
+                <div className="absolute top-4 left-4">
+                  <Badge className="bg-red-500 text-white">{discountPercent}% OFF</Badge>
+                </div>
+              )}
               {/* Icons */}
               <div className="absolute top-4 right-4 flex gap-2">
                 <button className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white">
@@ -225,16 +234,21 @@ const ProductDetailAlibaba: React.FC = () => {
               </button>
             </div>
 
-            {/* FREE shipping banner */}
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Truck className="h-5 w-5 text-orange-600" />
-                <span className="font-medium">
-                  <span className="text-orange-600">FREE shipping</span> capped at €17.08
-                </span>
+            {/* FREE shipping / First order FREE shipping */}
+            {(product.freeShipping || product.firstOrderFreeShipping) && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-orange-600" />
+                  <span className="font-medium">
+                    <span className="text-orange-600">
+                      {product.firstOrderFreeShipping ? 'First order, FREE shipping' : 'FREE shipping'}
+                    </span>
+                    {product.freeShipping && !product.firstOrderFreeShipping ? ' capped at €17.08' : ''}
+                  </span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </div>
+            )}
 
             {/* Eligible for instalments */}
             <div className="text-sm text-muted-foreground mb-4">
@@ -243,21 +257,31 @@ const ProductDetailAlibaba: React.FC = () => {
 
             {/* Pricing */}
             <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">10% off</span>
-                <span className="text-xs text-red-600 font-medium">Lower priced than similar</span>
-              </div>
+              {(discountPercent > 0 || sellingTags.length > 0) && (
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  {discountPercent > 0 && (
+                    <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">{discountPercent}% off</span>
+                  )}
+                  {sellingTags.slice(0, 3).map((tag, i) => (
+                    <span key={i} className="text-xs text-red-600 font-medium">{tag}</span>
+                  ))}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">1,000 - 9,999 pieces</div>
                   <div className="text-3xl font-bold text-red-600">€{price.toFixed(2)}</div>
-                  <div className="text-sm text-muted-foreground line-through">€{originalPrice.toFixed(2)}</div>
+                  {originalPrice > price && (
+                    <div className="text-sm text-muted-foreground line-through">€{originalPrice.toFixed(2)}</div>
+                  )}
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">&gt;= 10,000 pieces</div>
                   <div className="text-3xl font-bold text-red-600">€{(price * 0.94).toFixed(2)}</div>
-                  <div className="text-sm text-muted-foreground line-through">€{(originalPrice * 0.94).toFixed(2)}</div>
+                  {originalPrice > price && (
+                    <div className="text-sm text-muted-foreground line-through">€{(originalPrice * 0.94).toFixed(2)}</div>
+                  )}
                 </div>
               </div>
 

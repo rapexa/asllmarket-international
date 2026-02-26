@@ -312,3 +312,35 @@ type MigrationSearchHistory struct {
 }
 
 func (MigrationSearchHistory) TableName() string { return "search_history" }
+
+// MigrationSupplierCapability matches supplier_capabilities table (010).
+type MigrationSupplierCapability struct {
+	ID              string    `gorm:"column:id;type:varchar(36);primaryKey"`
+	SupplierID      string    `gorm:"column:supplier_id;type:varchar(36);not null;index"`
+	CapabilityType  string    `gorm:"column:capability_type;type:varchar(100);not null"`
+	CapabilityValue string    `gorm:"column:capability_value;type:text"`
+	Icon            string    `gorm:"column:icon;type:varchar(50)"`
+	DisplayOrder    int       `gorm:"column:display_order;default:0"`
+	CreatedAt       time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime"`
+	UpdatedAt       time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
+}
+
+func (MigrationSupplierCapability) TableName() string { return "supplier_capabilities" }
+
+// MigrationSupplierCertificate matches supplier_certificates table (010).
+type MigrationSupplierCertificate struct {
+	ID              string     `gorm:"column:id;type:varchar(36);primaryKey"`
+	SupplierID      string     `gorm:"column:supplier_id;type:varchar(36);not null;index"`
+	CertificateName string     `gorm:"column:certificate_name;type:varchar(255);not null"`
+	CertificateNum  string     `gorm:"column:certificate_number;type:varchar(255)"`
+	IssuedBy        string     `gorm:"column:issued_by;type:varchar(255)"`
+	IssuedDate      *time.Time `gorm:"column:issued_date;type:date"`
+	ExpiryDate      *time.Time `gorm:"column:expiry_date;type:date"`
+	DocumentURL     string     `gorm:"column:document_url;type:text"`
+	Verified        bool       `gorm:"column:verified;default:false"`
+	DisplayOrder    int        `gorm:"column:display_order;default:0"`
+	CreatedAt       time.Time  `gorm:"column:created_at;type:timestamp;autoCreateTime"`
+	UpdatedAt       time.Time  `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
+}
+
+func (MigrationSupplierCertificate) TableName() string { return "supplier_certificates" }

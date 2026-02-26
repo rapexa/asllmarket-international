@@ -19,6 +19,38 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
+// GetCapabilities returns capabilities for a supplier
+func (h *Handler) GetCapabilities(c *gin.Context) {
+	id := c.Param("id")
+	
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+	
+	capabilities, err := h.svc.repo.GetCapabilities(ctx, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"items": capabilities})
+}
+
+// GetCertificates returns certificates for a supplier
+func (h *Handler) GetCertificates(c *gin.Context) {
+	id := c.Param("id")
+	
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+	
+	certificates, err := h.svc.repo.GetCertificates(ctx, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"items": certificates})
+}
+
 // List returns paginated suppliers (public endpoint).
 func (h *Handler) List(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))

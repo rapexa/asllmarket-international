@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Camera, ArrowRight } from 'lucide-react';
+import { Search, Camera, TrendingUp, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,21 +12,7 @@ const HeroSectionCompact: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
-  const quickLinks = [
-    { labelEn: 'Request for Quotation', labelFa: 'درخواست قیمت', labelAr: 'طلب عرض أسعار', path: '/post-request' },
-    { labelEn: 'Top Ranking', labelFa: 'برترین رتبه‌ها', labelAr: 'أعلى التصنيفات', path: '/products' },
-    { labelEn: 'Fast customization', labelFa: 'سفارشی‌سازی سریع', labelAr: 'التخصيص السريع', path: '/products?filter=custom' },
-  ];
-
-  const getLabel = (link: typeof quickLinks[0]) => {
-    if (language === 'fa') return link.labelFa;
-    if (language === 'ar') return link.labelAr;
-    return link.labelEn;
+    if (searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
   };
 
   return (
@@ -36,14 +22,17 @@ const HeroSectionCompact: React.FC = () => {
       
       <div className="container relative z-10 mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Welcome Badge */}
-          <div className="inline-flex items-center gap-2 bg-background/20 backdrop-blur-xl px-4 py-2 rounded-full text-sm font-semibold border border-primary-foreground/10 shadow-lg mb-6">
+          {/* AI Mode Badge - مثل علی‌بابا */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 backdrop-blur-xl px-5 py-2.5 rounded-full text-sm font-bold border border-white/20 shadow-2xl mb-6 hover:scale-105 transition-transform cursor-pointer">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
             </span>
-            <span>
-              {language === 'fa' ? 'به ASL Market خوش آمدید' : language === 'ar' ? 'مرحبا بك في ASL Market' : 'Welcome to ASL Market'}
+            <span className="text-white">
+              🤖 {language === 'fa' ? 'حالت هوشمند AI' : language === 'ar' ? 'وضع الذكاء الاصطناعي' : 'AI Mode'}
+            </span>
+            <span className="text-white/80 text-xs hidden sm:inline">
+              • {language === 'fa' ? 'جستجوی هوشمند' : language === 'ar' ? 'بحث ذكي' : 'Smart Sourcing'}
             </span>
           </div>
 
@@ -92,18 +81,29 @@ const HeroSectionCompact: React.FC = () => {
             </div>
           </form>
 
-          {/* Quick Links */}
+          {/* Quick Links - RFQ, Top Ranking, Fast Customization */}
           <div className="flex flex-wrap items-center justify-center gap-3">
-            {quickLinks.map((link, idx) => (
-              <button
-                key={idx}
-                onClick={() => navigate(link.path)}
-                className="flex items-center gap-1 text-sm text-primary-foreground/90 hover:text-primary-foreground bg-background/10 hover:bg-background/20 px-4 py-2 rounded-full transition-colors backdrop-blur-sm border border-primary-foreground/10"
-              >
-                {getLabel(link)}
-                <ArrowRight className="h-3 w-3" />
-              </button>
-            ))}
+            <button
+              onClick={() => navigate('/post-request')}
+              className="flex items-center gap-2 text-sm text-primary-foreground bg-background/15 hover:bg-background/25 px-5 py-2.5 rounded-full transition-colors backdrop-blur-sm border border-primary-foreground/20 font-semibold shadow-lg"
+            >
+              <span className="text-lg">📋</span>
+              {language === 'fa' ? 'درخواست قیمت' : language === 'ar' ? 'طلب عرض أسعار' : 'Request for Quotation'}
+            </button>
+            <button
+              onClick={() => navigate('/products')}
+              className="flex items-center gap-2 text-sm text-primary-foreground bg-background/15 hover:bg-background/25 px-5 py-2.5 rounded-full transition-colors backdrop-blur-sm border border-primary-foreground/20 font-semibold shadow-lg"
+            >
+              <TrendingUp className="h-4 w-4" />
+              {language === 'fa' ? 'برترین رتبه‌ها' : language === 'ar' ? 'أعلى التصنيفات' : 'Top Ranking'}
+            </button>
+            <button
+              onClick={() => navigate('/products?filter=custom')}
+              className="flex items-center gap-2 text-sm text-primary-foreground bg-background/15 hover:bg-background/25 px-5 py-2.5 rounded-full transition-colors backdrop-blur-sm border border-primary-foreground/20 font-semibold shadow-lg"
+            >
+              <Zap className="h-4 w-4" />
+              {language === 'fa' ? 'سفارشی‌سازی سریع' : language === 'ar' ? 'التخصيص السريع' : 'Fast customization'}
+            </button>
           </div>
         </div>
       </div>

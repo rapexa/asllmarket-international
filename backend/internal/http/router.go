@@ -131,6 +131,8 @@ func NewRouter(
 	// Suppliers (public read, protected write)
 	api.GET("/suppliers", supplierHandler.List)
 	api.GET("/suppliers/:id", supplierHandler.GetByID)
+	api.GET("/suppliers/:id/capabilities", supplierHandler.GetCapabilities)
+	api.GET("/suppliers/:id/certificates", supplierHandler.GetCertificates)
 
 	protectedSuppliers := protected.Group("/suppliers")
 	{

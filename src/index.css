@@ -431,7 +431,21 @@
     @apply bg-accent/10 backdrop-blur-md border border-accent/20;
   }
 
-  /* Hide Scrollbar */
+  /* Marquee Animation برای Hot Products */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Hide Scrollbar */
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }

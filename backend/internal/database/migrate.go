@@ -46,6 +46,8 @@ func AutoMigrate(cfg *config.Config) error {
 		&MigrationReview{},
 		&MigrationFavorite{},
 		&MigrationSearchHistory{},
+		&MigrationSupplierCapability{},
+		&MigrationSupplierCertificate{},
 		// CMS (004–008)
 		&cms.ContactMessage{},
 		&cms.BlogPost{},

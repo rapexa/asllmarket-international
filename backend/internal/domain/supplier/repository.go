@@ -20,6 +20,8 @@ type Repository interface {
 	Create(ctx context.Context, s *Supplier) error
 	Update(ctx context.Context, s *Supplier) error
 	Delete(ctx context.Context, id string) error
+	GetCapabilities(ctx context.Context, supplierID string) ([]*SupplierCapability, error)
+	GetCertificates(ctx context.Context, supplierID string) ([]*SupplierCertificate, error)
 }
 
 type mySQLSupplierRepository struct {
@@ -184,4 +186,53 @@ func (r *mySQLSupplierRepository) Delete(ctx context.Context, id string) error {
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *mySQLSupplierRepository) GetCapabilities(ctx context.Context, supplierID string) ([]*SupplierCapability, error) {
+	const query = `
+SELECT id, supplier_id, capability_type, capability_value, icon, display_order, created_at, updated_at
+FROM supplier_capabilities
+WHERE supplier_id = ?
+ORDER BY display_order ASC, created_at ASC`
+
+	rows, err := r.db.QueryContext(ctx, query, supplierID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var capabilities []*SupplierCapability
+	for rows.Next() {
+		var c SupplierCapability
+		if err := rows.Scan(&c.ID, &c.SupplierID, &c.CapabilityType, &c.CapabilityValue, &c.Icon, &c.DisplayOrder, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		capabilities = append(capabilities, &c)
+	}
+	return capabilities, rows.Err()
+}
+
+func (r *mySQLSupplierRepository) GetCertificates(ctx context.Context, supplierID string) ([]*SupplierCertificate, error) {
+	const query = `
+SELECT id, supplier_id, certificate_name, certificate_number, issued_by, issued_date,
+       expiry_date, document_url, verified, display_order, created_at, updated_at
+FROM supplier_certificates
+WHERE supplier_id = ?
+ORDER BY display_order ASC, created_at ASC`
+
+	rows, err := r.db.QueryContext(ctx, query, supplierID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var certificates []*SupplierCertificate
+	for rows.Next() {
+		var c SupplierCertificate
+		if err := rows.Scan(&c.ID, &c.SupplierID, &c.CertificateName, &c.CertificateNum, &c.IssuedBy, &c.IssuedDate, &c.ExpiryDate, &c.DocumentURL, &c.Verified, &c.DisplayOrder, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		certificates = append(certificates, &c)
+	}
+	return certificates, rows.Err()
 }

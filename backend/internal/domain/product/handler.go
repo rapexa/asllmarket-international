@@ -24,11 +24,15 @@ func NewHandler(svc *Service) *Handler {
 func (h *Handler) List(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	supplierID := c.Query("supplierId")
+	if supplierID == "" {
+		supplierID = c.Query("supplier_id")
+	}
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	products, err := h.svc.List(ctx, limit, offset)
+	products, err := h.svc.List(ctx, limit, offset, supplierID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -21,7 +21,7 @@ func nullIfEmpty(s string) interface{} {
 }
 
 type Repository interface {
-	List(ctx context.Context, limit, offset int) ([]*Product, error)
+	List(ctx context.Context, limit, offset int, supplierID string) ([]*Product, error)
 	GetByID(ctx context.Context, id string) (*Product, error)
 	Create(ctx context.Context, p *Product) error
 	Update(ctx context.Context, p *Product) error
@@ -36,17 +36,23 @@ func NewMySQLProductRepository(db *sql.DB) Repository {
 	return &mySQLProductRepository{db: db}
 }
 
-func (r *mySQLProductRepository) List(ctx context.Context, limit, offset int) ([]*Product, error) {
-	const query = `
-SELECT id, name, description, image_url, price, moq, currency, supplier_id,
+func (r *mySQLProductRepository) List(ctx context.Context, limit, offset int, supplierID string) ([]*Product, error) {
+	query := `
+SELECT id, name, description, COALESCE(JSON_UNQUOTE(JSON_EXTRACT(images, '$[0]')), '') as image_url, price, moq, currency, supplier_id,
        COALESCE(discount_percent, 0), COALESCE(free_shipping, 0), COALESCE(first_order_free_shipping, 0),
        COALESCE(guaranteed, 0), COALESCE(fast_customization, 0), selling_point_tags,
        created_at, updated_at
 FROM products
-ORDER BY created_at DESC
-LIMIT ? OFFSET ?`
+WHERE status = 'active'`
+	args := []interface{}{}
+	if supplierID != "" {
+		query += ` AND supplier_id = ?`
+		args = append(args, supplierID)
+	}
+	query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
+	args = append(args, limit, offset)
 
-	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +92,7 @@ LIMIT ? OFFSET ?`
 
 func (r *mySQLProductRepository) GetByID(ctx context.Context, id string) (*Product, error) {
 	const query = `
-SELECT id, name, description, image_url, price, moq, currency, supplier_id,
+SELECT id, name, description, COALESCE(JSON_UNQUOTE(JSON_EXTRACT(images, '$[0]')), '') as image_url, price, moq, currency, supplier_id,
        COALESCE(discount_percent, 0), COALESCE(free_shipping, 0), COALESCE(first_order_free_shipping, 0),
        COALESCE(guaranteed, 0), COALESCE(fast_customization, 0), selling_point_tags,
        created_at, updated_at

@@ -28,6 +28,10 @@ migrate-alibaba: ## Apply Alibaba categories (012) - run after seed data
 	@echo "Applying Alibaba categories..."
 	mysql -u$(DB_USER) -p$(DB_PASS) -h$(DB_HOST) -P$(DB_PORT) $(DB_NAME) < migrations/012_alibaba_categories.up.sql
 
+seed-supplier: ## Insert one supplier + 2 products (run after 002 or 012). Links: /suppliers/seed-sup-01, /products/seed-prod-01
+	@echo "Seeding supplier and products..."
+	mysql -u$(DB_USER) -p$(DB_PASS) -h$(DB_HOST) -P$(DB_PORT) $(DB_NAME) < scripts/seed_supplier_and_product.sql
+
 deps: ## Download dependencies
 	go mod download
 	go mod tidy

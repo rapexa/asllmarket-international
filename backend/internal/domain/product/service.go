@@ -13,14 +13,14 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) List(ctx context.Context, limit, offset int) ([]*Product, error) {
+func (s *Service) List(ctx context.Context, limit, offset int, supplierID string) ([]*Product, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 20
 	}
 	if offset < 0 {
 		offset = 0
 	}
-	return s.repo.List(ctx, limit, offset)
+	return s.repo.List(ctx, limit, offset, supplierID)
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (*Product, error) {

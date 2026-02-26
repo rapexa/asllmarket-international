@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { productService, supplierService, Product, Supplier } from '@/services';
 
@@ -64,7 +65,7 @@ const ProductDetailAlibaba: React.FC = () => {
   }
 
   const images = product.images?.length > 0 ? product.images : (product.imageUrl ? [product.imageUrl] : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80']);
-  const price = Number(product.price) ?? 0;
+  const price = Number.isFinite(Number(product.price)) ? Number(product.price) : 0;
   const discountPercent = product.discountPercent ?? 0;
   const originalPrice = discountPercent > 0 ? price / (1 - discountPercent / 100) : price * 1.11;
   const sellingTags: string[] = product.sellingPointTags
@@ -107,7 +108,7 @@ const ProductDetailAlibaba: React.FC = () => {
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className={cn("h-4 w-4", i < Math.floor(product.rating ?? 0) ? "fill-orange-400 text-orange-400" : "text-gray-300")} />
                 ))}
-                <span className="font-semibold ml-1">{(Number(product.rating) ?? 0).toFixed(1)}</span>
+                <span className="font-semibold ml-1">{(Number.isFinite(Number(product.rating)) ? Number(product.rating) : 0).toFixed(1)}</span>
                 <span className="text-sm text-muted-foreground">(1 review)</span>
               </div>
               <span className="text-sm text-muted-foreground">{(product as { totalSold?: number }).totalSold ?? 4} sold</span>
@@ -117,33 +118,40 @@ const ProductDetailAlibaba: React.FC = () => {
               </div>
             </div>
 
-            {/* Supplier Info */}
-            {supplier && (
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg mb-4">
-                <div className="w-10 h-10 rounded overflow-hidden bg-white">
+            {/* Supplier Info - always show when we have supplierId, link to supplier page */}
+            {product.supplierId && (
+              <button
+                type="button"
+                onClick={() => navigate(`/suppliers/${product.supplierId}`)}
+                className="w-full flex items-center gap-3 p-3 bg-muted/50 rounded-lg mb-4 hover:bg-muted/70 transition-colors text-left"
+              >
+                <div className="w-10 h-10 rounded overflow-hidden bg-white shrink-0">
                   <img
-                    src={supplier.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&q=80'}
-                    alt={supplier.companyName}
+                    src={supplier?.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&q=80'}
+                    alt={supplier?.companyName || 'Supplier'}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{supplier.companyName}</div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {supplier.verified && (
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm">{supplier?.companyName || (language === 'fa' ? 'مشاهده فروشنده' : 'View supplier')}</div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                    {supplier?.verified && (
                       <>
-                        <Check className="h-3 w-3 text-blue-600" />
+                        <Check className="h-3 w-3 text-blue-600 shrink-0" />
                         <span className="text-blue-600">Verified</span>
                       </>
                     )}
-                    <span>Custom Manufacturer</span>
-                    <span>8 yrs</span>
-                    <span className="flex items-center gap-1">
-                      🇨🇳 CN
-                    </span>
+                    {supplier?.country && (
+                      <span className="flex items-center gap-1">
+                        {supplier.country === 'Iran' ? '🇮🇷 IR' : supplier.country === 'China' ? '🇨🇳 CN' : supplier.country === 'United Kingdom' ? '🇬🇧 UK' : '🌐'}
+                        {supplier.country}
+                      </span>
+                    )}
+                    {!supplier?.country && <span>Custom Manufacturer</span>}
                   </div>
                 </div>
-              </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              </button>
             )}
 
             {/* Main Image */}

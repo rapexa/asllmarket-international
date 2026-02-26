@@ -51,14 +51,20 @@ LIMIT ? OFFSET ?`
 	var suppliers []*Supplier
 	for rows.Next() {
 		var s Supplier
+		var logo, address, desc, employees sql.NullString
+		var established sql.NullInt64
 		if err := rows.Scan(
 			&s.ID, &s.UserID, &s.CompanyName, &s.ContactName, &s.Email, &s.Phone,
-			&s.Country, &s.City, &s.Address, &s.Logo, &s.Description, &s.Verified,
+			&s.Country, &s.City, &address, &logo, &desc, &s.Verified,
 			&s.Status, &s.Subscription, &s.Rating, &s.TotalProducts, &s.TotalOrders,
-			&s.TotalRevenue, &s.ResponseRate, &s.ResponseTime, &s.Established, &s.Employees,
+			&s.TotalRevenue, &s.ResponseRate, &s.ResponseTime, &established, &employees,
 			&s.CreatedAt, &s.UpdatedAt,
 		); err != nil {
 			return nil, err
+		}
+		s.Address, s.Logo, s.Description, s.Employees = address.String, logo.String, desc.String, employees.String
+		if established.Valid {
+			s.Established = int(established.Int64)
 		}
 		suppliers = append(suppliers, &s)
 	}
@@ -75,17 +81,23 @@ FROM suppliers
 WHERE id = ? LIMIT 1`
 
 	var s Supplier
+	var logo, address, desc, employees sql.NullString
+	var established sql.NullInt64
 	if err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&s.ID, &s.UserID, &s.CompanyName, &s.ContactName, &s.Email, &s.Phone,
-		&s.Country, &s.City, &s.Address, &s.Logo, &s.Description, &s.Verified,
+		&s.Country, &s.City, &address, &logo, &desc, &s.Verified,
 		&s.Status, &s.Subscription, &s.Rating, &s.TotalProducts, &s.TotalOrders,
-		&s.TotalRevenue, &s.ResponseRate, &s.ResponseTime, &s.Established, &s.Employees,
+		&s.TotalRevenue, &s.ResponseRate, &s.ResponseTime, &established, &employees,
 		&s.CreatedAt, &s.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
 		return nil, err
+	}
+	s.Address, s.Logo, s.Description, s.Employees = address.String, logo.String, desc.String, employees.String
+	if established.Valid {
+		s.Established = int(established.Int64)
 	}
 	return &s, nil
 }
@@ -100,17 +112,23 @@ FROM suppliers
 WHERE user_id = ? LIMIT 1`
 
 	var s Supplier
+	var logo, address, desc, employees sql.NullString
+	var established sql.NullInt64
 	if err := r.db.QueryRowContext(ctx, query, userID).Scan(
 		&s.ID, &s.UserID, &s.CompanyName, &s.ContactName, &s.Email, &s.Phone,
-		&s.Country, &s.City, &s.Address, &s.Logo, &s.Description, &s.Verified,
+		&s.Country, &s.City, &address, &logo, &desc, &s.Verified,
 		&s.Status, &s.Subscription, &s.Rating, &s.TotalProducts, &s.TotalOrders,
-		&s.TotalRevenue, &s.ResponseRate, &s.ResponseTime, &s.Established, &s.Employees,
+		&s.TotalRevenue, &s.ResponseRate, &s.ResponseTime, &established, &employees,
 		&s.CreatedAt, &s.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
 		return nil, err
+	}
+	s.Address, s.Logo, s.Description, s.Employees = address.String, logo.String, desc.String, employees.String
+	if established.Valid {
+		s.Established = int(established.Int64)
 	}
 	return &s, nil
 }

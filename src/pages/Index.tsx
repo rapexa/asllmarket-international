@@ -1,54 +1,47 @@
 import React from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import HeroSectionCompact from '@/components/home/HeroSectionCompact';
-import CategoryMenuSection from '@/components/home/CategoryMenuSection';
-import HotProductsGrid from '@/components/home/HotProductsGrid';
-import FrequentlySearchedSection from '@/components/home/FrequentlySearchedSection';
-import FeatureBannersSection from '@/components/home/FeatureBannersSection';
+import AlibabaHero from '@/components/home/AlibabaHero';
+import WelcomeSection from '@/components/home/WelcomeSection';
+import AlibabaMainSection from '@/components/home/AlibabaMainSection';
+import RecommendedSection from '@/components/home/RecommendedSection';
 import TopDealsSection from '@/components/home/TopDealsSection';
 import TopRankingSection from '@/components/home/TopRankingSection';
 import NewArrivalsSection from '@/components/home/NewArrivalsSection';
 import TailoredSelectionsSection from '@/components/home/TailoredSelectionsSection';
 import SpecialOffersSection from '@/components/home/SpecialOffersSection';
-import TrustSection from '@/components/home/TrustSection';
-import CTASection from '@/components/home/CTASection';
 
 const Index: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        {/* 1. Hero با Search برجسته + AI Mode - مثل Alibaba */}
-        <HeroSectionCompact />
+        {/* 1. Hero - دقیقاً مثل Alibaba */}
+        <AlibabaHero />
 
-        {/* 2. Categories Grid - "Categories for you" */}
-        <CategoryMenuSection />
+        {/* 2. Welcome با 3 دکمه */}
+        <WelcomeSection />
 
-        {/* 3. Frequently Searched - محصولات پرجستجو با تصاویر */}
-        <HotProductsGrid />
+        {/* 3. Layout اصلی: Sidebar + Frequently Searched + Banner */}
+        <AlibabaMainSection />
 
-        {/* 4. Featured Banners - Free Shipping, Alibaba Guaranteed, Fast Customization */}
-        <FeatureBannersSection />
+        {/* 4. Recommended - 3 بنر بزرگ */}
+        <RecommendedSection />
 
-        {/* 5. Top Deals - "Score the lowest prices" */}
+        {/* 5. Top Deals - با badge "Top picks" */}
         <TopDealsSection />
 
-        {/* 6. Top Ranking - "Navigate trends with data-driven rankings" */}
+        {/* 6. Top Ranking - 3 کارت با badge "TOP" */}
         <TopRankingSection />
 
-        {/* 7. New Arrivals - "Stay ahead with the latest offerings" */}
+        {/* 7. New Arrivals */}
         <NewArrivalsSection />
 
-        {/* 8. Tailored Selections - "Smart sourcing" */}
+        {/* 8. Tailored Selections - 3 ستونه با views */}
         <TailoredSelectionsSection />
 
-        {/* 9. Special Offers - "£10 off every £100 · Buy more, save more" */}
+        {/* 9. Special Offers - €10 off every €100 */}
         <SpecialOffersSection />
-
-        {/* 10. Trust & CTA */}
-        <TrustSection />
-        <CTASection />
       </main>
       <Footer />
     </div>

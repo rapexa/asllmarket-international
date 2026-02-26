@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, ShoppingCart, Heart, Share2, Star, ShieldCheck, Building2, 
-  Package, Truck, MessageSquare, ChevronRight, Check, Info
+  ArrowLeft, ShoppingCart, Heart, Star, ChevronRight, ChevronLeft,
+  Package, Shield, Truck, MessageSquare, Check, Camera
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
@@ -10,11 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import RequestQuoteModal from '@/components/rfq/RequestQuoteModal';
 import { productService, supplierService, Product, Supplier } from '@/services';
 
 const ProductDetailAlibaba: React.FC = () => {
@@ -28,20 +24,22 @@ const ProductDetailAlibaba: React.FC = () => {
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [requestQuoteOpen, setRequestQuoteOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<'wholesale' | 'customization'>('wholesale');
 
   useEffect(() => {
     const loadData = async () => {
       if (!id) return;
       try {
         setLoading(true);
-        const [productData, supplierData] = await Promise.all([
-          productService.getById(id),
-          productService.getById(id).then(p => supplierService.getById(p.supplierId)).catch(() => null),
-        ]);
+        const productData = await productService.getById(id);
         setProduct(productData);
-        setSupplier(supplierData);
+        
+        try {
+          const supplierData = await supplierService.getById(productData.supplierId);
+          setSupplier(supplierData);
+        } catch (e) {
+          console.error('Failed to load supplier:', e);
+        }
       } catch (error) {
         console.error('Failed to load product:', error);
         toast({ title: 'Error', description: 'Failed to load product', variant: 'destructive' });
@@ -67,289 +65,322 @@ const ProductDetailAlibaba: React.FC = () => {
 
   const images = product.images?.length > 0 ? product.images : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'];
   const price = Number(product.price) ?? 0;
-  const discount = product.discount ?? 0;
-  const finalPrice = discount > 0 ? price * (1 - discount / 100) : price;
+  const originalPrice = price * 1.11; // 10% off simulation
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="container py-6">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <button onClick={() => navigate('/')} className="hover:text-foreground">Home</button>
-          <ChevronRight className="h-4 w-4" />
-          <button onClick={() => navigate('/products')} className="hover:text-foreground">Products</button>
-          <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground">{product.name}</span>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left: Images - مثل Alibaba */}
-          <div className="lg:col-span-1">
-            <Card className="p-4 sticky top-4">
-              {/* Main Image */}
-              <div className="relative aspect-square rounded-xl overflow-hidden bg-muted mb-4">
-                <img
-                  src={images[selectedImage]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-                {discount > 0 && (
-                  <Badge className="absolute top-3 left-3 bg-red-500 text-white">
-                    {discount}% OFF
-                  </Badge>
-                )}
-                {product.featured && (
-                  <Badge className="absolute top-3 right-3 bg-accent">
-                    {language === 'fa' ? 'برجسته' : language === 'ar' ? 'مميز' : 'Featured'}
-                  </Badge>
-                )}
-              </div>
-
-              {/* Thumbnail Images */}
-              <div className="grid grid-cols-5 gap-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={cn(
-                      "aspect-square rounded-lg overflow-hidden border-2 transition-all",
-                      selectedImage === idx ? "border-primary" : "border-transparent hover:border-muted-foreground"
-                    )}
-                  >
-                    <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Middle: Product Info - مثل Alibaba */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Title */}
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-3">{product.name}</h1>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold">{(Number(product.rating) ?? 0).toFixed(1)}</span>
-                  <span className="text-muted-foreground">({product.reviewCount ?? 0} reviews)</span>
-                </div>
-                <span className="text-muted-foreground">{product.totalSold ?? 0} sold</span>
-              </div>
-            </div>
-
-            {/* Price - مثل Alibaba */}
-            <Card className="p-6 bg-gradient-to-br from-primary/5 via-violet-500/5 to-accent/5">
-              <div className="flex items-baseline gap-3 mb-2">
-                <span className="text-4xl font-bold text-primary">${finalPrice.toFixed(2)}</span>
-                {discount > 0 && (
-                  <span className="text-xl text-muted-foreground line-through">${price.toFixed(2)}</span>
-                )}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Min. order: {product.moq ?? 1} {language === 'fa' ? 'عدد' : language === 'ar' ? 'قطعة' : 'pieces'}
-              </div>
-            </Card>
-
-            {/* Badges مثل Alibaba */}
-            <div className="flex flex-wrap gap-2">
-              {product.featured && (
-                <Badge variant="secondary" className="gap-1">
-                  <Check className="h-3 w-3" />
-                  Lower priced than similar
-                </Badge>
-              )}
-              <Badge variant="secondary" className="gap-1">
-                <Truck className="h-3 w-3" />
-                FREE shipping
-              </Badge>
-              {product.verified && (
-                <Badge variant="secondary" className="gap-1 bg-success/10 text-success">
-                  <ShieldCheck className="h-3 w-3" />
-                  Verified
-                </Badge>
-              )}
-            </div>
-
-            {/* Variations */}
-            {product.variations && product.variations.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-3">Variations</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.variations.map((variation, idx) => (
-                    <Button key={idx} variant="outline" className="rounded-xl">
-                      {variation}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Attributes - مثل Alibaba */}
-            <Card className="p-4">
-              <h3 className="font-bold mb-3">Key attributes</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <div className="text-muted-foreground">Material</div>
-                  <div className="font-medium">{product.material ?? 'N/A'}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">MOQ</div>
-                  <div className="font-medium">{product.moq ?? 1} pieces</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Brand</div>
-                  <div className="font-medium">{product.brand ?? 'Generic'}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Stock</div>
-                  <div className="font-medium">{product.stockQuantity} available</div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Description */}
-            <div>
-              <h3 className="font-bold mb-3">Product Description</h3>
-              <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-            </div>
-          </div>
-
-          {/* Right: Supplier Info & Actions - مثل Alibaba */}
-          <div className="lg:col-span-1 space-y-4">
-            <Card className="p-6 sticky top-4">
-              {/* Supplier Info */}
-              {supplier && (
-                <div className="mb-6 pb-6 border-b">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-                      <img
-                        src={supplier.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&q=80'}
-                        alt={supplier.companyName}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold truncate">{supplier.companyName}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{supplier.country}</span>
-                        {supplier.verified && (
-                          <Badge variant="secondary" className="text-xs gap-1">
-                            <ShieldCheck className="h-3 w-3" />
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => navigate(`/suppliers/${supplier.id}`)}
-                  >
-                    <Building2 className="h-4 w-4 me-2" />
-                    View Supplier
-                  </Button>
-                </div>
-              )}
-
-              {/* Order Actions - مثل Alibaba */}
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Quantity</label>
-                  <Input
-                    type="number"
-                    min={product.moq ?? 1}
-                    value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="text-center"
-                  />
-                </div>
-
-                <Button
-                  className="w-full btn-gradient-accent py-6 text-lg rounded-xl"
-                  onClick={() => setRequestQuoteOpen(true)}
-                >
-                  <MessageSquare className="h-5 w-5 me-2" />
-                  {language === 'fa' ? 'درخواست قیمت' : language === 'ar' ? 'طلب عرض أسعار' : 'Start Order'}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full py-6 rounded-xl border-2"
-                  onClick={() => {
-                    addItem({
-                      id: product.id,
-                      name: product.name,
-                      price: finalPrice,
-                      quantity,
-                      image: images[0],
-                      moq: product.moq ?? 1,
-                      supplierId: product.supplierId,
-                    });
-                    toast({ title: 'Added to cart', description: `${product.name} added successfully` });
-                  }}
-                >
-                  <ShoppingCart className="h-5 w-5 me-2" />
-                  {language === 'fa' ? 'افزودن به سبد' : language === 'ar' ? 'إضافة إلى السلة' : 'Add to cart'}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  className="w-full py-6 rounded-xl"
-                  onClick={() => setRequestQuoteOpen(true)}
-                >
-                  {language === 'fa' ? 'گفتگو با تامین‌کننده' : language === 'ar' ? 'الدردشة' : 'Chat now'}
-                </Button>
-              </div>
-
-              {/* Protection - مثل Alibaba */}
-              <div className="mt-6 pt-6 border-t space-y-3">
-                <h4 className="font-bold flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
-                  ASL.com order protection
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
-                    <span className="text-muted-foreground">Secure payments with SSL encryption</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
-                    <span className="text-muted-foreground">On-time delivery or 10% compensation</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
-                    <span className="text-muted-foreground">Money-back protection for quality issues</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        {/* Related Products */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">
-            {language === 'fa' ? 'محصولات مرتبط' : language === 'ar' ? 'منتجات ذات صلة' : 'Related searches'}
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {['Similar Products', 'Same Category', 'Same Supplier', 'Trending Now'].map((tag, idx) => (
-              <Button key={idx} variant="outline" className="rounded-full">
-                {tag}
-              </Button>
-            ))}
+      {/* Breadcrumb */}
+      <div className="border-b bg-background">
+        <div className="container py-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <button onClick={() => navigate('/')} className="hover:text-foreground">Home & Garden</button>
+            <ChevronRight className="h-4 w-4" />
+            <button className="hover:text-foreground">Dinnerware</button>
+            <ChevronRight className="h-4 w-4" />
+            <button className="hover:text-foreground">Bar & Wine</button>
+            <ChevronRight className="h-4 w-4" />
+            <span className="text-foreground">Cocktail Glasses</span>
           </div>
         </div>
       </div>
 
-      <RequestQuoteModal
-        open={requestQuoteOpen}
-        onClose={() => setRequestQuoteOpen(false)}
-        product={product}
-      />
+      <div className="container py-6">
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Left: Image Gallery - Alibaba style */}
+          <div className="lg:col-span-5">
+            {/* Badge */}
+            <div className="mb-3">
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">SAVE</span>
+            </div>
+
+            {/* Title & Rating */}
+            <h1 className="text-2xl font-bold mb-3">{product.name}</h1>
+            
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={cn("h-4 w-4", i < Math.floor(product.rating ?? 0) ? "fill-orange-400 text-orange-400" : "text-gray-300")} />
+                ))}
+                <span className="font-semibold ml-1">{(Number(product.rating) ?? 0).toFixed(1)}</span>
+                <span className="text-sm text-muted-foreground">(1 review)</span>
+              </div>
+              <span className="text-sm text-muted-foreground">{(product as { totalSold?: number }).totalSold ?? 4} sold</span>
+              <div className="flex items-center gap-1 text-sm">
+                <Shield className="h-4 w-4 text-green-600" />
+                <span className="text-green-600 font-medium">certified</span>
+              </div>
+            </div>
+
+            {/* Supplier Info */}
+            {supplier && (
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg mb-4">
+                <div className="w-10 h-10 rounded overflow-hidden bg-white">
+                  <img
+                    src={supplier.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&q=80'}
+                    alt={supplier.companyName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{supplier.companyName}</div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {supplier.verified && (
+                      <>
+                        <Check className="h-3 w-3 text-blue-600" />
+                        <span className="text-blue-600">Verified</span>
+                      </>
+                    )}
+                    <span>Custom Manufacturer</span>
+                    <span>8 yrs</span>
+                    <span className="flex items-center gap-1">
+                      🇨🇳 CN
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Main Image */}
+            <div className="relative aspect-square rounded-lg overflow-hidden bg-black mb-4">
+              <img
+                src={images[selectedImage]}
+                alt={product.name}
+                className="w-full h-full object-contain"
+              />
+              
+              {/* Navigation Arrows */}
+              <button
+                onClick={() => setSelectedImage(Math.max(0, selectedImage - 1))}
+                disabled={selectedImage === 0}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white disabled:opacity-50"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setSelectedImage(Math.min(images.length - 1, selectedImage + 1))}
+                disabled={selectedImage === images.length - 1}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white disabled:opacity-50"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+
+              {/* Icons */}
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white">
+                  <Heart className="h-5 w-5" />
+                </button>
+                <button className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white">
+                  <Camera className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Thumbnail Gallery */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImage(idx)}
+                  className={cn(
+                    "flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden",
+                    selectedImage === idx ? "border-primary" : "border-transparent"
+                  )}
+                >
+                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+
+            {/* Tabs: Photos, Video, Attributes */}
+            <div className="flex gap-6 border-b mt-6">
+              <button className="pb-2 border-b-2 border-foreground font-medium">Photos</button>
+              <button className="pb-2 text-muted-foreground hover:text-foreground">Video</button>
+              <button className="pb-2 text-muted-foreground hover:text-foreground">Attributes</button>
+            </div>
+          </div>
+
+          {/* Right: Product Info & Order */}
+          <div className="lg:col-span-7">
+            {/* Tabs: Wholesale / Customization */}
+            <div className="flex gap-1 border-b mb-6">
+              <button
+                onClick={() => setSelectedTab('wholesale')}
+                className={cn(
+                  "px-6 py-3 font-medium border-b-2 transition-colors",
+                  selectedTab === 'wholesale' ? "border-primary text-primary" : "border-transparent text-muted-foreground"
+                )}
+              >
+                Wholesale
+              </button>
+              <button
+                onClick={() => setSelectedTab('customization')}
+                className={cn(
+                  "px-6 py-3 font-medium border-b-2 transition-colors",
+                  selectedTab === 'customization' ? "border-primary text-primary" : "border-transparent text-muted-foreground"
+                )}
+              >
+                Customization
+              </button>
+            </div>
+
+            {/* FREE shipping banner */}
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Truck className="h-5 w-5 text-orange-600" />
+                <span className="font-medium">
+                  <span className="text-orange-600">FREE shipping</span> capped at €17.08
+                </span>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+
+            {/* Eligible for instalments */}
+            <div className="text-sm text-muted-foreground mb-4">
+              Eligible for instalments ⓘ
+            </div>
+
+            {/* Pricing */}
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">10% off</span>
+                <span className="text-xs text-red-600 font-medium">Lower priced than similar</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">1,000 - 9,999 pieces</div>
+                  <div className="text-3xl font-bold text-red-600">€{price.toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground line-through">€{originalPrice.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">&gt;= 10,000 pieces</div>
+                  <div className="text-3xl font-bold text-red-600">€{(price * 0.94).toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground line-through">€{(originalPrice * 0.94).toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div className="text-xs text-muted-foreground mt-3">
+                *Taxes and import charges will be calculated at checkout
+              </div>
+            </div>
+
+            {/* Variations */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold">Variations</h3>
+                <button className="text-sm text-primary hover:underline">Edit selections</button>
+              </div>
+              
+              <div className="mb-4">
+                <div className="text-sm font-medium mb-2">color</div>
+                <div className="flex gap-2">
+                  <button className="w-12 h-12 rounded border-2 border-primary bg-white"></button>
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Info */}
+            <div className="border rounded-lg p-4 mb-6">
+              <h3 className="font-bold mb-3">Shipping</h3>
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">Premium</span>
+                    <span className="text-sm">
+                      <span className="text-orange-600">Alibaba.com</span> Logistics
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    Shipping fee: <span className="text-red-600 font-bold">€13,691.20</span>{' '}
+                    <span className="text-muted-foreground line-through">€13,706.20</span> for 1,000 pieces
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Guaranteed delivery by Mar 29
+                  </div>
+                </div>
+                <button className="text-sm text-primary hover:underline">Change</button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mb-6">
+              <Button
+                className="flex-1 bg-primary hover:bg-primary/90 text-white py-6 rounded-full text-lg font-semibold"
+                onClick={() => {
+                  toast({ title: 'Order Started', description: 'Redirecting to checkout...' });
+                }}
+              >
+                Start order
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 border-2 py-6 rounded-full text-lg font-semibold"
+                onClick={() => {
+                  addItem({
+                    productId: product.id,
+                    name: product.name,
+                    image: images[0],
+                    supplierId: product.supplierId,
+                    supplierName: supplier?.companyName ?? 'Supplier',
+                    supplierCountry: supplier?.country ?? '',
+                    supplierVerified: supplier?.verified ?? false,
+                    supplierEscrowSupported: true,
+                    unitPrice: price,
+                    quantity: product.moq ?? 1,
+                    moq: product.moq ?? 1,
+                    inStock: (product.stockQuantity ?? 0) > 0,
+                    currency: product.currency ?? 'USD',
+                  });
+                  toast({ title: 'Added to cart', description: product.name });
+                }}
+              >
+                Add to cart
+              </Button>
+              <Button
+                variant="outline"
+                className="px-6 border-2 py-6 rounded-full text-lg font-semibold"
+              >
+                Chat now
+              </Button>
+            </div>
+
+            {/* Special Offer */}
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-4 mb-6">
+              <div className="font-bold text-red-600 mb-1">€10 off every €100</div>
+              <div className="text-sm text-muted-foreground">4 interest-free payments with</div>
+            </div>
+
+            {/* Protection */}
+            <div className="border rounded-lg p-4">
+              <h3 className="font-bold mb-3">ASL.com order protection</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-2">
+                  <div className="font-medium">Secure payments</div>
+                </div>
+                <div className="text-muted-foreground">
+                  Every payment you make on ASL.com is secured with strict SSL encryption and PCI DSS data protection protocols
+                </div>
+                
+                <div className="flex items-start gap-2 mt-3">
+                  <div className="font-medium">Delivery via</div>
+                </div>
+                <div className="text-muted-foreground">
+                  Expect your order to be delivered before scheduled dates or receive a 10% delay compensation
+                </div>
+                
+                <div className="flex items-start gap-2 mt-3">
+                  <div className="font-medium">Money-back protection</div>
+                </div>
+                <div className="text-muted-foreground">
+                  Claim a refund if your order doesn't ship, is missing, or arrives with product issues
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <Footer />
     </div>

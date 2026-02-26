@@ -4,6 +4,7 @@ import Footer from '@/components/layout/Footer';
 import AlibabaHero from '@/components/home/AlibabaHero';
 import WelcomeSection from '@/components/home/WelcomeSection';
 import AlibabaMainSection from '@/components/home/AlibabaMainSection';
+import SavingsBoosterSection from '@/components/home/SavingsBoosterSection';
 import RecommendedSection from '@/components/home/RecommendedSection';
 import TopDealsSection from '@/components/home/TopDealsSection';
 import TopRankingSection from '@/components/home/TopRankingSection';
@@ -25,22 +26,25 @@ const Index: React.FC = () => {
         {/* 3. Layout اصلی: Sidebar + Frequently Searched + Banner */}
         <AlibabaMainSection />
 
-        {/* 4. Recommended - 3 بنر بزرگ */}
+        {/* 4. Savings Booster - First order, FREE shipping */}
+        <SavingsBoosterSection />
+
+        {/* 5. Recommended - 3 بنر بزرگ */}
         <RecommendedSection />
 
-        {/* 5. Top Deals - با badge "Top picks" */}
+        {/* 6. Top Deals - با badge "Top picks" */}
         <TopDealsSection />
 
-        {/* 6. Top Ranking - 3 کارت با badge "TOP" */}
+        {/* 7. Top Ranking - 3 کارت با badge "TOP" */}
         <TopRankingSection />
 
-        {/* 7. New Arrivals */}
+        {/* 8. New Arrivals */}
         <NewArrivalsSection />
 
-        {/* 8. Tailored Selections - 3 ستونه با views */}
+        {/* 9. Tailored Selections - 3 ستونه با views */}
         <TailoredSelectionsSection />
 
-        {/* 9. Special Offers - €10 off every €100 */}
+        {/* 10. Special Offers - €10 off every €100 */}
         <SpecialOffersSection />
       </main>
       <Footer />

@@ -11,7 +11,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
 import { Language, languages } from '@/lib/i18n';
 import AdvancedSearchBox from '@/components/search/AdvancedSearchBox';
-import CategoriesSidePanel from '@/components/categories/CategoriesSidePanel';
+import AllCategoriesMegaMenu from '@/components/categories/AllCategoriesMegaMenu';
 import BackendStatus from '@/components/layout/BackendStatus';
 import {
   DropdownMenu,
@@ -76,15 +76,17 @@ const Header: React.FC = () => {
         {/* Main Header */}
         <div className="bg-card/50 backdrop-blur-sm">
           <div className="container flex items-center justify-between py-3 md:py-4 gap-2 md:gap-4 px-4">
-            {/* Hamburger Menu Button */}
+            {/* All categories (Alibaba-style) */}
             <Button
               variant="ghost"
-              size="icon"
-              className="hidden md:flex h-9 md:h-10 w-9 md:w-10 shrink-0"
+              className="hidden md:flex h-9 md:h-10 px-3 gap-2 shrink-0"
               onClick={() => setCategoriesPanelOpen(true)}
               aria-label={t('nav.categories')}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-5 w-5 shrink-0" />
+              <span className="text-sm font-medium whitespace-nowrap hidden lg:inline">
+                {language === 'fa' ? 'همه دسته‌ها' : language === 'ar' ? 'جميع الفئات' : 'All categories'}
+              </span>
             </Button>
 
             {/* Logo */}
@@ -424,8 +426,8 @@ const Header: React.FC = () => {
         </>
       )}
 
-      {/* Categories Side Panel */}
-      <CategoriesSidePanel
+      {/* All categories mega menu (Alibaba-style) */}
+      <AllCategoriesMegaMenu
         isOpen={categoriesPanelOpen}
         onClose={() => setCategoriesPanelOpen(false)}
       />

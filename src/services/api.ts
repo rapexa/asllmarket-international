@@ -98,24 +98,12 @@ async function apiRequest<T>(
             return retryResponse.json();
           }
         } catch (refreshError) {
-          // Refresh failed, clear tokens
           clearTokens();
-          // Only redirect if not already on login/register page and not initial auth check
-          if (!window.location.pathname.includes('/login') && 
-              !window.location.pathname.includes('/register') &&
-              endpoint !== '/me') {
-            window.location.href = '/login';
-          }
           throw new ApiError(401, 'Session expired, please login again');
         }
       } else {
         clearTokens();
-        // Only redirect if not already on login/register page and not initial auth check
-        if (!window.location.pathname.includes('/login') && 
-            !window.location.pathname.includes('/register') &&
-            endpoint !== '/me') {
-          window.location.href = '/login';
-        }
+        // ریدایرکت به لاگین نکن؛ کاربر مهمان بتواند در سایت بچرخد. فقط با ورود به /dashboard به لاگین هدایت می‌شود.
         throw new ApiError(401, 'Unauthorized');
       }
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Flame, ShoppingCart, Filter, Grid, List, SlidersHorizontal, X, Search, Package, TrendingUp, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -48,8 +49,10 @@ type ViewMode = 'grid' | 'list';
 const Products: React.FC = () => {
   const { t, language, dir } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const { data, isLoading } = useQuery({
     queryKey: ['products', { q: searchParams.get('q') || '' }],
@@ -529,6 +532,10 @@ const Products: React.FC = () => {
                           className="btn-gradient-accent rounded-xl sm:rounded-2xl px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 shadow-2xl hover:shadow-glow font-semibold scale-90 group-hover:scale-100 transition-all duration-300 text-xs sm:text-sm md:text-base w-full sm:w-auto whitespace-nowrap"
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (!isAuthenticated) {
+                              navigate('/login', { state: { from: location } });
+                              return;
+                            }
                             setRequestQuoteProduct({
                               id: product.id.toString(),
                               name: product.name,

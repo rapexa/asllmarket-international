@@ -16,6 +16,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.deals': 'Deals',
     'nav.login': 'Login',
     'nav.register': 'Register',
+    'nav.profile': 'Profile',
+    'nav.dashboard': 'Dashboard',
+    'nav.logout': 'Logout',
     'nav.search': 'Search products, suppliers...',
     
     // Hero
@@ -107,6 +110,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.deals': 'پیشنهادات',
     'nav.login': 'ورود',
     'nav.register': 'ثبت‌نام',
+    'nav.profile': 'پروفایل',
+    'nav.dashboard': 'داشبورد',
+    'nav.logout': 'خروج',
     'nav.search': 'جستجوی محصولات، تأمین‌کنندگان...',
     
     // Hero
@@ -198,6 +204,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.deals': 'العروض',
     'nav.login': 'تسجيل الدخول',
     'nav.register': 'إنشاء حساب',
+    'nav.profile': 'الملف الشخصي',
+    'nav.dashboard': 'لوحة التحكم',
+    'nav.logout': 'تسجيل الخروج',
     'nav.search': 'البحث عن المنتجات والموردين...',
     
     // Hero

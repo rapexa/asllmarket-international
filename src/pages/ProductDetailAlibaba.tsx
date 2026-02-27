@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, ShoppingCart, Heart, Star, ChevronRight, ChevronLeft,
   Package, Shield, Truck, MessageSquare, Check, Camera
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -18,8 +19,18 @@ const ProductDetailAlibaba: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { language, dir } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
+
+  const requireLogin = (action: () => void) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location }, replace: false });
+      return;
+    }
+    action();
+  };
   
   const [product, setProduct] = useState<Product | null>(null);
   const [supplier, setSupplier] = useState<Supplier | null>(null);
@@ -340,9 +351,10 @@ const ProductDetailAlibaba: React.FC = () => {
             <div className="flex gap-3 mb-6">
               <Button
                 className="flex-1 bg-primary hover:bg-primary/90 text-white py-6 rounded-full text-lg font-semibold"
-                onClick={() => {
+                onClick={() => requireLogin(() => {
                   toast({ title: 'Order Started', description: 'Redirecting to checkout...' });
-                }}
+                  navigate(`/cart`);
+                })}
               >
                 Start order
               </Button>
@@ -373,6 +385,7 @@ const ProductDetailAlibaba: React.FC = () => {
               <Button
                 variant="outline"
                 className="px-6 border-2 py-6 rounded-full text-lg font-semibold"
+                onClick={() => requireLogin(() => navigate(`/messages?supplier=${product.supplierId}`))}
               >
                 Chat now
               </Button>

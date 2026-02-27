@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Flame, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import RequestQuoteModal from '@/components/rfq/RequestQuoteModal';
 import { productService, Product as ApiProduct } from '@/services';
@@ -26,7 +27,9 @@ interface HomeProduct {
 const ProductsSection: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [products, setProducts] = useState<HomeProduct[]>([]);
   const [requestQuoteProduct, setRequestQuoteProduct] = useState<{
@@ -153,6 +156,10 @@ const ProductsSection: React.FC = () => {
                         className="btn-gradient-accent rounded-xl sm:rounded-2xl px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 shadow-2xl hover:shadow-glow font-semibold scale-90 group-hover:scale-100 transition-all duration-300 text-sm sm:text-base w-full sm:w-auto"
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (!isAuthenticated) {
+                            navigate('/login', { state: { from: location } });
+                            return;
+                          }
                           setRequestQuoteProduct({
                             id: product.id.toString(),
                             name: product.name,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Flame, ShoppingCart, Filter, Grid, List, SlidersHorizontal, Clock, TrendingDown, Sparkles, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -51,7 +52,9 @@ type ViewMode = 'grid' | 'list';
 const Deals: React.FC = () => {
   const { language, dir } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   const { data, isLoading } = useQuery({
@@ -563,6 +566,10 @@ const Deals: React.FC = () => {
                           className="btn-gradient-accent rounded-2xl px-8 py-6 shadow-2xl hover:shadow-glow font-semibold scale-90 group-hover:scale-100 transition-all duration-300"
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (!isAuthenticated) {
+                              navigate('/login', { state: { from: location } });
+                              return;
+                            }
                             setRequestQuoteProduct({
                               id: product.id.toString(),
                               name: product.name,

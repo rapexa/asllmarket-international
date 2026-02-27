@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowRight, Building2, Shield, Lock, Trash2, Plus, Minus, AlertCircle, Save, FileText } from 'lucide-react';
 import { useCart, CartItem } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -16,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 const Cart: React.FC = () => {
   const { t, language, dir } = useLanguage();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const {
     items,
@@ -61,18 +63,14 @@ const Cart: React.FC = () => {
   };
 
   const handleCheckout = (supplierId: string) => {
-    // Check if user is logged in
-    const isAuthenticated = localStorage.getItem('authToken');
     if (!isAuthenticated) {
       navigate('/login', { state: { from: { pathname: '/cart' } } });
       return;
     }
-    // Navigate to checkout
     navigate(`/checkout?supplier=${supplierId}`);
   };
 
   const handleRequestQuote = (supplierId: string) => {
-    const isAuthenticated = localStorage.getItem('authToken');
     if (!isAuthenticated) {
       navigate('/login', { state: { from: { pathname: '/cart' } } });
       return;
@@ -372,7 +370,6 @@ const Cart: React.FC = () => {
                 <div className="space-y-3">
                   <Button
                     onClick={() => {
-                      const isAuthenticated = localStorage.getItem('authToken');
                       if (!isAuthenticated) {
                         navigate('/login', { state: { from: { pathname: '/cart' } } });
                         return;
@@ -387,7 +384,6 @@ const Cart: React.FC = () => {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      const isAuthenticated = localStorage.getItem('authToken');
                       if (!isAuthenticated) {
                         navigate('/login', { state: { from: { pathname: '/cart' } } });
                         return;

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, ArrowRight, Building2, ShieldCheck, Star, MapPin, Globe, Package, 
   Users, Award, MessageSquare, Factory, TrendingUp, CheckCircle2,
   Mail, Phone, Truck, DollarSign, Clock
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,17 @@ const SupplierDetailAlibaba: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { language, dir } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const [supplier, setSupplier] = useState<Supplier | null>(null);
+
+  const requireLogin = (action: () => void) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location }, replace: false });
+      return;
+    }
+    action();
+  };
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -271,11 +282,18 @@ const SupplierDetailAlibaba: React.FC = () => {
                 {language === 'fa' ? 'تماس با تامین‌کننده' : language === 'ar' ? 'اتصل بالمورد' : 'Contact Supplier'}
               </h3>
               <div className="space-y-3">
-                <Button className="w-full btn-gradient-accent rounded-xl py-6 text-base">
+                <Button
+                  className="w-full btn-gradient-accent rounded-xl py-6 text-base"
+                  onClick={() => requireLogin(() => navigate(`/messages?supplier=${id}`))}
+                >
                   <MessageSquare className="h-5 w-5 me-2" />
                   {language === 'fa' ? 'ارسال پیام' : language === 'ar' ? 'إرسال رسالة' : 'Send Message'}
                 </Button>
-                <Button variant="outline" className="w-full rounded-xl py-6 text-base border-2">
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl py-6 text-base border-2"
+                  onClick={() => requireLogin(() => navigate(`/post-request`))}
+                >
                   {language === 'fa' ? 'درخواست قیمت' : language === 'ar' ? 'طلب عرض أسعار' : 'Request Quote'}
                 </Button>
               </div>

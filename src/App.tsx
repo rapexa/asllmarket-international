@@ -100,8 +100,8 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
               <Route path="/cart" element={<Cart />} />
-              <Route path="/notifications/settings" element={<NotificationSettings />} />
-              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/notifications/settings" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/search/advanced" element={<AdvancedSearch />} />
             <Route path="/products" element={<Products />} />
@@ -109,15 +109,15 @@ const App = () => (
               <Route path="/suppliers/:id" element={<SupplierDetail />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/categories/:id" element={<CategoryDetail />} />
-              <Route path="/orders/:id" element={<OrderDetail />} />
-              <Route path="/orders/:id/payment" element={<PaymentDetail />} />
-              <Route path="/messages/:id" element={<MessageDetail />} />
-            <Route path="/rfq/responses" element={<RFQResponses />} />
-            <Route path="/rfq/success" element={<RFQSuccess />} />
+              <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+              <Route path="/orders/:id/payment" element={<ProtectedRoute><PaymentDetail /></ProtectedRoute>} />
+              <Route path="/messages/:id" element={<ProtectedRoute><MessageDetail /></ProtectedRoute>} />
+            <Route path="/rfq/responses" element={<ProtectedRoute><RFQResponses /></ProtectedRoute>} />
+            <Route path="/rfq/success" element={<ProtectedRoute><RFQSuccess /></ProtectedRoute>} />
             <Route path="/compare" element={<Compare />} />
             <Route path="/become-supplier" element={<BecomeSupplier />} />
             <Route path="/deals" element={<Deals />} />
-            <Route path="/post-request" element={<PostRequest />} />
+            <Route path="/post-request" element={<ProtectedRoute><PostRequest /></ProtectedRoute>} />
             <Route path="/about" element={<About />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/contact" element={<Contact />} />

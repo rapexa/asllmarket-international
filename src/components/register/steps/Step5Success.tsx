@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { CheckCircle2, ArrowRight, User, Building2, Sparkles, Store } from 'lucide-react';
+import { CheckCircle2, ArrowRight, User, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,8 @@ const Step5Success: React.FC<Step5SuccessProps> = ({ role, onComplete }) => {
   const { t, language, dir } = useLanguage();
   const navigate = useNavigate();
 
-  const roleInfo = {
+  // فقط buyer و supplier فعال؛ بقیه شاید در آینده استفاده بشوند.
+  const roleInfo: Record<UserRole, { title: string; titleFa: string; titleAr: string; description: string; descriptionFa: string; descriptionAr: string; dashboardPath: string; icon: typeof User; color: string }> = {
     buyer: {
       title: 'Welcome, Buyer!',
       titleFa: 'خوش آمدید، خریدار!',
@@ -38,42 +39,13 @@ const Step5Success: React.FC<Step5SuccessProps> = ({ role, onComplete }) => {
       icon: Building2,
       color: 'from-blue-500 to-cyan-500',
     },
-    visitor: {
-      title: 'Welcome!',
-      titleFa: 'خوش آمدید!',
-      titleAr: 'مرحباً!',
-      description: 'Explore opportunities and connect with the global B2B network',
-      descriptionFa: 'فرصت‌ها را کاوش کنید و با شبکه B2B جهانی ارتباط برقرار کنید',
-      descriptionAr: 'استكشف الفرص وتواصل مع شبكة B2B العالمية',
-      dashboardPath: '/dashboard/visitor',
-      icon: Sparkles,
-      color: 'from-orange-500 to-amber-500',
-    },
-    both: {
-      title: 'Welcome!',
-      titleFa: 'خوش آمدید!',
-      titleAr: 'مرحباً!',
-      description: 'You can now buy and sell on ASL Market',
-      descriptionFa: 'اکنون می‌توانید در ASL Market خرید و فروش کنید',
-      descriptionAr: 'يمكنك الآن الشراء والبيع على ASL Market',
-      dashboardPath: '/dashboard',
-      icon: Building2,
-      color: 'from-purple-500 to-violet-500',
-    },
-    market: {
-      title: 'Welcome, Market!',
-      titleFa: 'خوش آمدید، بازار!',
-      titleAr: 'مرحباً، السوق!',
-      description: 'Your market account is pending approval. Complete your profile to start your trading platform.',
-      descriptionFa: 'حساب بازار شما در انتظار تایید است. پروفایل خود را تکمیل کنید تا پلتفرم تجاری خود را شروع کنید.',
-      descriptionAr: 'حساب السوق الخاص بك قيد المراجعة. أكمل ملفك الشخصي لبدء منصة التداول الخاصة بك.',
-      dashboardPath: '/dashboard/market',
-      icon: Store,
-      color: 'from-teal-500 to-cyan-500',
-    },
+    // شاید در آینده استفاده بشه: visitor, both, market
+    // visitor: { ... },
+    // both: { ... },
+    // market: { ... },
   };
 
-  const info = roleInfo[role] || roleInfo.buyer;
+  const info = (role === 'buyer' || role === 'supplier' ? roleInfo[role] : null) || roleInfo.buyer;
   const Icon = info.icon;
 
   const getTitle = () => {
@@ -139,15 +111,13 @@ const Step5Success: React.FC<Step5SuccessProps> = ({ role, onComplete }) => {
       </div>
 
       {/* Next Steps */}
-      {(role === 'supplier' || role === 'market') && (
+      {role === 'supplier' && (
         <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-2xl p-6 max-w-2xl mx-auto">
           <h3 className="font-bold text-lg mb-2 text-blue-900 dark:text-blue-100">
-            Account Status: Pending {role === 'supplier' ? 'Verification' : 'Approval'}
+            Account Status: Pending Verification
           </h3>
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            {role === 'supplier' 
-              ? "We're reviewing your documents. You'll receive an email notification once your account is verified (usually within 1-3 business days)."
-              : "We're reviewing your market application. You'll receive an email notification once your market is approved (usually within 2-5 business days)."}
+            We're reviewing your documents. You'll receive an email notification once your account is verified (usually within 1-3 business days).
           </p>
         </div>
       )}

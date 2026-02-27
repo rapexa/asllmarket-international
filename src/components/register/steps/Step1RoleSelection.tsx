@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Building2, User, Users, Store, ArrowRight, Check } from 'lucide-react';
+import { ShoppingBag, Building2, ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,7 +12,8 @@ interface Step1RoleSelectionProps {
   autoSelect?: UserRole;
 }
 
-const roles = [
+// فقط نقش‌های فعال پلتفرم: Buyer و Supplier
+const roles: Array<{ id: UserRole; icon: typeof ShoppingBag; title: string; titleFa: string; titleAr: string; description: string; descriptionFa: string; descriptionAr: string; color: string; bgColor: string; borderColor: string; iconColor: string }> = [
   {
     id: 'buyer' as UserRole,
     icon: ShoppingBag,
@@ -41,48 +42,10 @@ const roles = [
     borderColor: 'border-blue-500/30',
     iconColor: 'text-blue-500',
   },
-  {
-    id: 'visitor' as UserRole,
-    icon: User,
-    title: 'Visitor / Agent',
-    titleFa: 'بازدیدکننده / نماینده',
-    titleAr: 'زائر / وكيل',
-    description: 'I want to collaborate, visit or find opportunities',
-    descriptionFa: 'می‌خواهم همکاری کنم، بازدید کنم یا فرصت‌ها را پیدا کنم',
-    descriptionAr: 'أريد التعاون أو الزيارة أو العثور على الفرص',
-    color: 'from-orange-500 to-amber-500',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/30',
-    iconColor: 'text-orange-500',
-  },
-  {
-    id: 'both' as UserRole,
-    icon: Users,
-    title: 'Both Buyer & Supplier',
-    titleFa: 'هم خریدار و هم تأمین‌کننده',
-    titleAr: 'مشتري ومورد',
-    description: 'I want to buy and sell',
-    descriptionFa: 'می‌خواهم هم خرید و هم فروش انجام دهم',
-    descriptionAr: 'أريد الشراء والبيع',
-    color: 'from-purple-500 to-violet-500',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/30',
-    iconColor: 'text-purple-500',
-  },
-  {
-    id: 'market' as UserRole,
-    icon: Store,
-    title: 'Market',
-    titleFa: 'بازار',
-    titleAr: 'السوق',
-    description: 'I want to create a marketplace or trading platform',
-    descriptionFa: 'می‌خواهم یک بازار یا پلتفرم تجاری ایجاد کنم',
-    descriptionAr: 'أريد إنشاء سوق أو منصة تجارية',
-    color: 'from-teal-500 to-cyan-500',
-    bgColor: 'bg-teal-500/10',
-    borderColor: 'border-teal-500/30',
-    iconColor: 'text-teal-500',
-  },
+  // ---------- نقش‌های غیرفعال؛ شاید در آینده استفاده بشه ----------
+  // { id: 'visitor', icon: User, title: 'Visitor / Agent', ... },
+  // { id: 'both', icon: Users, title: 'Both Buyer & Supplier', ... },
+  // { id: 'market', icon: Store, title: 'Market', ... },
 ];
 
 const Step1RoleSelection: React.FC<Step1RoleSelectionProps> = ({ onNext, selectedRole, autoSelect }) => {
@@ -126,7 +89,7 @@ const Step1RoleSelection: React.FC<Step1RoleSelectionProps> = ({ onNext, selecte
       </div>
 
       {/* Role Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
         {roles.map((role) => {
           const Icon = role.icon;
           const isSelected = selected === role.id;

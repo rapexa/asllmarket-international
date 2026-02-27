@@ -74,7 +74,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 	claims := raw.(*middleware.Claims)
 
-	// Only supplier or admin can create products.
+	// Only supplier or admin can create products. Platform UI = buyer + supplier; admin = internal panel. شاید در آینده استفاده بشه.
 	if claims.Role != string(auth.RoleSupplier) && claims.Role != string(auth.RoleAdmin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only suppliers or admins can create products"})
 		return

@@ -19,11 +19,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary - Deep Indigo/Blue (Trust & Professionalism) */
-    --primary: 230 57% 25%;
+    /* Primary - بنفش سازمانی (لوگو AM) #5B27A4 / #642EA8 */
+    --primary: 265 61% 40%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 230 57% 35%;
-    --primary-dark: 230 57% 18%;
+    --primary-light: 265 61% 50%;
+    --primary-dark: 265 61% 28%;
 
     /* Secondary - Soft Cyan/Teal (Technology & AI) */
     --secondary: 180 30% 95%;
@@ -62,27 +62,27 @@
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 213 56% 24%;
+    --ring: 265 61% 35%;
 
     --radius: 0.75rem;
 
-    /* Premium Gradients - نارنجی و بنفش سازمانی */
-    --gradient-primary: linear-gradient(135deg, hsl(230 57% 25%) 0%, hsl(230 57% 35%) 100%);
+    /* Premium Gradients - بنفش سازمانی و نارنجی */
+    --gradient-primary: linear-gradient(135deg, hsl(265 61% 28%) 0%, hsl(265 61% 50%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(35 95% 58%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(230 57% 18%) 0%, hsl(270 65% 35%) 40%, hsl(25 95% 45%) 100%);
-    --gradient-hero-orbs: linear-gradient(135deg, hsl(25 95% 53% / 0.4) 0%, hsl(270 65% 55% / 0.35) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(265 61% 22%) 0%, hsl(265 61% 38%) 40%, hsl(25 95% 45%) 100%);
+    --gradient-hero-orbs: linear-gradient(135deg, hsl(25 95% 53% / 0.4) 0%, hsl(265 61% 45% / 0.4) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 20% 98%) 100%);
     --gradient-trust: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(160 84% 45%) 100%);
     --gradient-ai: linear-gradient(135deg, hsl(180 100% 50%) 0%, hsl(200 100% 55%) 100%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(213 56% 24% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(213 56% 24% / 0.1), 0 2px 4px -2px hsl(213 56% 24% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(213 56% 24% / 0.1), 0 4px 6px -4px hsl(213 56% 24% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(213 56% 24% / 0.1), 0 8px 10px -6px hsl(213 56% 24% / 0.1);
+    /* Shadows - با بنفش سازمانی */
+    --shadow-sm: 0 1px 2px 0 hsl(265 61% 25% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(265 61% 25% / 0.1), 0 2px 4px -2px hsl(265 61% 25% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(265 61% 25% / 0.1), 0 4px 6px -4px hsl(265 61% 25% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(265 61% 25% / 0.1), 0 8px 10px -6px hsl(265 61% 25% / 0.1);
     --shadow-glow: 0 0 40px hsl(38 92% 50% / 0.3);
-    --shadow-card-hover: 0 20px 40px -10px hsl(213 56% 24% / 0.15);
+    --shadow-card-hover: 0 20px 40px -10px hsl(265 61% 25% / 0.15);
 
     /* Sidebar */
     --sidebar-background: 0 0% 98%;
@@ -92,7 +92,7 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 265 61% 45%;
   }
 
   .dark {
@@ -105,10 +105,10 @@
     --popover: 230 30% 10%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 230 57% 55%;
+    --primary: 265 61% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 230 57% 60%;
-    --primary-dark: 230 57% 45%;
+    --primary-light: 265 61% 62%;
+    --primary-dark: 265 61% 48%;
 
     --secondary: 230 20% 15%;
     --secondary-foreground: 210 40% 98%;
@@ -127,19 +127,19 @@
 
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 213 56% 50%;
+    --ring: 265 61% 50%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(213 56% 40%) 0%, hsl(213 56% 50%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(222 47% 8%) 0%, hsl(213 56% 20%) 50%, hsl(200 60% 25%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(265 61% 45%) 0%, hsl(265 61% 58%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(222 47% 8%) 0%, hsl(265 61% 25%) 50%, hsl(265 55% 35%) 100%);
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 265 61% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 265 61% 55%;
   }
 
   /* RTL Support with Premium Typography */

@@ -7,13 +7,14 @@ package database
 import "time"
 
 // MigrationUser matches users table (001_init_schema).
+// Role: only buyer and supplier are used in platform UI; market_visitor and admin reserved for future use. شاید در آینده استفاده بشه.
 type MigrationUser struct {
 	ID           string    `gorm:"column:id;type:varchar(36);primaryKey"`
 	Email        string    `gorm:"column:email;type:varchar(255);not null;uniqueIndex"`
 	PasswordHash string    `gorm:"column:password_hash;type:varchar(255);not null"`
 	FullName     string    `gorm:"column:full_name;type:varchar(255);not null"`
 	Phone        string    `gorm:"column:phone;type:varchar(50)"`
-	Role         string    `gorm:"column:role;type:enum('buyer','supplier','market_visitor','admin');default:buyer"`
+	Role         string    `gorm:"column:role;type:enum('buyer','supplier','market_visitor','admin');default:buyer"` // UI: buyer + supplier only
 	CreatedAt    time.Time `gorm:"column:created_at;type:timestamp;autoCreateTime"`
 	UpdatedAt    time.Time `gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
 }

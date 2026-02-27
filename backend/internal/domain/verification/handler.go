@@ -131,7 +131,7 @@ func (h *Handler) Review(c *gin.Context) {
 	}
 	claims := raw.(*middleware.Claims)
 
-	// Only admin can review
+	// Only admin can review. Admin = internal panel; platform UI = buyer + supplier only. شاید در آینده استفاده بشه.
 	if claims.Role != string(auth.RoleAdmin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only admins can review verifications"})
 		return

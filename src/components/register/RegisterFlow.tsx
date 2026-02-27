@@ -7,13 +7,15 @@ import Step1RoleSelection from './steps/Step1RoleSelection';
 import Step2BasicInfo from './steps/Step2BasicInfo';
 import Step3BuyerProfile from './steps/Step3BuyerProfile';
 import Step3SupplierProfile from './steps/Step3SupplierProfile';
-import Step3VisitorProfile from './steps/Step3VisitorProfile';
-import Step3MarketProfile from './steps/Step3MarketProfile';
-import Step3BothProfile from './steps/Step3BothProfile';
+// شاید در آینده: Step3VisitorProfile, Step3MarketProfile, Step3BothProfile
+// import Step3VisitorProfile from './steps/Step3VisitorProfile';
+// import Step3MarketProfile from './steps/Step3MarketProfile';
+// import Step3BothProfile from './steps/Step3BothProfile';
 import Step4Verification from './steps/Step4Verification';
 import Step5Success from './steps/Step5Success';
 
-export type UserRole = 'buyer' | 'supplier' | 'visitor' | 'both' | 'market';
+// فقط buyer و supplier فعال؛ بقیه نقش‌ها شاید در آینده استفاده بشوند (visitor, market, both کامنت شده).
+export type UserRole = 'buyer' | 'supplier';
 
 interface RegisterData {
   role: UserRole | null;
@@ -29,8 +31,7 @@ interface RegisterData {
   };
   buyerProfile?: any;
   supplierProfile?: any;
-  visitorProfile?: any;
-  marketProfile?: any;
+  // شاید در آینده: visitorProfile?: any; marketProfile?: any;
 }
 
 interface RegisterFlowProps {
@@ -79,13 +80,11 @@ const RegisterFlow: React.FC<RegisterFlowProps> = ({ onComplete, initialRole }) 
         setRegisterData(prev => ({ ...prev, buyerProfile: stepData }));
       } else if (registerData.role === 'supplier') {
         setRegisterData(prev => ({ ...prev, supplierProfile: stepData }));
-      } else if (registerData.role === 'visitor') {
-        setRegisterData(prev => ({ ...prev, visitorProfile: stepData }));
-      } else if (registerData.role === 'market') {
-        setRegisterData(prev => ({ ...prev, marketProfile: stepData }));
-      } else if (registerData.role === 'both') {
-        setRegisterData(prev => ({ ...prev, buyerProfile: stepData, supplierProfile: stepData }));
       }
+      // شاید در آینده: visitor, market, both
+      // else if (registerData.role === 'visitor') { ... }
+      // else if (registerData.role === 'market') { ... }
+      // else if (registerData.role === 'both') { ... }
       setCurrentStep(4);
     } else if (currentStep === 4) {
       // Step 4: Verification complete, now submit registration to backend
@@ -95,16 +94,13 @@ const RegisterFlow: React.FC<RegisterFlowProps> = ({ onComplete, initialRole }) 
       try {
         const { basicInfo, role } = registerData;
         const fullName = `${basicInfo.firstName} ${basicInfo.lastName}`.trim();
-        
-        // Map 'both' to 'buyer' for backend (user can have both roles via separate mechanism)
-        const backendRole = role === 'both' ? 'buyer' : role;
-        
+        // فقط buyer و supplier به بک‌اند فرستاده می‌شود. شاید در آینده: both -> buyer mapping و نقش‌های دیگر.
         await authRegister({
           email: basicInfo.email,
           password: basicInfo.password,
           fullName,
           phone: basicInfo.phone || undefined,
-          role: backendRole as 'buyer' | 'supplier' | 'market' | 'visitor',
+          role,
         });
         
         // Registration successful, move to success step
@@ -202,24 +198,11 @@ const RegisterFlow: React.FC<RegisterFlowProps> = ({ onComplete, initialRole }) 
               onBack={handleBack}
             />
           )}
-          {currentStep === 3 && registerData.role === 'visitor' && (
-            <Step3VisitorProfile
-              onNext={handleStepComplete}
-              onBack={handleBack}
-            />
-          )}
-          {currentStep === 3 && registerData.role === 'market' && (
-            <Step3MarketProfile
-              onNext={handleStepComplete}
-              onBack={handleBack}
-            />
-          )}
-          {currentStep === 3 && registerData.role === 'both' && (
-            <Step3BothProfile
-              onNext={handleStepComplete}
-              onBack={handleBack}
-            />
-          )}
+          {/* شاید در آینده: visitor, market, both
+          {currentStep === 3 && registerData.role === 'visitor' && <Step3VisitorProfile ... />}
+          {currentStep === 3 && registerData.role === 'market' && <Step3MarketProfile ... />}
+          {currentStep === 3 && registerData.role === 'both' && <Step3BothProfile ... />}
+          */}
           {currentStep === 4 && (
             <Step4Verification
               onNext={() => handleStepComplete({})}

@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Image as ImageIcon, Video, Sparkles, X, Filter, Loader2 } from 'lucide-react';
+import { Search, Image as ImageIcon, Sparkles, Filter, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTypingPlaceholder } from '@/hooks/useTypingPlaceholder';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import ImageUploadModal from './ImageUploadModal';
-import VideoUploadModal from './VideoUploadModal';
 import AdvancedFiltersPanel from './AdvancedFiltersPanel';
 
 interface AdvancedSearchBoxProps {
@@ -27,7 +27,6 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -86,16 +85,6 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
     });
   };
 
-  const handleVideoSearch = (videoUrl: string) => {
-    // In real app, this would analyze video frames and search
-    navigate(`/search?type=video&video=${encodeURIComponent(videoUrl)}`);
-    setVideoModalOpen(false);
-    toast({
-      title: 'Video search started',
-      description: 'Analyzing video frames and finding matching products...',
-    });
-  };
-
   const handleFocus = () => {
     setIsFocused(true);
     onFocus?.();
@@ -111,11 +100,12 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
     }
   };
 
-  const placeholderText = language === 'fa' 
-    ? 'جستجوی محصولات، تأمین‌کنندگان یا دسته‌بندی‌ها…'
-    : language === 'ar'
-    ? 'البحث عن المنتجات أو الموردين أو الفئات…'
-    : 'Search products, suppliers, or categories…';
+  const placeholderPhrases = useMemo(() => {
+    if (language === 'fa') return ['جستجوی محصولات، تأمین‌کنندگان یا دسته‌بندی‌ها…', 'نام محصول یا تأمین‌کننده را بنویسید…', 'دسته‌بندی یا کلمه کلیدی…'];
+    if (language === 'ar') return ['البحث عن المنتجات أو الموردين أو الفئات…', 'اكتب اسم المنتج أو المورد…', 'فئة أو كلمة مفتاحية…'];
+    return ['Search products, suppliers, or categories…', 'Type product or supplier name…', 'Category or keyword…'];
+  }, [language]);
+  const placeholderText = useTypingPlaceholder(placeholderPhrases, { typeSpeed: 70, deleteSpeed: 40, pauseAfter: 2000, pauseBefore: 500 });
 
   return (
     <>
@@ -174,24 +164,6 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
               title={language === 'fa' ? 'جستجوی تصویر' : language === 'ar' ? 'بحث الصورة' : 'Image search'}
             >
               <ImageIcon className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
-            </Button>
-
-            {/* Video Search Icon */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "h-9 w-9 rounded-lg hover:bg-muted transition-all duration-200",
-                "relative group"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                setVideoModalOpen(true);
-              }}
-              title={language === 'fa' ? 'جستجوی ویدیو' : language === 'ar' ? 'بحث الفيديو' : 'Video search'}
-            >
-              <Video className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
             </Button>
 
             {/* Filter Toggle */}
@@ -290,13 +262,6 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
         onUpload={handleImageSearch}
-      />
-
-      {/* Video Upload Modal */}
-      <VideoUploadModal
-        isOpen={videoModalOpen}
-        onClose={() => setVideoModalOpen(false)}
-        onUpload={handleVideoSearch}
       />
     </>
   );

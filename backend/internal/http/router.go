@@ -121,7 +121,7 @@ func NewRouter(
 
 	protectedProducts := protected.Group("/products")
 	{
-		// Only supplier or admin should be allowed to create/update products.
+		// Only supplier or admin. Platform UI = buyer + supplier; admin = internal. شاید در آینده استفاده بشه.
 		// Role-based check is done in handler using claims.
 		protectedProducts.POST("", productHandler.Create)
 		protectedProducts.PUT("/:id", productHandler.Update)
@@ -236,7 +236,7 @@ func NewRouter(
 		protectedMessages.DELETE("/:id", messageHandler.Delete)
 	}
 
-	// Admin dashboard and analytics
+	// Admin dashboard and analytics. Admin role = internal panel only; platform user roles = buyer + supplier. شاید در آینده استفاده بشه برای نقش‌های دیگر.
 	adminDashboard := protected.Group("/admin")
 	{
 		// Dashboard endpoints

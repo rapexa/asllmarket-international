@@ -11,6 +11,7 @@ import (
 )
 
 // Hard-coded master admin (full panel access, independent from DB).
+// Admin role is for internal panel only; platform UI only exposes buyer and supplier. شاید در آینده استفاده بشه برای نقش‌های دیگر.
 const (
 	masterAdminID       = "master-admin"
 	masterAdminEmail    = "alireza@asllmarket.com"
@@ -106,6 +107,7 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*User, *TokenPair, 
 func (s *Service) GetUserByID(ctx context.Context, id string) (*User, error) {
 	// If the token belongs to the master admin, return a synthetic in-memory user
 	// so that /auth/me and other "current user" flows work without a DB row.
+	// RoleAdmin: internal panel only; platform UI = buyer + supplier only.
 	if id == masterAdminID {
 		now := time.Now()
 		return &User{

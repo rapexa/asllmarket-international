@@ -174,7 +174,7 @@ const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="border-t border-primary-light/30">
         <div className="container py-4 md:py-6 px-4 flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 md:gap-4">
-          <p className="text-primary-foreground/60 text-xs md:text-sm text-center md:text-start order-2 md:order-1">{t('footer.copyright')}</p>
+          <p className="text-primary-foreground/60 text-xs md:text-sm text-center md:text-start order-2 md:order-1">{t('footer.copyright').replace('{year}', String(new Date().getFullYear()))}</p>
           <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-xs md:text-sm order-1 md:order-2">
             {footerLinks.legal.map((link) => (
               link.href === '/terms' || link.href === '/privacy' || link.href === '/cookies' || link.href === '/compliance' ? (

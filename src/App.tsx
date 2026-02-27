@@ -69,13 +69,13 @@ import TopSellingProducts from "./pages/admin/TopSellingProducts";
 import AdminNotifications from "./pages/admin/Notifications";
 import AdminSupplierDetail from "./pages/admin/SupplierDetail";
 import EditSupplier from "./pages/admin/EditSupplier";
-// User Dashboards
+// User Dashboards (فقط buyer و supplier فعال؛ بقیه شاید در آینده)
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import DashboardIndex from "./pages/dashboard/DashboardIndex";
 import BuyerDashboard from "./pages/dashboard/BuyerDashboard";
 import SupplierDashboard from "./pages/dashboard/SupplierDashboard";
-import MarketDashboard from "./pages/dashboard/MarketDashboard";
-import VisitorDashboard from "./pages/dashboard/VisitorDashboard";
+// import MarketDashboard from "./pages/dashboard/MarketDashboard";
+// import VisitorDashboard from "./pages/dashboard/VisitorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -135,12 +135,12 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/compliance" element={<Compliance />} />
-            {/* User Dashboards */}
+            {/* User Dashboards - فقط buyer و supplier */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardIndex /></ProtectedRoute>} />
             <Route path="/dashboard/buyer" element={<ProtectedRoute><BuyerDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/supplier" element={<ProtectedRoute><SupplierDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/market" element={<ProtectedRoute><MarketDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/visitor" element={<ProtectedRoute><VisitorDashboard /></ProtectedRoute>} />
+            {/* شاید در آینده: <Route path="/dashboard/market" element={...} /> */}
+            {/* شاید در آینده: <Route path="/dashboard/visitor" element={...} /> */}
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

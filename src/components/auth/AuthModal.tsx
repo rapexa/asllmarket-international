@@ -12,10 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
-import RegisterFlow from './RegisterFlow';
-import LoginFlow from './LoginFlow';
+import RegisterFlow from '@/components/auth/RegisterFlow';
+import LoginFlow from '@/components/auth/LoginFlow';
 
-export type UserRole = 'buyer' | 'supplier' | 'visitor' | 'both' | 'market';
+// فقط buyer و supplier فعال؛ visitor, both, market شاید در آینده استفاده بشوند.
+export type UserRole = 'buyer' | 'supplier';
 
 interface AuthModalProps {
   isOpen: boolean;

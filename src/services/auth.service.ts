@@ -14,12 +14,13 @@ export interface LoginRequest {
   password: string;
 }
 
+// ثبت‌نام فقط با نقش buyer یا supplier؛ بقیه نقش‌ها شاید در آینده.
 export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
   phone?: string;
-  role: 'buyer' | 'supplier' | 'market' | 'visitor';
+  role: 'buyer' | 'supplier';
 }
 
 export interface AuthResponse {

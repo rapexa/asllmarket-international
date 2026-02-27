@@ -20,7 +20,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-// requireAdmin is a helper to check admin role
+// requireAdmin checks admin role. Admin = internal panel only; platform UI uses only buyer + supplier. شاید در آینده استفاده بشه برای نقش‌های دیگر.
 func requireAdmin(c *gin.Context) (*middleware.Claims, bool) {
 	raw, ok := c.Get("claims")
 	if !ok {

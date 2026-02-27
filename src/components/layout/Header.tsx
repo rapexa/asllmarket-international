@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Search, Menu, X, ChevronDown, User, Globe, ShoppingCart, Sparkles, Bell, Home, Package, Building2, FileText, Truck, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,15 +21,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
+const HERO_SCROLL_THRESHOLD = 380; // بعد از عبور از بخش AI Mode سرچ در هدر نمایش داده می‌شود
+
 const Header: React.FC = () => {
   const { t, language, setLanguage, dir } = useLanguage();
   const { theme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [categoriesPanelOpen, setCategoriesPanelOpen] = useState(false);
+  const isHome = location.pathname === '/';
+  const [pastHeroSection, setPastHeroSection] = useState(!isHome);
+
+  useEffect(() => {
+    if (!isHome) {
+      setPastHeroSection(true);
+      return;
+    }
+    const onScroll = () => setPastHeroSection(window.scrollY > HERO_SCROLL_THRESHOLD);
+    onScroll(); // set initial
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isHome]);
 
   return (
     <>
@@ -107,8 +123,11 @@ const Header: React.FC = () => {
               </div>
             </Link>
 
-            {/* Advanced Search Box */}
-            <div className="hidden md:flex flex-1 max-w-2xl lg:max-w-3xl mx-4 lg:mx-8">
+            {/* Advanced Search Box - روی صفحه اول فقط بعد از اسکرول (عبور از AI Mode) بالا می‌آید */}
+            <div className={cn(
+              "hidden md:flex flex-1 max-w-2xl lg:max-w-3xl mx-4 lg:mx-8 transition-all duration-300",
+              isHome && !pastHeroSection && "opacity-0 pointer-events-none overflow-hidden max-w-0 mx-0"
+            )}>
               <AdvancedSearchBox
                 onFocus={() => {
                   setSearchFocused(true);

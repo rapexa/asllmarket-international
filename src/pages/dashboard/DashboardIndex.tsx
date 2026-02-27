@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Building2, ShoppingCart, Store, User } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Store } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-type UserRole = 'buyer' | 'supplier' | 'market' | 'visitor' | 'admin';
+type UserRole = 'buyer' | 'supplier' | 'market' | 'visitor' | 'admin'; // فقط buyer و supplier در UI فعال
 
 const DashboardIndex: React.FC = () => {
   const { language, dir } = useLanguage();
@@ -20,8 +20,9 @@ const DashboardIndex: React.FC = () => {
   if (authToken && role) {
     if (role === 'buyer') return <Navigate to="/dashboard/buyer" replace />;
     if (role === 'supplier') return <Navigate to="/dashboard/supplier" replace />;
-    if (role === 'market') return <Navigate to="/dashboard/market" replace />;
-    if (role === 'visitor') return <Navigate to="/dashboard/visitor" replace />;
+    // شاید در آینده: market, visitor
+    // if (role === 'market') return <Navigate to="/dashboard/market" replace />;
+    // if (role === 'visitor') return <Navigate to="/dashboard/visitor" replace />;
   }
 
   return (
@@ -71,7 +72,8 @@ const DashboardIndex: React.FC = () => {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* فقط Buyer و Supplier فعال؛ بقیه شاید در آینده استفاده بشه */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card className="p-5 sm:p-6 rounded-2xl border border-border/60 hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -128,61 +130,9 @@ const DashboardIndex: React.FC = () => {
               </div>
             </Card>
 
-            <Card className="p-5 sm:p-6 rounded-2xl border border-border/60 hover:shadow-xl transition-shadow">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {language === 'fa' ? 'بازار' : language === 'ar' ? 'سوق' : 'Market'}
-                  </p>
-                  <h3 className="font-bold text-lg mt-1">
-                    {language === 'fa' ? 'داشبورد بازار' : language === 'ar' ? 'لوحة السوق' : 'Market Dashboard'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {language === 'fa'
-                      ? 'آمار، مدیریت و گزارش‌ها'
-                      : language === 'ar'
-                      ? 'إحصائيات وإدارة وتقارير'
-                      : 'Analytics, management and reports'}
-                  </p>
-                </div>
-                <Building2 className="h-7 w-7 text-primary shrink-0" />
-              </div>
-              <div className="mt-4">
-                <Button asChild variant="outline" className="w-full rounded-xl">
-                  <Link to="/dashboard/market">
-                    {language === 'fa' ? 'مشاهده' : language === 'ar' ? 'عرض' : 'Open'}
-                  </Link>
-                </Button>
-              </div>
-            </Card>
-
-            <Card className="p-5 sm:p-6 rounded-2xl border border-border/60 hover:shadow-xl transition-shadow">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {language === 'fa' ? 'بازدیدکننده' : language === 'ar' ? 'زائر' : 'Visitor'}
-                  </p>
-                  <h3 className="font-bold text-lg mt-1">
-                    {language === 'fa' ? 'داشبورد بازدیدکننده' : language === 'ar' ? 'لوحة الزائر' : 'Visitor Dashboard'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {language === 'fa'
-                      ? 'ذخیره‌ها، پیشنهادها و شروع سریع'
-                      : language === 'ar'
-                      ? 'المحفوظات والاقتراحات والبداية السريعة'
-                      : 'Saved items, suggestions, quick start'}
-                  </p>
-                </div>
-                <User className="h-7 w-7 text-primary shrink-0" />
-              </div>
-              <div className="mt-4">
-                <Button asChild variant="outline" className="w-full rounded-xl">
-                  <Link to="/dashboard/visitor">
-                    {language === 'fa' ? 'مشاهده' : language === 'ar' ? 'عرض' : 'Open'}
-                  </Link>
-                </Button>
-              </div>
-            </Card>
+            {/* شاید در آینده: Market و Visitor داشبورد */}
+            {/* <Card>... Market Dashboard ...</Card> */}
+            {/* <Card>... Visitor Dashboard ...</Card> */}
           </div>
         </div>
       </main>

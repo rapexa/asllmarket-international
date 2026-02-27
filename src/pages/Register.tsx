@@ -8,28 +8,22 @@ const Register: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const roleParam = searchParams.get('role') as UserRole | null;
+  const roleParam = searchParams.get('role') as UserRole | null; // فقط buyer یا supplier معتبر است
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
       <RegisterFlow 
         initialRole={roleParam || undefined}
         onComplete={(role) => {
-          // Redirect based on role after successful registration
+          // فقط buyer و supplier؛ بقیه شاید در آینده استفاده بشوند.
           if (role === 'buyer') {
             navigate('/dashboard/buyer');
           } else if (role === 'supplier') {
             navigate('/dashboard/supplier');
-          } else if (role === 'visitor') {
-            navigate('/dashboard/visitor');
-          } else if (role === 'market') {
-            navigate('/dashboard/market');
-          } else if (role === 'both') {
-            // Default to buyer dashboard for "both" role
-            navigate('/dashboard/buyer');
           } else {
             navigate('/dashboard');
           }
+          // شاید در آینده: visitor -> /dashboard/visitor, market -> /dashboard/market, both -> /dashboard/buyer
         }} 
       />
     </div>

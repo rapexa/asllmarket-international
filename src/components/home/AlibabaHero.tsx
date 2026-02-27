@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Camera, ArrowRight } from 'lucide-react';
+import { Search, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTypingPlaceholder } from '@/hooks/useTypingPlaceholder';
 import { cn } from '@/lib/utils';
+
+const HERO_PLACEHOLDER_PHRASES = {
+  en: ['health watch', 'LED lights', 'wireless earbuds', 'solar panels', 'industrial machinery'],
+  fa: ['ساعت هوشمند', 'چراغ ال ای دی', 'هدفون بی‌سیم', 'پنل خورشیدی', 'ماشین‌آلات صنعتی'],
+  ar: ['ساعة صحية', 'أضواء LED', 'سماعات لاسلكية', 'ألواح شمسية', 'آلات صناعية'],
+};
 
 const AlibabaHero: React.FC = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'products' | 'manufacturers' | 'worldwide'>('products');
+  const langKey = language === 'fa' ? 'fa' : language === 'ar' ? 'ar' : 'en';
+  const phrases = useMemo(() => HERO_PLACEHOLDER_PHRASES[langKey] ?? HERO_PLACEHOLDER_PHRASES.en, [langKey]);
+  const placeholder = useTypingPlaceholder(phrases, { typeSpeed: 90, deleteSpeed: 45, pauseAfter: 2200, pauseBefore: 500 });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,10 +76,10 @@ const AlibabaHero: React.FC = () => {
           <div className="flex items-center gap-0 bg-white rounded-full border-2 border-primary shadow-lg overflow-hidden">
             <Input
               type="text"
-              placeholder={language === 'fa' ? 'health watch' : language === 'ar' ? 'ساعة صحية' : 'health watch'}
+              placeholder={placeholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 border-0 focus-visible:ring-0 text-lg px-6 py-7 rounded-none bg-transparent"
+              className="flex-1 border-0 focus-visible:ring-0 text-lg px-6 py-7 rounded-none bg-transparent placeholder:tracking-tight"
             />
             <button
               type="button"

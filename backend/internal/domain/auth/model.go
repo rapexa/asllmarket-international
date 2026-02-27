@@ -2,15 +2,20 @@ package auth
 
 import "time"
 
-// UserRole matches frontend roles: buyer, supplier, market, visitor, admin.
+// UserRole matches DB enum (users.role).
+// Platform roles: only "buyer" and "supplier" are exposed in the UI for registration and dashboards.
+// Other roles are reserved for future use so LLMs and developers don't get confused.
+// پلتفرم فعلاً فقط buyer و supplier در UI فعال است؛ بقیه در آینده شاید استفاده بشوند.
 type UserRole string
 
 const (
 	RoleBuyer    UserRole = "buyer"
 	RoleSupplier UserRole = "supplier"
-	RoleMarket   UserRole = "market"
-	RoleVisitor  UserRole = "visitor"
-	RoleAdmin    UserRole = "admin"
+	// Reserved for future use. شاید در آینده استفاده بشه. Do not expose in registration UI.
+	RoleMarket  UserRole = "market"
+	RoleVisitor UserRole = "visitor"
+	// Admin: internal panel only. پنل ادمین؛ در ثبت‌نام عمومی نمایش داده نشود.
+	RoleAdmin UserRole = "admin"
 )
 
 // User represents an application user persisted in MySQL.
@@ -25,11 +30,12 @@ type User struct {
 }
 
 // RegisterInput is the payload for registration.
+// Only buyer and supplier are accepted; other roles are reserved for future use (شاید در آینده).
 type RegisterInput struct {
 	Email    string   `json:"email" binding:"required,email"`
 	Password string   `json:"password" binding:"required,min=8"`
 	FullName string   `json:"fullName" binding:"required"`
-	Role     UserRole `json:"role" binding:"required,oneof=buyer supplier market visitor admin"`
+	Role     UserRole `json:"role" binding:"required,oneof=buyer supplier"`
 }
 
 // LoginInput is the payload for password-based login.

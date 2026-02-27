@@ -70,7 +70,7 @@ func (h *Handler) GetSupplierOrders(c *gin.Context) {
 	}
 	claims := raw.(*middleware.Claims)
 
-	// Ensure user is supplier or admin
+	// Ensure user is supplier or admin. Platform UI = buyer + supplier; admin = internal. شاید در آینده استفاده بشه.
 	if claims.Role != string(auth.RoleSupplier) && claims.Role != string(auth.RoleAdmin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return

@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     phone VARCHAR(50),
+    -- Platform UI uses only buyer + supplier; market_visitor and admin reserved for future use. شاید در آینده استفاده بشه.
     role ENUM('buyer', 'supplier', 'market_visitor', 'admin') NOT NULL DEFAULT 'buyer',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

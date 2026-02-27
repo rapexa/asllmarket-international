@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const Footer: React.FC = () => {
@@ -9,28 +9,28 @@ const Footer: React.FC = () => {
   const footerLinks = {
     company: [
       { label: t('footer.about'), href: '/about' },
-      { label: 'Careers', href: '/careers' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Press', href: '/press' },
+      { label: t('footer.careers'), href: '/careers' },
+      { label: t('footer.blog'), href: '/blog' },
+      { label: t('footer.press'), href: '/press' },
     ],
     support: [
-      { label: 'Dashboard', href: '/dashboard' },
+      { label: t('footer.dashboard'), href: '/dashboard' },
       { label: t('footer.help'), href: '/help' },
       { label: t('footer.contact'), href: '/contact' },
-      { label: 'FAQ', href: '/faq' },
-      { label: 'Feedback', href: '/feedback' },
+      { label: t('footer.faq'), href: '/faq' },
+      { label: t('footer.feedback'), href: '/feedback' },
     ],
     legal: [
       { label: t('footer.terms'), href: '/terms' },
       { label: t('footer.privacy'), href: '/privacy' },
-      { label: 'Cookie Policy', href: '/cookies' },
-      { label: 'Compliance', href: '/compliance' },
+      { label: t('footer.cookiePolicy'), href: '/cookies' },
+      { label: t('footer.compliance'), href: '/compliance' },
     ],
     trade: [
-      { label: 'For Buyers', href: '/buyers' },
-      { label: 'For Suppliers', href: '/suppliers' },
-      { label: 'Trade Assurance', href: '/trade-assurance' },
-      { label: 'Logistics', href: '/logistics' },
+      { label: t('footer.forBuyers'), href: '/buyers' },
+      { label: t('footer.forSuppliers'), href: '/suppliers' },
+      { label: t('footer.tradeAssurance'), href: '/trade-assurance' },
+      { label: t('footer.logistics'), href: '/logistics' },
     ],
   };
 
@@ -51,22 +51,30 @@ const Footer: React.FC = () => {
               </div>
             </div>
             <p className="text-primary-foreground/80 mb-4 md:mb-6 text-sm md:text-base max-w-sm leading-relaxed">
-              Connecting buyers and suppliers worldwide. Your trusted partner for international B2B trade.
+              {t('footer.description')}
             </p>
             
-            {/* Contact Info */}
+            {/* Contact Info - چندزبانه */}
             <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
-              <a href="mailto:info@aslmarket.com" className="flex items-center gap-2 md:gap-3 text-primary-foreground/80 hover:text-accent transition-colors text-sm md:text-base break-all">
+              <a href="mailto:info@asllmarket.org" className="flex items-center gap-2 md:gap-3 text-primary-foreground/80 hover:text-accent transition-colors text-sm md:text-base break-all">
                 <Mail className="h-4 w-4 shrink-0" />
-                <span>info@aslmarket.com</span>
+                <span>info@asllmarket.org</span>
               </a>
-              <a href="tel:+1234567890" className="flex items-center gap-2 md:gap-3 text-primary-foreground/80 hover:text-accent transition-colors text-sm md:text-base">
+              <a href="tel:+982188922936" className="flex items-center gap-2 md:gap-3 text-primary-foreground/80 hover:text-accent transition-colors text-sm md:text-base">
                 <Phone className="h-4 w-4 shrink-0" />
-                <span>+1 (234) 567-890</span>
+                <span>۰۲۱-۸۸۹۲۲۹۳۶-۹</span>
+              </a>
+              <a href="https://t.me/alirezaasll" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 md:gap-3 text-primary-foreground/80 hover:text-accent transition-colors text-sm md:text-base">
+                <MessageCircle className="h-4 w-4 shrink-0" />
+                <span>@alirezaasll ({t('footer.telegramSupport')})</span>
+              </a>
+              <a href="tel:+989120211407" className="flex items-center gap-2 md:gap-3 text-primary-foreground/80 hover:text-accent transition-colors text-sm md:text-base">
+                <Phone className="h-4 w-4 shrink-0" />
+                <span>۰۹۱۲-۰۲۱۱۴۰۷</span>
               </a>
               <div className="flex items-center gap-2 md:gap-3 text-primary-foreground/80 text-sm md:text-base">
                 <MapPin className="h-4 w-4 shrink-0" />
-                <span>Global Operations</span>
+                <span>{t('footer.address')}</span>
               </div>
             </div>
 
@@ -87,7 +95,7 @@ const Footer: React.FC = () => {
 
           {/* Links Columns */}
           <div>
-            <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">Company</h3>
+            <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">{t('footer.company')}</h3>
             <ul className="space-y-2 md:space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
@@ -106,7 +114,7 @@ const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">Support</h3>
+            <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">{t('footer.support')}</h3>
             <ul className="space-y-2 md:space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.href}>
@@ -125,7 +133,7 @@ const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">Trade</h3>
+            <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">{t('footer.trade')}</h3>
             <ul className="space-y-2 md:space-y-3">
               {footerLinks.trade.map((link) => (
                 <li key={link.href}>

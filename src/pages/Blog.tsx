@@ -14,7 +14,11 @@ import {
   Eye,
   Heart,
   Share2,
-  X
+  X,
+  Download,
+  Mail,
+  Phone,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +59,13 @@ interface BlogPost {
 
 const categories = ['All', 'Trading', 'Supply Chain', 'E-commerce', 'Business', 'Finance', 'Technology'];
 const popularTags = ['B2B', 'Trading', 'Suppliers', 'E-commerce', 'Finance', 'Technology', 'International', 'Business'];
+
+const mediaKitItems = [
+  { nameKey: 'logo', name: 'Company Logo', formats: ['PNG', 'SVG', 'PDF'], url: '#' },
+  { nameKey: 'brand', name: 'Brand Guidelines', formats: ['PDF'], url: '#' },
+  { nameKey: 'photos', name: 'Press Photos', formats: ['JPG', 'PNG'], url: '#' },
+  { nameKey: 'fact', name: 'Company Fact Sheet', formats: ['PDF'], url: '#' },
+];
 
 const Blog: React.FC = () => {
   const { language, dir } = useLanguage();
@@ -467,6 +478,46 @@ const Blog: React.FC = () => {
                           </div>
                         </div>
                       ))}
+                  </div>
+                </Card>
+
+                {/* Media Kit & Press Contact - منتقل شده از صفحه Press */}
+                <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-2 border-primary/20">
+                  <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    {language === 'fa' ? 'رسانه‌کیت' : language === 'ar' ? 'مجموعة الوسائط' : 'Media Kit'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {language === 'fa' ? 'لوگو، راهنما و منابع' : language === 'ar' ? 'الشعار والموارد' : 'Logos, guidelines & resources'}
+                  </p>
+                  <div className="space-y-2 mb-6">
+                    {mediaKitItems.map((item) => (
+                      <div key={item.nameKey} className="flex items-center justify-between gap-2 text-sm">
+                        <span className="font-medium truncate">{item.name}</span>
+                        <Button variant="ghost" size="sm" className="h-8 gap-1 shrink-0" onClick={() => window.open(item.url, '_blank')}>
+                          <Download className="h-3.5 w-3.5" />
+                          {language === 'fa' ? 'دانلود' : language === 'ar' ? 'تحميل' : 'Download'}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pt-4 border-t border-primary/20">
+                    <h4 className="font-semibold text-sm mb-2">
+                      {language === 'fa' ? 'تماس با رسانه' : language === 'ar' ? 'اتصال الوسائط' : 'Press Contact'}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {language === 'fa' ? 'سوالات رسانه‌ای یا مصاحبه' : language === 'ar' ? 'استفسارات أو مقابلات' : 'Media inquiries or interviews'}
+                    </p>
+                    <div className="space-y-1.5 text-sm">
+                      <a href="mailto:press@aslmarket.com" className="flex items-center gap-2 text-primary hover:underline">
+                        <Mail className="h-3.5 w-3.5 shrink-0" />
+                        press@aslmarket.com
+                      </a>
+                      <a href="tel:+1234567890" className="flex items-center gap-2 text-primary hover:underline">
+                        <Phone className="h-3.5 w-3.5 shrink-0" />
+                        +1 (234) 567-890
+                      </a>
+                    </div>
                   </div>
                 </Card>
               </div>

@@ -97,7 +97,6 @@ func NewRouter(
 	api.GET("/blog-posts/:id", cmsHandler.GetBlogPost)
 	api.GET("/faqs", cmsHandler.ListFAQs)
 	api.GET("/jobs", cmsHandler.ListJobs)
-	api.GET("/press-releases", cmsHandler.ListPressReleases)
 
 	// Auth
 	authGroup := api.Group("/auth")

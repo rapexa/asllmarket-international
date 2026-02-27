@@ -57,10 +57,5 @@ func (s *Service) ListJobs(ctx context.Context) ([]*Job, error) {
 	return s.repo.ListJobs(ctx)
 }
 
-// ListPressReleases returns all press releases.
-func (s *Service) ListPressReleases(ctx context.Context) ([]*PressRelease, error) {
-	return s.repo.ListPressReleases(ctx)
-}
-
 
 

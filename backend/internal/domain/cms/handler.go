@@ -100,19 +100,5 @@ func (h *Handler) ListJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"items": jobs})
 }
 
-// ListPressReleases returns public press releases.
-func (h *Handler) ListPressReleases(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
-
-	releases, err := h.svc.ListPressReleases(ctx)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"items": releases})
-}
-
 
 

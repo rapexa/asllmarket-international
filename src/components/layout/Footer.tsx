@@ -11,7 +11,6 @@ const Footer: React.FC = () => {
       { label: t('footer.about'), href: '/about' },
       { label: t('footer.careers'), href: '/careers' },
       { label: t('footer.blog'), href: '/blog' },
-      { label: t('footer.press'), href: '/press' },
     ],
     support: [
       { label: t('footer.dashboard'), href: '/dashboard' },
@@ -117,7 +116,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-2 md:space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
-                  {link.href === '/careers' || link.href === '/about' || link.href === '/blog' || link.href === '/press' ? (
+                  {link.href === '/careers' || link.href === '/about' || link.href === '/blog' ? (
                     <Link to={link.href} className="text-primary-foreground/70 hover:text-accent transition-colors text-sm md:text-base block py-1">
                       {link.label}
                     </Link>

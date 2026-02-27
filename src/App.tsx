@@ -36,7 +36,6 @@ import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
 import BlogDetail from "./pages/BlogDetail";
-import Press from "./pages/Press";
 import HelpCenter from "./pages/HelpCenter";
 import FAQ from "./pages/FAQ";
 import Feedback from "./pages/Feedback";
@@ -123,7 +122,6 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/press" element={<Press />} />
             <Route path="/help" element={<HelpCenter />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/feedback" element={<Feedback />} />

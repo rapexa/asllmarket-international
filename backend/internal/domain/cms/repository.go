@@ -13,14 +13,13 @@ var (
 	ErrNotFound = errors.New("cms resource not found")
 )
 
-// Repository defines persistence for CMS entities (currently contact messages, blog posts, FAQs, jobs, press).
+// Repository defines persistence for CMS entities (contact messages, blog posts, FAQs, jobs).
 type Repository interface {
 	CreateContactMessage(ctx context.Context, msg *ContactMessage) error
 	ListBlogPosts(ctx context.Context, limit, offset int) ([]*BlogPost, error)
 	GetBlogPostByID(ctx context.Context, id string) (*BlogPost, error)
 	ListFAQs(ctx context.Context) ([]*FAQ, error)
 	ListJobs(ctx context.Context) ([]*Job, error)
-	ListPressReleases(ctx context.Context) ([]*PressRelease, error)
 }
 
 type mySQLCMSRepository struct {
@@ -222,39 +221,4 @@ ORDER BY posted_at DESC, created_at DESC`
 		jobs = append(jobs, &j)
 	}
 	return jobs, rows.Err()
-}
-
-func (r *mySQLCMSRepository) ListPressReleases(ctx context.Context) ([]*PressRelease, error) {
-	const query = `
-SELECT id, title, excerpt, content, category,
-       published_at, featured, attachments, created_at, updated_at
-FROM cms_press_releases
-ORDER BY featured DESC, published_at DESC, created_at DESC`
-
-	rows, err := r.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var releases []*PressRelease
-	for rows.Next() {
-		var pr PressRelease
-		if err := rows.Scan(
-			&pr.ID,
-			&pr.Title,
-			&pr.Excerpt,
-			&pr.Content,
-			&pr.Category,
-			&pr.PublishedAt,
-			&pr.Featured,
-			&pr.Attachments,
-			&pr.CreatedAt,
-			&pr.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		releases = append(releases, &pr)
-	}
-	return releases, rows.Err()
 }

@@ -79,27 +79,6 @@ export interface JobListResponse {
   items: JobItem[];
 }
 
-export interface PressAttachment {
-  type: 'pdf' | 'image' | 'video';
-  name: string;
-  url: string;
-}
-
-export interface PressReleaseItem {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  category: 'announcement' | 'partnership' | 'award' | 'milestone' | 'product' | string;
-  publishedAt?: string;
-  featured?: boolean;
-  attachments?: PressAttachment[];
-}
-
-export interface PressReleaseListResponse {
-  items: PressReleaseItem[];
-}
-
 export const cmsService = {
   async submitContact(data: ContactRequest): Promise<ContactMessage> {
     return api.post<ContactMessage>('/contact', data);
@@ -119,10 +98,6 @@ export const cmsService = {
 
   async listJobs(): Promise<JobListResponse> {
     return api.get<JobListResponse>('/jobs');
-  },
-
-  async listPressReleases(): Promise<PressReleaseListResponse> {
-    return api.get<PressReleaseListResponse>('/press-releases');
   },
 };
 

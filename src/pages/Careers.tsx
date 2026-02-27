@@ -183,7 +183,7 @@ const Careers: React.FC = () => {
       case 'full-time':
         return 'bg-green-500/10 text-green-600 border-green-500/20';
       case 'part-time':
-        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+        return 'bg-primary/10 text-primary border-primary/20';
       case 'contract':
         return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
       case 'remote':

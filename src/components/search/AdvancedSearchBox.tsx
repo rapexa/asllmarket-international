@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Image as ImageIcon, Sparkles, Filter, Loader2 } from 'lucide-react';
+import { Search, Image as ImageIcon, Sparkles, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -8,7 +8,6 @@ import { useTypingPlaceholder } from '@/hooks/useTypingPlaceholder';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import ImageUploadModal from './ImageUploadModal';
-import AdvancedFiltersPanel from './AdvancedFiltersPanel';
 
 interface AdvancedSearchBoxProps {
   className?: string;
@@ -27,7 +26,6 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -166,28 +164,6 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
               <ImageIcon className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
             </Button>
 
-            {/* Filter Toggle */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "h-9 w-9 rounded-lg hover:bg-muted transition-all duration-200",
-                "relative group",
-                filtersOpen && "bg-accent/10 text-accent"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                setFiltersOpen(!filtersOpen);
-              }}
-              title={language === 'fa' ? 'فیلترها' : language === 'ar' ? 'المرشحات' : 'Filters'}
-            >
-              <Filter className={cn(
-                "h-4 w-4 transition-colors",
-                filtersOpen ? "text-accent" : "text-muted-foreground group-hover:text-accent"
-              )} />
-            </Button>
-
             {/* Search Button */}
             <Button
               type="button"
@@ -243,18 +219,6 @@ const AdvancedSearchBox: React.FC<AdvancedSearchBoxProps> = ({
             </div>
           </div>
         )}
-
-        {/* Filters Panel */}
-        <AdvancedFiltersPanel
-          isOpen={filtersOpen}
-          onClose={() => setFiltersOpen(false)}
-          onApply={(filters) => {
-            // Apply filters to search
-            const params = new URLSearchParams({ q: searchQuery || '', ...filters });
-            navigate(`/search?${params.toString()}`);
-            setFiltersOpen(false);
-          }}
-        />
       </div>
 
       {/* Image Upload Modal */}

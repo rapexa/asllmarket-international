@@ -58,9 +58,9 @@ const Step3SupplierProfile: React.FC<Step3SupplierProfileProps> = ({ onNext, onB
       </div>
 
       {/* Verification Notice */}
-      <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        <AlertDescription className="text-blue-800 dark:text-blue-200">
+      <Alert className="bg-primary/10 dark:bg-primary/20 border-primary/30 dark:border-primary/40">
+        <AlertCircle className="h-4 w-4 text-primary" />
+        <AlertDescription className="text-foreground/90">
           Your account will be marked as <strong>"Pending Verification"</strong> until we review your documents. You can complete your full profile after registration.
         </AlertDescription>
       </Alert>

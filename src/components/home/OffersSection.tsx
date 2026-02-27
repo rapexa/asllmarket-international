@@ -33,7 +33,7 @@ const OffersSection: React.FC = () => {
         const res = await productService.list({ limit: 6 });
         const items = res.items || [];
         const palette = [
-          'from-blue-600 to-purple-600',
+          'from-primary to-primary-light',
           'from-pink-500 to-rose-500',
           'from-orange-500 to-amber-500',
         ];

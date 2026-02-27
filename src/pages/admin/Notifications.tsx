@@ -128,7 +128,7 @@ const Notifications: React.FC = () => {
   const getNotificationColor = (type: NotificationType) => {
     switch (type) {
       case 'order':
-        return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+        return 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary';
       case 'product':
         return 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400';
       case 'user':
@@ -136,7 +136,7 @@ const Notifications: React.FC = () => {
       case 'payment':
         return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'verification':
-        return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400';
+        return 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary';
       case 'system':
         return 'bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400';
       default:
@@ -215,7 +215,7 @@ const Notifications: React.FC = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Unread</CardDescription>
-              <CardTitle className="text-2xl text-blue-600">{unreadCount}</CardTitle>
+              <CardTitle className="text-2xl text-primary">{unreadCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
@@ -314,7 +314,7 @@ const Notifications: React.FC = () => {
                           className={cn(
                             "flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer",
                             !notification.isRead
-                              ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900"
+                              ? "bg-primary/5 dark:bg-primary/10 border-primary/20 dark:border-primary/30"
                               : "bg-card border-border hover:bg-accent/50"
                           )}
                           onClick={() => handleNotificationClick(notification)}
@@ -336,7 +336,7 @@ const Notifications: React.FC = () => {
                                     {notification.title}
                                   </h4>
                                   {!notification.isRead && (
-                                    <div className="h-2 w-2 rounded-full bg-blue-600 shrink-0" />
+                                    <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
                                   )}
                                   {getPriorityBadge(notification.priority || 'medium')}
                                 </div>
@@ -401,7 +401,7 @@ const Notifications: React.FC = () => {
                             key={notification.id}
                             className={cn(
                               "flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer",
-                              "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900"
+                              "bg-primary/5 dark:bg-primary/10 border-primary/20 dark:border-primary/30"
                             )}
                             onClick={() => handleNotificationClick(notification)}
                           >
@@ -418,7 +418,7 @@ const Notifications: React.FC = () => {
                                     <h4 className="font-bold text-sm">
                                       {notification.title}
                                     </h4>
-                                    <div className="h-2 w-2 rounded-full bg-blue-600 shrink-0" />
+                                    <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
                                     {getPriorityBadge(notification.priority)}
                                   </div>
                                   <p className="text-sm text-muted-foreground">

@@ -138,8 +138,8 @@ const Step3MarketProfile: React.FC<Step3MarketProfileProps> = ({ onNext, onBack 
       </div>
 
       {/* Verification Notice */}
-      <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-        <AlertDescription className="text-blue-800 dark:text-blue-200">
+      <Alert className="bg-primary/10 dark:bg-primary/20 border-primary/30 dark:border-primary/40">
+        <AlertDescription className="text-foreground/90">
           Your market account will be reviewed by our team. You'll receive an email notification once approved (usually within 2-5 business days).
         </AlertDescription>
       </Alert>

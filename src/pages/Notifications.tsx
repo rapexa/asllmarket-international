@@ -58,7 +58,7 @@ const Notifications: React.FC = () => {
   const getTypeColor = (type: NotificationType) => {
     switch (type) {
       case 'business':
-        return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        return 'bg-primary/10 text-primary border-primary/20';
       case 'interaction':
         return 'bg-green-500/10 text-green-500 border-green-500/20';
       case 'system':

@@ -37,7 +37,7 @@ const Step5Success: React.FC<Step5SuccessProps> = ({ role, onComplete }) => {
       descriptionAr: 'حسابك قيد المراجعة. أكمل ملفك الشخصي لبدء البيع.',
       dashboardPath: '/dashboard/supplier',
       icon: Building2,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     // شاید در آینده استفاده بشه: visitor, both, market
     // visitor: { ... },
@@ -112,11 +112,11 @@ const Step5Success: React.FC<Step5SuccessProps> = ({ role, onComplete }) => {
 
       {/* Next Steps */}
       {role === 'supplier' && (
-        <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-2xl p-6 max-w-2xl mx-auto">
-          <h3 className="font-bold text-lg mb-2 text-blue-900 dark:text-blue-100">
+        <div className="bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40 rounded-2xl p-6 max-w-2xl mx-auto">
+          <h3 className="font-bold text-lg mb-2 text-primary">
             Account Status: Pending Verification
           </h3>
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+          <p className="text-sm text-foreground/90">
             We're reviewing your documents. You'll receive an email notification once your account is verified (usually within 1-3 business days).
           </p>
         </div>

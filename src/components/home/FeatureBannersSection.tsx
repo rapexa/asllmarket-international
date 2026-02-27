@@ -51,7 +51,7 @@ const FeatureBannersSection: React.FC = () => {
       descFa: 'ارسال ۱ روزه',
       descAr: 'شحن يوم واحد',
       icon: Zap,
-      gradient: 'from-violet-700 to-violet-900',
+      gradient: 'from-primary to-primary-dark',
       image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=400&fit=crop',
       action: '/products?filter=custom'
     },

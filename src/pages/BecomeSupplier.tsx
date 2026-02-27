@@ -23,7 +23,7 @@ const BecomeSupplier: React.FC = () => {
         : language === 'ar'
         ? 'الوصول إلى ملايين المشترين في جميع أنحاء العالم'
         : 'Reach millions of buyers worldwide',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: TrendingUp,
@@ -73,7 +73,7 @@ const BecomeSupplier: React.FC = () => {
         : language === 'ar'
         ? 'فريق دعم على مدار الساعة لمساعدتك في نمو أعمالك'
         : '24/7 support team to help grow your business',
-      color: 'from-indigo-500 to-blue-500',
+      color: 'from-primary to-primary-light',
     },
   ];
 

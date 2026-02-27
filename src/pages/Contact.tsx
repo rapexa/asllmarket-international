@@ -116,7 +116,7 @@ const Contact: React.FC = () => {
       title: language === 'fa' ? 'ایمیل' : language === 'ar' ? 'البريد الإلكتروني' : 'Email',
       content: 'info@asllmarket.org',
       link: 'mailto:info@asllmarket.org',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: Phone,
@@ -130,7 +130,7 @@ const Contact: React.FC = () => {
       title: language === 'fa' ? 'پشتیبانی تلگرام' : language === 'ar' ? 'دعم تيليجرام' : 'Telegram Support',
       content: '@alirezaasll • ۰۹۱۲-۰۲۱۱۴۰۷',
       link: 'https://t.me/alirezaasll',
-      color: 'from-sky-500 to-blue-600',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: MapPin,

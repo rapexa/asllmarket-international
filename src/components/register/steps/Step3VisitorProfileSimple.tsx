@@ -99,8 +99,8 @@ const Step3VisitorProfile: React.FC<Step3VisitorProfileProps> = ({ onNext, onBac
         </div>
 
         {/* Info */}
-        <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+        <div className="bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40 rounded-xl p-4">
+          <p className="text-sm text-foreground/90">
             You can explore products, connect with suppliers, and discover opportunities on ASL Market.
           </p>
         </div>

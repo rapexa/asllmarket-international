@@ -221,7 +221,7 @@ const BuyerDashboard: React.FC = () => {
                       </div>
                       <Badge
                         variant="outline"
-                        className="bg-blue-100 text-blue-700 border-blue-300"
+                        className="bg-primary/10 text-primary border-primary/30"
                       >
                         {rfq.status}
                       </Badge>

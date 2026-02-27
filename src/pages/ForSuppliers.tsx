@@ -43,7 +43,7 @@ const ForSuppliers: React.FC = () => {
         : language === 'ar'
         ? 'اتصل بشبكة المشترين العالمية وزد مبيعاتك'
         : 'Connect to the global buyer network and increase your sales',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: TrendingUp,
@@ -93,7 +93,7 @@ const ForSuppliers: React.FC = () => {
         : language === 'ar'
         ? 'فريق دعم مخصص لمساعدتك على نمو عملك'
         : 'Dedicated support team to help grow your business',
-      color: 'from-indigo-500 to-blue-500',
+      color: 'from-primary to-primary-light',
     },
   ];
 
@@ -118,7 +118,7 @@ const ForSuppliers: React.FC = () => {
         ? 'أضف منتجاتك مع صور وتفاصيل كاملة'
         : 'Add your products with images and complete details',
       icon: Upload,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       number: '03',

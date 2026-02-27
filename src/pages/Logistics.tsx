@@ -45,7 +45,7 @@ const Logistics: React.FC = () => {
         : language === 'ar'
         ? 'شحن بحري اقتصادي للشحنات الكبيرة'
         : 'Cost-effective sea freight for large shipments',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: Plane,
@@ -55,7 +55,7 @@ const Logistics: React.FC = () => {
         : language === 'ar'
         ? 'شحن سريع وفعال للشحنات العاجلة'
         : 'Fast and efficient shipping for urgent shipments',
-      color: 'from-sky-500 to-blue-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: Truck,
@@ -95,7 +95,7 @@ const Logistics: React.FC = () => {
         : language === 'ar'
         ? 'تتبع فوري لموقع الشحنة خلال الرحلة'
         : 'Real-time shipment tracking throughout the journey',
-      color: 'from-indigo-500 to-blue-500',
+      color: 'from-primary to-primary-light',
     },
   ];
 
@@ -120,7 +120,7 @@ const Logistics: React.FC = () => {
         ? 'قارن الأسعار والخدمات المختلفة'
         : 'Compare different prices and services',
       icon: BarChart3,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       number: '03',

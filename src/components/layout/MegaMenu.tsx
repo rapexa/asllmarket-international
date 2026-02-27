@@ -215,7 +215,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ isOpen, onClose, categories }) => {
                 <div className="space-y-3">
                   {[
                     { title: 'Weekly Deals', desc: 'Up to 50% off', color: 'from-red-500 to-orange-500', url: '/search?type=products&featured=true' },
-                    { title: 'New Arrivals', desc: 'Latest products', color: 'from-blue-500 to-cyan-500', url: '/search?type=products&sort=newest' },
+                    { title: 'New Arrivals', desc: 'Latest products', color: 'from-primary to-primary-light', url: '/search?type=products&sort=newest' },
                     { title: 'Verified Only', desc: 'Trusted suppliers', color: 'from-green-500 to-emerald-500', url: '/search?type=suppliers&verified=true' },
                   ].map((banner, i) => (
                     <div

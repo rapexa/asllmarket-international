@@ -136,7 +136,7 @@ const OrderDetail: React.FC = () => {
   const getStatusBadge = (status: OrderDetailData['status']) => {
     const config = {
       pending: { label: 'Pending', className: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-      confirmed: { label: 'Confirmed', className: 'bg-blue-100 text-blue-700 border-blue-300' },
+      confirmed: { label: 'Confirmed', className: 'bg-primary/10 text-primary border-primary/30' },
       processing: { label: 'Processing', className: 'bg-purple-100 text-purple-700 border-purple-300' },
       shipped: { label: 'Shipped', className: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
       delivered: { label: 'Delivered', className: 'bg-green-100 text-green-700 border-green-300' },

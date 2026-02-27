@@ -41,7 +41,7 @@ const TradeAssurance: React.FC = () => {
         : language === 'ar'
         ? 'حماية المشترين والموردين في جميع مراحل المعاملة'
         : 'Protection for buyers and suppliers at all stages of the transaction',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: Lock,
@@ -91,7 +91,7 @@ const TradeAssurance: React.FC = () => {
         : language === 'ar'
         ? 'فريق دعم مخصص لحل النزاعات'
         : 'Dedicated support team for dispute resolution',
-      color: 'from-indigo-500 to-blue-500',
+      color: 'from-primary to-primary-light',
     },
   ];
 
@@ -116,7 +116,7 @@ const TradeAssurance: React.FC = () => {
         ? 'يتم تحويل دفعتك إلى حساب الضمان الآمن'
         : 'Your payment is transferred to a secure Escrow account',
       icon: CreditCard,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       number: '03',
@@ -174,7 +174,7 @@ const TradeAssurance: React.FC = () => {
         language === 'fa' ? 'تضمین زمان تحویل' : language === 'ar' ? 'ضمان وقت التسليم' : 'Delivery Time Guarantee',
         language === 'fa' ? 'حل اختلافات' : language === 'ar' ? 'حل النزاعات' : 'Dispute Resolution',
       ],
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: Globe,

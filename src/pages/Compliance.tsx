@@ -41,7 +41,7 @@ const Compliance: React.FC = () => {
         ? 'نحن متوافقون بالكامل مع لوائح GDPR للاتحاد الأوروبي ونضمن حقوق المستخدمين للتحكم في بياناتهم الشخصية.'
         : 'We fully comply with EU GDPR regulations and guarantee users\' rights to control their personal data.',
       icon: Shield,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
       status: language === 'fa' ? 'تطابق کامل' : language === 'ar' ? 'امتثال كامل' : 'Fully Compliant',
     },
     {

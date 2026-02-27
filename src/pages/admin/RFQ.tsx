@@ -87,7 +87,7 @@ const RFQManagement: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const config: Record<string, { label: string; className: string }> = {
       draft: { label: 'Draft', className: 'bg-gray-100 text-gray-700 border-gray-300' },
-      submitted: { label: 'Submitted', className: 'bg-blue-100 text-blue-700 border-blue-300' },
+      submitted: { label: 'Submitted', className: 'bg-primary/10 text-primary border-primary/30' },
       active: { label: 'Active', className: 'bg-green-100 text-green-700 border-green-300' },
       closed: { label: 'Closed', className: 'bg-gray-100 text-gray-700 border-gray-300' },
       cancelled: { label: 'Cancelled', className: 'bg-red-100 text-red-700 border-red-300' },
@@ -136,7 +136,7 @@ const RFQManagement: React.FC = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Submitted</CardDescription>
-              <CardTitle className="text-2xl text-blue-600">
+              <CardTitle className="text-2xl text-primary">
                 {rfqs.filter(r => r.status === 'submitted').length}
               </CardTitle>
             </CardHeader>

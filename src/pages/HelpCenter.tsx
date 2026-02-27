@@ -72,7 +72,7 @@ const helpCategories: HelpCategory[] = [
     descriptionFa: 'یادگیری اصول اولیه استفاده از ASL Market',
     descriptionAr: 'تعلم أساسيات استخدام ASL Market',
     icon: BookOpen,
-    color: 'from-blue-500 to-cyan-500',
+    color: 'from-primary to-primary-light',
     articles: 12,
   },
   {
@@ -132,7 +132,7 @@ const helpCategories: HelpCategory[] = [
     descriptionFa: 'حفظ امنیت حساب کاربری',
     descriptionAr: 'حماية حسابك',
     icon: Shield,
-    color: 'from-indigo-500 to-blue-500',
+    color: 'from-primary to-primary-light',
     articles: 6,
   },
 ];

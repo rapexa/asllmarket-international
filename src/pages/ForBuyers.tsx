@@ -52,7 +52,7 @@ const ForBuyers: React.FC = () => {
         : language === 'ar'
         ? 'احصل على وصول إلى ملايين المنتجات من جميع أنحاء العالم'
         : 'Access millions of products from around the world',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: TrendingUp,
@@ -92,7 +92,7 @@ const ForBuyers: React.FC = () => {
         : language === 'ar'
         ? 'فريق الدعم لدينا دائماً جاهز لمساعدتك'
         : 'Our support team is always ready to help you',
-      color: 'from-indigo-500 to-blue-500',
+      color: 'from-primary to-primary-light',
     },
   ];
 
@@ -117,7 +117,7 @@ const ForBuyers: React.FC = () => {
         ? 'ابحث عن ملايين المنتجات واعثر على أفضل خيار'
         : 'Search millions of products and find the best option',
       icon: Search,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       number: '03',

@@ -50,9 +50,18 @@ const Header: React.FC = () => {
   return (
     <>
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-card/80 border-b border-border/50">
-        {/* Top Bar */}
-        <div className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground">
-          <div className="container flex items-center justify-between py-2 px-4 text-xs md:text-sm">
+        {/* Top Bar - گرادینت گوشه: چپ در LTR، راست در RTL */}
+        <div className="relative bg-gradient-to-r from-primary to-primary-light text-primary-foreground overflow-hidden">
+          <div
+            className={cn(
+              "absolute top-0 bottom-0 w-28 sm:w-36 pointer-events-none",
+              dir === 'rtl'
+                ? "right-0 bg-gradient-to-l from-primary-foreground/15 to-transparent"
+                : "left-0 bg-gradient-to-r from-primary-foreground/15 to-transparent"
+            )}
+            aria-hidden
+          />
+          <div className="container relative flex items-center justify-between py-2 px-4 text-xs md:text-sm">
             <div className="hidden lg:flex items-center gap-3 md:gap-4">
               <span className="opacity-90 font-medium whitespace-nowrap">🌍 Global B2B Trade Platform</span>
               <span className="text-accent/80 font-semibold hidden xl:inline">|</span>

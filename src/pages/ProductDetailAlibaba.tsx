@@ -137,8 +137,8 @@ const ProductDetailAlibaba: React.FC = () => {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     {supplier?.verified && (
                       <>
-                        <Check className="h-3 w-3 text-blue-600 shrink-0" />
-                        <span className="text-blue-600">Verified</span>
+                        <Check className="h-3 w-3 text-primary shrink-0" />
+                        <span className="text-primary">Verified</span>
                       </>
                     )}
                     {supplier?.country && (

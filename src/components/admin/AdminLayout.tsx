@@ -105,7 +105,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'order':
-        return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+        return 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary';
       case 'product':
         return 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400';
       case 'user':
@@ -113,7 +113,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       case 'payment':
         return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'verification':
-        return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400';
+        return 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary';
       case 'system':
         return 'bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400';
       default:
@@ -551,7 +551,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                             key={notification.id}
                             className={cn(
                               "flex items-start gap-3 p-4 cursor-pointer transition-colors hover:bg-accent/50",
-                              unread && "bg-blue-50/50 dark:bg-blue-950/20"
+                              unread && "bg-primary/5 dark:bg-primary/10"
                             )}
                             onClick={() => handleNotificationClick(notification)}
                           >
@@ -572,7 +572,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                       {notification.title}
                                     </h4>
                                     {unread && (
-                                      <div className="h-2 w-2 rounded-full bg-blue-600 shrink-0" />
+                                      <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
                                     )}
                                   </div>
                                   <p className="text-xs text-muted-foreground line-clamp-2">

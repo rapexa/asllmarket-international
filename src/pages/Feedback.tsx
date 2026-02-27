@@ -158,7 +158,7 @@ const Feedback: React.FC = () => {
       value: 'general',
       label: language === 'fa' ? 'بازخورد عمومی' : language === 'ar' ? 'ملاحظات عامة' : 'General Feedback',
       icon: MessageSquare,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
       description: language === 'fa' ? 'نظرات و پیشنهادات خود را به اشتراک بگذارید' : language === 'ar' ? 'شارك ملاحظاتك واقتراحاتك' : 'Share your thoughts and suggestions',
     },
     {
@@ -429,8 +429,8 @@ const Feedback: React.FC = () => {
 
             {/* Info Cards */}
             <div className="grid md:grid-cols-3 gap-6 mt-12">
-              <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-2 border-blue-500/20">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-4">
+              <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary-light/10 border-2 border-primary/20">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center mb-4">
                   <Lightbulb className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="font-bold text-foreground mb-2">

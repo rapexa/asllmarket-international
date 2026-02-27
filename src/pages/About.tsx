@@ -33,7 +33,7 @@ const About: React.FC = () => {
       value: '100K+',
       label: language === 'fa' ? 'تأمین‌کننده فعال' : language === 'ar' ? 'مورد نشط' : 'Active Suppliers',
       icon: Building2,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       value: '5M+',
@@ -64,7 +64,7 @@ const About: React.FC = () => {
         : language === 'ar'
         ? 'نلتزم بإنشاء بيئة آمنة وموثوقة لجميع معاملات B2B'
         : 'We are committed to creating a secure and trustworthy environment for all B2B transactions',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-primary to-primary-light',
     },
     {
       icon: Globe,

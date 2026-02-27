@@ -93,7 +93,7 @@ const Step2BasicInfo: React.FC<Step2BasicInfoProps> = ({ onNext, onBack, initial
 
     if (strength <= 2) return { strength, label: 'Weak', color: 'bg-destructive' };
     if (strength <= 3) return { strength, label: 'Fair', color: 'bg-warning' };
-    if (strength <= 4) return { strength, label: 'Good', color: 'bg-blue-500' };
+    if (strength <= 4) return { strength, label: 'Good', color: 'bg-primary' };
     return { strength, label: 'Strong', color: 'bg-success' };
   };
 
